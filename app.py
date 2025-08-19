@@ -3,7 +3,44 @@ from pathlib import Path
 from datetime import datetime
 import pandas as pd
 import streamlit as st
+# ===== Utilidades Gematría (rutas, estado, carga segura) =====
 
+def _gem_base_paths():
+    """Resuelve rutas base asumiendo que aplicación.py está en la raíz del repo."""
+    try:
+        base = Path(__file__).resolve().parent
+    except NameError:
+        base = Path.cwd()
+    corpus = base / "__CORPUS" / "GEMATRIA"
+    runs = base / "__RUNS" / "GEMATRIA"
+    runs.mkdir(parents=True, exist_ok=True)  # asegura carpeta de salidas
+    return base, corpus, runs
+
+def _gem_check_corpus(corpus: Path) -> dict:
+    """Verifica que existan los archivos mínimos del corpus."""
+    required = [
+        "lexicon_hebrew.yaml",
+        "translit_table.csv",
+        "stopwords_es.txt",
+        "stopwords_en.txt",
+        "patterns.yaml",
+        "bibliography.md",
+    ]
+    return {name: (corpus / name).exists() for name in required}
+
+def _gem_list_run_files(runs: Path):
+    """Lista archivos de salida si existen (no falla si no hay)."""
+    tokens = sorted(runs.glob("gematria_tokens_*.csv"))
+    news = sorted(runs.glob("gematria_news_*.csv"))
+    return tokens, news
+
+def _load_csv_safe(path: Path):
+    """Carga CSV en UTF-8 de forma segura."""
+    try:
+        return pd.read_csv(path, dtype=str, encoding="utf-8")
+    except Exception as e:
+        st.error(f"Error al leer {path.name}: {e}")
+        return None
 st.set_page_config(page_title="Visión", page_icon="🔮", layout="wide")
 
 # ===== Título general
