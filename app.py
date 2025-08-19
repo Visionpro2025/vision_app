@@ -3,9 +3,6 @@ from pathlib import Path
 from datetime import datetime
 import pandas as pd
 import streamlit as st
-import streamlit as st
-import pandas as pd
-from datetime import date, datetime
 
 st.set_page_config(page_title="Visión", page_icon="🔮", layout="wide")
 
