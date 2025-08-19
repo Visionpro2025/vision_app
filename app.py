@@ -1,18 +1,26 @@
-from flask import Flask, jsonify
+import streamlit as st
+import pandas as pd
 
-app = Flask(__name__)
+# Título general
+st.title("🔮 Sistema Predictivo Visión")
 
-@app.route("/")
-def home():
-    return jsonify({
-        "mensaje": "Bienvenido a Visión vX.Ω",
-        "estado": "OK",
-        "version": "1.0.0"
-    })
+# Menú lateral
+menu = st.sidebar.selectbox(
+    "Selecciona un módulo:",
+    ["Inicio", "Visión", "Tabla T70"]
+)
 
-@app.route("/ping")
-def ping():
-    return jsonify({"respuesta": "pong"})
+# Secciones
+if menu == "Inicio":
+    st.write("Bienvenido a la App del sistema Visión 🚀")
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+elif menu == "Visión":
+    st.write("Aquí estará la lógica principal del sistema Visión.")
+
+elif menu == "Tabla T70":
+    st.subheader("📊 Tabla T70")
+    try:
+        df = pd.read_csv("T70.csv")
+        st.dataframe(df)
+    except Exception as e:
+        st.error(f"No se pudo cargar T70.csv: {e}")
