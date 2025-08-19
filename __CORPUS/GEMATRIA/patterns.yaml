@@ -1,0 +1,100 @@
+# Patrones y frases clave para priorizar en análisis de gematría
+# Estas palabras disparan la selección de frases relevantes
+# Incluye emociones, sucesos sociales, símbolos y fenómenos globales
+
+patrones:
+  # Éxito y victoria
+  - récord
+  - histórico
+  - millonario
+  - victoria
+  - campeón
+  - éxito
+  - logro
+  - conquista
+  - triunfo
+  - renacimiento
+
+  # Pérdida y tragedia
+  - tragedia
+  - crisis
+  - catástrofe
+  - desastre
+  - derrumbe
+  - colapso
+  - pérdida
+  - caída
+  - accidente
+  - devastación
+
+  # Misterio y revelación
+  - misterio
+  - secreto
+  - profecía
+  - milagro
+  - revelación
+  - enigma
+  - oculto
+  - símbolo
+  - destino
+  - señal
+
+  # Conflicto y poder
+  - guerra
+  - batalla
+  - ataque
+  - invasión
+  - amenaza
+  - rebelión
+  - revolución
+  - victoria
+  - imperio
+  - dominio
+
+  # Economía y sociedad
+  - premio
+  - ganador
+  - lotería
+  - riqueza
+  - pobreza
+  - deuda
+  - inflación
+  - economía
+  - mercado
+  - colapso financiero
+
+  # Emoción humana
+  - felicidad
+  - esperanza
+  - miedo
+  - tristeza
+  - angustia
+  - gloria
+  - sacrificio
+  - fe
+  - pasión
+  - resiliencia
+
+  # Naturaleza y fenómenos
+  - terremoto
+  - huracán
+  - tormenta
+  - fuego
+  - erupción
+  - eclipse
+  - luna
+  - sol
+  - asteroide
+  - universo
+
+  # Cultura y figuras
+  - celebridad
+  - héroe
+  - líder
+  - mártir
+  - visionario
+  - artista
+  - sabio
+  - científico
+  - profeta
+  - maestro
