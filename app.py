@@ -49,7 +49,7 @@ st.title("🔮 Sistema Predictivo Visión")
 # ===== Menú lateral
 menu = st.sidebar.selectbox(
     "Selecciona un módulo:",
-    ["Inicio", "Visión", "Tabla T70", "Noticias"]
+    ["Inicio", "Visión", "Tabla T70", "Noticias", "Gematría"]  # ← añadida
 )
 
 # ===== Inicio
@@ -73,7 +73,115 @@ elif menu == "Tabla T70":
 # ===== Noticias (bitácora)
 elif menu == "Noticias":
     st.subheader("🗞️ Noticias — bitácora del sorteo")
+elif menu == "Gematría":
+    st.title("🔡 Capa Gematría")
 
+    # --- utilidades mínimas (si ya las pegaste arriba, omite esta sección) ---
+    from pathlib import Path
+    import pandas as pd
+
+    def _gem_base_paths():
+        try:
+            base = Path(__file__).resolve().parent
+        except NameError:
+            base = Path.cwd()
+        corpus = base / "__CORPUS" / "GEMATRIA"
+        runs = base / "__RUNS" / "GEMATRIA"
+        runs.mkdir(parents=True, exist_ok=True)
+        return base, corpus, runs
+
+    def _gem_check_corpus(corpus: Path) -> dict:
+        required = [
+            "lexicon_hebrew.yaml",
+            "translit_table.csv",
+            "stopwords_es.txt",
+            "stopwords_en.txt",
+            "patterns.yaml",
+            "bibliography.md",
+        ]
+        return {name: (corpus / name).exists() for name in required}
+
+    def _gem_list_run_files(runs: Path):
+        tokens = sorted(runs.glob("gematria_tokens_*.csv"))
+        news = sorted(runs.glob("gematria_news_*.csv"))
+        return tokens, news
+
+    def _load_csv_safe(path: Path):
+        try:
+            return pd.read_csv(path, dtype=str, encoding="utf-8")
+        except Exception as e:
+            st.error(f"Error al leer {path.name}: {e}")
+            return None
+    # -------------------------------------------------------------------------
+
+    base, corpus, runs = _gem_base_paths()
+    st.caption(f"📁 Base del proyecto: {base}")
+    st.write("---")
+
+    # Estado del corpus
+    st.subheader("Estado del corpus de Gematría")
+    status = _gem_check_corpus(corpus)
+    cols = st.columns(3)
+    for i, (fname, ok) in enumerate(status.items()):
+        with cols[i % 3]:
+            st.success(f"✅ {fname}") if ok else st.warning(f"⚠️ Falta {fname}")
+
+    if not all(status.values()):
+        st.info("Sube todos los archivos faltantes a `__CORPUS/GEMATRIA/`.")
+    st.write("---")
+
+    # Resultados disponibles
+    st.subheader("Resultados disponibles")
+    tokens_files, news_files = _gem_list_run_files(runs)
+
+    colL, colR = st.columns(2)
+
+    with colL:
+        st.markdown("**Consolidado por noticia** (`gematria_news_YYYYMMDD.csv`)")
+        if news_files:
+            selected_news = st.selectbox(
+                "Selecciona un archivo de consolidado:",
+                options=[f.name for f in news_files],
+                key="news_select"
+            )
+            df_news = _load_csv_safe(runs / selected_news)
+            if df_news is not None and not df_news.empty:
+                st.dataframe(df_news, use_container_width=True, hide_index=True)
+                st.download_button(
+                    "⬇️ Descargar consolidado",
+                    df_news.to_csv(index=False).encode("utf-8"),
+                    file_name=selected_news,
+                    mime="text/csv"
+                )
+            else:
+                st.info("El archivo está vacío o no pudo cargarse.")
+        else:
+            st.info("Aún no hay `gematria_news_*.csv` en `__RUNS/GEMATRIA/`.")
+
+    with colR:
+        st.markdown("**Detalle por token** (`gematria_tokens_YYYYMMDD.csv`)")
+        if tokens_files:
+            selected_tokens = st.selectbox(
+                "Selecciona un archivo de tokens:",
+                options=[f.name for f in tokens_files],
+                key="tokens_select"
+            )
+            df_tokens = _load_csv_safe(runs / selected_tokens)
+            if df_tokens is not None and not df_tokens.empty:
+                st.dataframe(df_tokens, use_container_width=True, hide_index=True)
+                st.download_button(
+                    "⬇️ Descargar detalle",
+                    df_tokens.to_csv(index=False).encode("utf-8"),
+                    file_name=selected_tokens,
+                    mime="text/csv"
+                )
+            else:
+                st.info("El archivo está vacío o no pudo cargarse.")
+        else:
+            st.info("Aún no hay `gematria_tokens_*.csv` en `__RUNS/GEMATRIA/`.")
+
+    st.write("---")
+    st.caption("Cuando se generen resultados, aparecerán aquí automáticamente.")
     # Opciones básicas
     sorteos_disponibles = ["MegaMillions", "Powerball", "Otro"]
 
