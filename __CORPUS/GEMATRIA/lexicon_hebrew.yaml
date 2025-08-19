@@ -1,0 +1,15 @@
+# Diccionario inicial de transliteración palabra → hebreo
+# Este archivo se irá expandiendo con el tiempo.
+# Clave = palabra en español/inglés
+# Valor = transliteración al hebreo
+
+Ganador: "גנאדור"
+Nueva York: "ניו יורק"
+Estados Unidos: "ארצות הברית"
+Premio: "פרס"
+Millones: "מיליונים"
+Crisis: "משבר"
+Historia: "היסטוריה"
+Tragedia: "טרגדיה"
+Felicidad: "אושר"
+Victoria: "ניצחון"
