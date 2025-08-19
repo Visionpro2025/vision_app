@@ -1,4 +1,4 @@
 id_noticia,fecha,sorteo,fuente,titular,resumen,url,etiquetas
 N-2025-08-19-1,2025-08-19,MegaMillions,Reuters,Ejemplo de titular,Descripción breve de la noticia,https://ejemplo.com,politica;economia
-N-2025-08-19-001,2025-08-19,MegaMillions,Reuters,"Ganador récord en Nueva York","Un boleto único acertó todos los números del sorteo.",https://ejemplo.com/ganador,"premio;ganador;NY"
-N-2025-08-19-002,2025-08-19,Powerball,BBC,"Tendencia de ventas masivas","El incremento en ventas rompe récords nacionales.",https://ejemplo.com/ventas,"ventas;powerball;record"
+N-2025-08-19-001,2025-08-19,MegaMillions,Reuters,Ganador récord en Nueva York,Un boleto único acertó todos los números del sorteo.,https://ejemplo.com/ganador,premio;ganador;NY
+N-2025-08-19-002,2025-08-19,Powerball,BBC,Tendencia de ventas masivas,El incremento en ventas rompe récords nacionales.,https://ejemplo.com/ventas,ventas;powerball;record
