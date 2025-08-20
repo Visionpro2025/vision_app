@@ -1,3 +1,4 @@
+.streamlit/secrets.toml
 [theme]
 primaryColor = "#6C63FF"
 backgroundColor = "#0E1117"
