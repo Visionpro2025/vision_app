@@ -1,0 +1,3 @@
+doc_id,file_path,owner,allowed_codes,notes
+L-001,__LIBRARY/nota.txt,visionpro,ABC123;VIP2025,prueba
+L-002,__LIBRARY/ejemplo.csv,visionpro,VIP2025,solo demo
