@@ -1,3 +1,4 @@
+
 # modules/orchestrator.py
 from __future__ import annotations
 from pathlib import Path
@@ -75,7 +76,7 @@ def check_t70() -> dict:
     return {
         "name": "Tabla T70",
         "exists": ok,
-        "schema_ok": True,   # por ahora solo exigimos existencia
+        "schema_ok": True,
         "rows": len(_load_csv_safe(path)) if ok else 0,
         "details": [],
         "path": str(path),
@@ -108,7 +109,7 @@ def check_subliminal() -> dict:
             "rows": 0,
             "details": [f"sentiment={'OK' if senti else 'no'} | zsc={'OK' if zsc else 'no'}"],
             "path": "modules/subliminal_module.py",
-            "blocking": True,  # no bloqueamos por falta de modelos; hay plan B
+            "blocking": True,  # tiene plan B, no bloqueamos
         }
     except Exception as e:
         return {
@@ -128,7 +129,7 @@ CHECKS = {
     "Tabla T70": check_t70,
 }
 
-# ====== ejecución (placeholder que llama a cada vista si se desea)
+# ====== ejecución (llama a cada vista si se desea)
 def _run_step(step: str):
     if step == "Noticias":
         import importlib, modules.noticias_module as mod
@@ -157,13 +158,11 @@ def _run_step(step: str):
 def render_orchestrator():
     st.subheader("🧭 Orquestador de capas")
 
-    # ---- estado actual / health
+    # ---- estado actual
     st.markdown("### Estado actual de las capas")
-    results = []
     cols = st.columns(4)
     for i, name in enumerate(["Noticias", "Gematría", "Subliminal", "Tabla T70"]):
         res = CHECKS[name]()
-        results.append(res)
         with cols[i]:
             ok = res["exists"] and res["schema_ok"]
             st.metric(
@@ -183,21 +182,17 @@ def render_orchestrator():
         options=["Noticias", "Gematría", "Subliminal", "Tabla T70"],
         default=default_order
     )
-    # mantener el orden como aparece en 'order'
     st.caption(f"Orden propuesto: {' → '.join(order) if order else '(ninguno)'}")
 
-    # ---- política de bloqueos
     stop_on_warning = st.checkbox(
         "Detener si una capa crítica falla (recomendado)", value=True
     )
 
-    # ---- ejecutar
     if st.button("▶️ Ejecutar pipeline en este orden"):
         _log_event("start", {"order": order, "stop_on_warning": stop_on_warning})
         stopped = False
         for step in order:
             res = CHECKS[step]()
-            # notificación previa
             if not (res["exists"] and res["schema_ok"]):
                 st.error(f"❌ {step}: requisito no cumplido.")
                 for d in res["details"]:
@@ -225,7 +220,6 @@ def render_orchestrator():
         if not stopped:
             st.success("✅ Pipeline finalizado.")
 
-    # ---- utilidades
     with st.expander("🗒️ Bitácora del orquestador", expanded=False):
         logs = sorted(RUNS.glob("orchestrator_*.log.jsonl"))
         if logs:
