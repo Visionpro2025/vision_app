@@ -1,125 +1,87 @@
-# modules/noticias_module.py — Dual view + auto-acopio diario
+# modules/noticias_module.py — Vista doble (Cruda vs Filtrada) + motivos + descargas
 from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
 import streamlit as st
-import requests
 
 ROOT = Path(__file__).resolve().parent.parent
 NEWS_CSV = ROOT / "noticias.csv"
-RUNS_NEWS = ROOT / "__RUNS" / "NEWS"; RUNS_NEWS.mkdir(parents=True, exist_ok=True)
-STAMP = RUNS_NEWS / "last_fetch_UTC.txt"
 
-def _ensure_cols(df: pd.DataFrame) -> pd.DataFrame:
-    cols = ["id_noticia","fecha","sorteo","pais","fuente","titular","resumen",
-            "etiquetas","nivel_emocional_diccionario","nivel_emocional_modelo",
-            "nivel_emocional_final","noticia_relevante","categorias_t70_ref","url"]
-    for c in cols:
-        if c not in df.columns: df[c] = ""
-    return df[cols]
+# --------- Utilidades básicas ---------
+REQUIRED_COLS = [
+    "id_noticia","fecha","sorteo","pais","fuente","titular","resumen",
+    "etiquetas","nivel_emocional_diccionario","nivel_emocional_modelo",
+    "nivel_emocional_final","noticia_relevante","categorias_t70_ref","url"
+]
 
-def _fetch_news(query: str) -> pd.DataFrame:
+@st.cache_data(show_spinner=False)
+def _load_news(path: Path) -> pd.DataFrame:
     try:
-        api_key = st.secrets["newsapi"]["api_key"]
+        df = pd.read_csv(path, dtype=str, encoding="utf-8").fillna("")
     except Exception:
-        st.info("Configura [newsapi] en .streamlit/secrets.toml para acopio automático.")
-        return pd.DataFrame()
-    url = "https://newsapi.org/v2/everything"
-    params = {"q": query, "language":"es","sortBy":"publishedAt","pageSize":50,"apiKey":api_key}
+        return pd.DataFrame(columns=REQUIRED_COLS)
+    # normaliza columnas faltantes
+    for c in REQUIRED_COLS:
+        if c not in df.columns:
+            df[c] = ""
+    return df[REQUIRED_COLS]
+
+def _to_int_safe(x, default=0):
     try:
-        r = requests.get(url, params=params, timeout=20); r.raise_for_status()
-        arts = r.json().get("articles", [])
-        if not arts: return pd.DataFrame()
-        raw = pd.DataFrame(arts)
-        df = pd.DataFrame({
-            "id_noticia": raw["url"].fillna("").apply(lambda u: f"API-{abs(hash(u))}"[:18]),
-            "fecha": raw.get("publishedAt",""),
-            "sorteo": "",
-            "pais": "",
-            "fuente": raw.get("source","").apply(lambda s: (s or {}).get("name","")) if "source" in raw.columns else "",
-            "titular": raw.get("title",""),
-            "resumen": raw.get("description",""),
-            "etiquetas": "",
-            "nivel_emocional_diccionario": "",
-            "nivel_emocional_modelo": "",
-            "nivel_emocional_final": "",
-            "noticia_relevante": True,
-            "categorias_t70_ref": "",
-            "url": raw.get("url",""),
-        })
-        return _ensure_cols(df).drop_duplicates(subset=["url"])
-    except Exception as e:
-        st.error(f"Acopio falló: {e}"); return pd.DataFrame()
+        return int(str(x).strip())
+    except Exception:
+        return default
 
-def _auto_harvest_if_needed(current_lottery: str):
-    """Ejecuta 1 vez por día UTC al abrir la sección."""
-    today = datetime.utcnow().strftime("%Y-%m-%d")
-    last = STAMP.read_text().strip() if STAMP.exists() else ""
-    if last == today: return
-    # query por lotería activa
-    qmap = {
-        "megamillions": "megamillions OR mega millions",
-        "powerball": "powerball",
-    }
-    query = qmap.get(current_lottery, "lotería OR loteria OR jackpot OR sorteo")
-    df_new = _fetch_news(query)
-    if df_new.empty:
-        STAMP.write_text(today); return
-    if NEWS_CSV.exists():
-        try: df_old = pd.read_csv(NEWS_CSV, dtype=str, encoding="utf-8")
-        except: df_old = pd.DataFrame()
-    else:
-        df_old = pd.DataFrame()
-    merged = pd.concat([df_old, df_new], ignore_index=True)
-    if "url" in merged.columns:
-        merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
-    merged.to_csv(NEWS_CSV, index=False, encoding="utf-8")
-    STAMP.write_text(today)
-    st.toast(f"Noticias actualizadas para {current_lottery}. Filas totales: {len(merged)}", icon="📰")
+def _motivo_filtro(row: pd.Series, umbral: int, palabras_alto_impacto: list[str]) -> str:
+    texto = f"{row.get('titular','')} {row.get('resumen','')}".lower()
+    alto_imp = any(w in texto for w in palabras_alto_impacto)
+    em_fin = _to_int_safe(row.get("nivel_emocional_final", 0), 0)
 
-def _reason_row(row: pd.Series, umbral: int = 60) -> str:
-    """Motivo de filtrado para vista 'Filtrada'."""
-    try:
-        em_dic = int(str(row.get("nivel_emocional_diccionario","") or 0))
-        em_mod = int(str(row.get("nivel_emocional_modelo","") or 0))
-        em_fin = int(str(row.get("nivel_emocional_final","") or 0))
-    except: em_dic = em_mod = em_fin = 0
-    tags = str(row.get("etiquetas",""))
-    # Criterio ejemplo: final >= umbral OR contiene palabras de alto impacto
-    alto_impacto = any(w in (str(row.get("titular",""))+" "+str(row.get("resumen",""))).lower()
-                       for w in ["récord","fraude","escándalo","crisis","millones","histórico"])
-    if em_fin >= umbral or alto_impacto:
-        return f"Incluida: nivel_emocional_final={em_fin} (umbral={umbral}){' + alto impacto' if alto_impacto else ''}"
-    return f"Excluida: nivel_emocional_final={em_fin} < umbral={umbral}"
+    if em_fin >= umbral and alto_imp:
+        return f"Incluida: emoción={em_fin}≥{umbral} + alto impacto"
+    if em_fin >= umbral:
+        return f"Incluida: emoción={em_fin}≥{umbral}"
+    if alto_imp:
+        return f"Incluida: alto impacto en texto (emocion={em_fin}<{umbral})"
+    return f"Excluida: emoción={em_fin}<{umbral} y sin alto impacto"
 
-def render_noticias(current_lottery: str):
-    st.caption(f"Lotería activa: **{current_lottery}**")
-    # Auto-acopio 1 vez por día
-    _auto_harvest_if_needed(current_lottery)
+# --------- Vista principal ---------
+def render_noticias():
+    st.subheader("📰 Noticias — Vista doble (Cruda vs Filtrada)")
+    st.caption("Entrada oficial: `noticias.csv` en la raíz del repositorio.")
 
     if not NEWS_CSV.exists():
-        st.error("No encuentro noticias.csv en la raíz del repo."); return
-    try:
-        df = pd.read_csv(NEWS_CSV, dtype=str, encoding="utf-8").fillna("")
-    except Exception as e:
-        st.error(f"No pude leer noticias.csv: {e}"); return
-    if df.empty:
-        st.info("noticias.csv está vacío."); return
+        st.error("No se encontró `noticias.csv` en la raíz del repo.")
+        with st.expander("Estructura esperada"):
+            st.code(",".join(REQUIRED_COLS), language="text")
+        return
 
-    # Filtros rápidos
-    colf1, colf2, colf3 = st.columns([1,1,2])
-    fechas = ["(todas)"] + sorted([f for f in df["fecha"].unique() if f])
-    fsel = colf1.selectbox("Fecha", options=fechas)
-    sopts = sorted(df.get("sorteo","").unique())
-    ssel = colf2.multiselect("Sorteo(s)", options=sopts, default=[])
-    q = colf3.text_input("Buscar (titular/resumen/etiquetas)")
+    df = _load_news(NEWS_CSV)
+    if df.empty:
+        st.warning("`noticias.csv` está vacío o no legible.")
+        return
+
+    # --------- Filtros superiores ---------
+    with st.container():
+        c1, c2, c3, c4 = st.columns([1,1,1,2])
+        fechas = ["(todas)"] + sorted([f for f in df["fecha"].unique() if f])
+        fsel = c1.selectbox("Fecha", options=fechas, index=0)
+
+        sorteos = ["(todos)"] + sorted([s for s in df["sorteo"].unique() if s])
+        ssel = c2.selectbox("Sorteo", options=sorteos, index=0)
+
+        umbral = c3.slider("Umbral emoción final", 0, 100, 60)
+
+        q = c4.text_input("Buscar en titular/resumen/etiquetas", "")
 
     dff = df.copy()
-    if fsel != "(todas)": dff = dff[dff["fecha"] == fsel]
-    if ssel: dff = dff[dff["sorteo"].isin(ssel)]
+    if fsel != "(todas)":
+        dff = dff[dff["fecha"] == fsel]
+    if ssel != "(todos)":
+        dff = dff[dff["sorteo"] == ssel]
     if q.strip():
-        qn = q.lower()
+        qn = q.lower().strip()
         dff = dff[
             dff["titular"].str.lower().str.contains(qn, na=False) |
             dff["resumen"].str.lower().str.contains(qn, na=False) |
@@ -129,47 +91,85 @@ def render_noticias(current_lottery: str):
     st.info(f"Coincidencias tras filtros: **{len(dff)}**")
     st.markdown("---")
 
-    # Doble ventana: Cruda vs Filtrada
+    # --------- Parámetros de filtrado ---------
+    palabras_alto_impacto = st.multiselect(
+        "Palabras de alto impacto (añade/ajusta)",
+        options=["récord","fraude","escándalo","crisis","millones","histórico","emergencia","colapso","tragedia"],
+        default=["récord","fraude","escándalo","crisis","millones","histórico"]
+    )
+
+    # Construye motivos y máscara
+    if not dff.empty:
+        reasons = []
+        mask = []
+        for _, r in dff.iterrows():
+            m = _motivo_filtro(r, umbral=umbral, palabras_alto_impacto=palabras_alto_impacto)
+            reasons.append(m)
+            mask.append(m.startswith("Incluida"))
+        dff = dff.copy()
+        dff["__motivo"] = reasons
+        df_ok = dff[mask].copy()
+    else:
+        df_ok = dff.copy()
+
+    # --------- Doble ventana ---------
     colL, colR = st.columns(2)
 
+    # Cruda
     with colL:
         st.subheader("🗞️ Cruda (primaria)")
-        st.caption("Noticias tal cual llegan del acopio / CSV (sin filtro).")
-        for _, r in dff.head(50).iterrows():  # limitar para performance
-            with st.expander(f"📰 {r['titular'][:90]}"):
-                st.write(r["resumen"] or "—")
-                st.write(f"**Fuente:** {r['fuente']} · **Fecha:** {r['fecha']} · **Sorteo:** {r['sorteo'] or '—'}")
-                if r.get("url"):
-                    st.markdown(f"[🔗 Abrir fuente]({r['url']})")
-                st.caption(f"Etiquetas: `{r['etiquetas']}` • Emoción(dic/mod/fin): {r['nivel_emocional_diccionario']}/{r['nivel_emocional_modelo']}/{r['nivel_emocional_final']}")
+        st.caption("Noticias tal cual llegaron (sin filtro).")
+        if dff.empty:
+            st.info("Sin resultados en la vista cruda.")
+        else:
+            for _, r in dff.head(60).iterrows():
+                titulo = (r["titular"] or "—").strip()
+                with st.expander(f"📰 {titulo[:100]}"):
+                    st.write(r["resumen"] or "—")
+                    st.write(f"**Fecha:** {r['fecha']} · **Sorteo:** {r['sorteo'] or '—'} · **Fuente:** {r['fuente'] or '—'}")
+                    st.caption(f"Etiquetas: `{r['etiquetas']}` • Emoción (dic/mod/fin): {r['nivel_emocional_diccionario']}/{r['nivel_emocional_modelo']}/{r['nivel_emocional_final']}")
+                    if r.get("url"):
+                        st.markdown(f"[🔗 Abrir fuente]({r['url']})")
 
+    # Filtrada
     with colR:
         st.subheader("✅ Filtrada (alta relevancia)")
-        umbral = st.slider("Umbral de emoción final", 0, 100, 60)
-        # aplica criterio
-        mask = []
-        reasons = []
-        for _, rr in dff.iterrows():
-            reason = _reason_row(rr, umbral=umbral)
-            reasons.append(reason)
-            mask.append(reason.startswith("Incluida"))
-        dff["__reason"] = reasons
-        df_ok = dff[mask]
-        st.caption(f"Seleccionadas: **{len(df_ok)}** / {len(dff)}")
-        for _, r in df_ok.head(50).iterrows():
-            with st.expander(f"🔥 {r['titular'][:90]}"):
-                st.write(r["resumen"] or "—")
-                st.write(f"**Motivo:** {r['__reason']}")
-                st.write(f"**Fuente:** {r['fuente']} · **Fecha:** {r['fecha']} · **Sorteo:** {r['sorteo'] or '—'}")
-                if r.get("url"):
-                    st.markdown(f"[🔗 Abrir fuente]({r['url']})")
-                st.caption(f"Etiquetas: `{r['etiquetas']}` • Emoción(dic/mod/fin): {r['nivel_emocional_diccionario']}/{r['nivel_emocional_modelo']}/{r['nivel_emocional_final']}")
+        st.caption("Noticias que superan el umbral y/o contienen palabras de alto impacto.")
+        st.text(f"Seleccionadas: {len(df_ok)} / {len(dff)}")
+        if df_ok.empty:
+            st.info("No hay noticias que cumplan el criterio actual.")
+        else:
+            for _, r in df_ok.head(60).iterrows():
+                titulo = (r["titular"] or "—").strip()
+                with st.expander(f"🔥 {titulo[:100]}"):
+                    st.write(r["resumen"] or "—")
+                    st.write(f"**Motivo:** {r['__motivo']}")
+                    st.write(f"**Fecha:** {r['fecha']} · **Sorteo:** {r['sorteo'] or '—'} · **Fuente:** {r['fuente'] or '—'}")
+                    st.caption(f"Etiquetas: `{r['etiquetas']}` • Emoción (dic/mod/fin): {r['nivel_emocional_diccionario']}/{r['nivel_emocional_modelo']}/{r['nivel_emocional_final']}")
+                    if r.get("url"):
+                        st.markdown(f"[🔗 Abrir fuente]({r['url']})")
 
     st.markdown("---")
-    # Descargas rápidas
+
+    # --------- Descargas ---------
     cdl, cdr = st.columns(2)
     with cdl:
-        st.download_button("⬇️ Descargar vista cruda (CSV)", dff.drop(columns=["__reason"], errors="ignore").to_csv(index=False).encode("utf-8"), "noticias_cruda.csv", "text/csv")
+        st.download_button(
+            "⬇️ Descargar vista cruda (CSV)",
+            dff.drop(columns=["__motivo"], errors="ignore").to_csv(index=False).encode("utf-8"),
+            file_name=f"noticias_cruda_{datetime.utcnow().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
     with cdr:
-        st.download_button("⬇️ Descargar vista filtrada (CSV)", df_ok.drop(columns=["__reason"], errors="ignore").to_csv(index=False).encode("utf-8"), "noticias_filtrada.csv", "text/csv")
-     
+        st.download_button(
+            "⬇️ Descargar vista filtrada (CSV)",
+            df_ok.drop(columns=["__motivo"], errors="ignore").to_csv(index=False).encode("utf-8"),
+            file_name=f"noticias_filtrada_{datetime.utcnow().strftime('%Y%m%d')}.csv",
+            mime="text/csv",
+            use_container_width=True,
+        )
+
+    # --------- Ayuda / estructura ---------
+    with st.expander("📎 Estructura esperada de noticias.csv"):
+        st.code(",".join(REQUIRED_COLS), language="text")         
