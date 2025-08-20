@@ -1,136 +1,79 @@
+# modules/gematria.py — PRO UI
+from __future__ import annotations
+from pathlib import Path
+import pandas as pd
 import streamlit as st
 
-def show_gematria():
-    st.title("🔡 Capa Gematría")
-    st.info("Módulo de Gematría en construcción 🚧")
-# ==============================
-# Lote gematría desde noticias
-# ==============================
-from pathlib import Path
-from datetime import datetime
-import pandas as pd
+ROOT = Path(__file__).resolve().parent.parent
+CORPUS = ROOT / "__CORPUS" / "GEMATRIA"
+RUNS = ROOT / "__RUNS" / "GEMATRIA"
+RUNS.mkdir(parents=True, exist_ok=True)
 
-def _g_repo_root() -> Path:
+def _exists(p: Path) -> bool:
     try:
-        return Path(__file__).resolve().parent.parent
+        return p.exists()
     except Exception:
-        return Path.cwd()
+        return False
 
-def _g_load_csv_safe(path: Path):
+@st.cache_data(show_spinner=False)
+def _load(path: Path) -> pd.DataFrame | None:
     try:
         return pd.read_csv(path, dtype=str, encoding="utf-8")
-    except Exception:
+    except Exception as e:
+        st.error(f"Error al leer {path.name}: {e}")
         return None
 
-def _g_load_translit_table(corpus_dir: Path) -> dict[str, int]:
-    """
-    Intenta cargar __CORPUS/GEMATRIA/translit_table.csv con columnas:
-    'char','value'. Si no existe, usa un fallback a=1, b=2,..., z=26.
-    """
-    table = {}
-    tpath = corpus_dir / "translit_table.csv"
-    if tpath.exists():
-        try:
-            df = pd.read_csv(tpath, dtype=str, encoding="utf-8")
-            for _, r in df.iterrows():
-                ch = str(r.get("char", "")).lower().strip()
-                try:
-                    val = int(str(r.get("value", "0")).strip())
-                except Exception:
-                    val = 0
-                if ch:
-                    table[ch] = val
-            if table:
-                return table
-        except Exception:
-            pass
+def show_gematria():
+    st.subheader("🔡 Gematría — resultados y corpus")
 
-    # Fallback latino simple
-    abc = "abcdefghijklmnopqrstuvwxyz"
-    for i, ch in enumerate(abc, start=1):
-        table[ch] = i
-    return table
+    # Estado de corpus
+    files = [
+        "lexicon_hebrew.yaml", "translit_table.csv",
+        "stopwords_es.txt", "stopwords_en.txt",
+        "patterns.yaml", "bibliography.md",
+    ]
+    ok = sum(1 for f in files if _exists(CORPUS / f))
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        st.metric("Archivos del corpus", f"{ok}/{len(files)}")
+    with c2:
+        st.metric("Tokens CSV", len(list(RUNS.glob("gematria_tokens_*.csv"))))
+    with c3:
+        st.metric("Consolidados CSV", len(list(RUNS.glob("gematria_news_*.csv"))))
 
-def _g_reduce_number(n: int) -> int:
-    """Reducción tipo 'digital root' (1..9), con 0 si n=0."""
-    if n == 0:
-        return 0
-    r = n % 9
-    return 9 if r == 0 else r
+    st.markdown("<hr style='opacity:.15'>", unsafe_allow_html=True)
 
-def _g_phrase_value(text: str, char_map: dict[str, int]) -> tuple[int, int]:
-    """
-    Suma valores por caracter (a-z y dígitos con valor = dígito),
-    devuelve (total, reducido).
-    """
-    total = 0
-    for ch in (text or "").lower():
-        if ch.isalpha():
-            total += char_map.get(ch, 0)
-        elif ch.isdigit():
-            total += int(ch)
-    return total, _g_reduce_number(total)
+    # Tabs de resultados
+    tab1, tab2 = st.tabs(["Consolidado por noticia", "Detalle por token"])
 
-def run_gematria_batch() -> str:
-    """
-    Lee noticias.csv y produce:
-      - __RUNS/GEMATRIA/gematria_tokens_YYYYMMDD.csv
-      - __RUNS/GEMATRIA/gematria_news_YYYYMMDD.csv
-    Usa 'titular + resumen + etiquetas' como frase base.
-    """
-    root = _g_repo_root()
-    runs = root / "__RUNS" / "GEMATRIA"
-    corpus = root / "__CORPUS" / "GEMATRIA"
-    runs.mkdir(parents=True, exist_ok=True)
+    with tab1:
+        news_files = sorted(RUNS.glob("gematria_news_*.csv"))
+        if not news_files:
+            st.info("No hay `gematria_news_*.csv` en `__RUNS/GEMATRIA/`.")
+        else:
+            sel = st.selectbox("Archivo", options=[f.name for f in news_files])
+            df = _load(RUNS / sel)
+            if df is not None and not df.empty:
+                st.dataframe(df, use_container_width=True, hide_index=True)
+                st.download_button(
+                    "⬇️ Descargar",
+                    df.to_csv(index=False).encode("utf-8"),
+                    file_name=sel,
+                    mime="text/csv",
+                )
 
-    news_path = root / "noticias.csv"
-    df_news = _g_load_csv_safe(news_path)
-    if df_news is None or df_news.empty:
-        raise RuntimeError("noticias.csv no existe o está vacío.")
-
-    char_map = _g_load_translit_table(corpus)
-
-    tokens_rows = []
-    news_rows = []
-
-    for _, r in df_news.iterrows():
-        nid = str(r.get("id_noticia", ""))
-        base_text = " ".join([
-            str(r.get("titular", "")),
-            str(r.get("resumen", "")),
-            str(r.get("etiquetas", "")),
-        ]).strip()
-
-        total, reducido = _g_phrase_value(base_text, char_map)
-        news_rows.append({
-            "id_noticia": nid,
-            "frase_base": base_text,
-            "valor_total": total,
-            "valor_reducido": reducido,
-        })
-
-        # Tokens (muy simple: palabras alfanuméricas >2)
-        for tok in pd.Series(base_text.split()):
-            t = "".join(ch for ch in str(tok).lower() if ch.isalnum())
-            if len(t) < 3:
-                continue
-            v, vr = _g_phrase_value(t, char_map)
-            tokens_rows.append({
-                "id_noticia": nid,
-                "token": t,
-                "valor_total": v,
-                "valor_reducido": vr,
-            })
-
-    df_tokens = pd.DataFrame(tokens_rows)
-    df_out = pd.DataFrame(news_rows)
-
-    stamp = datetime.utcnow().strftime("%Y%m%d")
-    f_tokens = runs / f"gematria_tokens_{stamp}.csv"
-    f_news   = runs / f"gematria_news_{stamp}.csv"
-
-    if not df_tokens.empty:
-        df_tokens.to_csv(f_tokens, index=False, encoding="utf-8")
-    df_out.to_csv(f_news, index=False, encoding="utf-8")
-
-    return f"Exportado: {f_news.name} (+ {len(df_tokens)} tokens)"
+    with tab2:
+        tok_files = sorted(RUNS.glob("gematria_tokens_*.csv"))
+        if not tok_files:
+            st.info("No hay `gematria_tokens_*.csv`.")
+        else:
+            sel2 = st.selectbox("Archivo", options=[f.name for f in tok_files], key="tok_sel")
+            df2 = _load(RUNS / sel2)
+            if df2 is not None and not df2.empty:
+                st.dataframe(df2, use_container_width=True, hide_index=True)
+                st.download_button(
+                    "⬇️ Descargar",
+                    df2.to_csv(index=False).encode("utf-8"),
+                    file_name=sel2,
+                    mime="text/csv",
+                )
