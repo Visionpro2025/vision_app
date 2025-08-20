@@ -1,0 +1,57 @@
+from pathlib import Path
+import pandas as pd
+import streamlit as st
+
+# rutas base ya definidas en tu módulo:
+# ROOT = Path(__file__).resolve().parent.parent
+# CORPUS = ROOT / "__LIBRARY"
+
+def _load_csv_safe(p: Path):
+    try:
+        return pd.read_csv(p, dtype=str, encoding="utf-8")
+    except Exception as e:
+        st.error(f"Error leyendo {p.name}: {e}")
+        return None
+
+def _check_permission(file_rel: str, passcode: str) -> bool:
+    perm_path = (ROOT / "__LIBRARY" / "permissions.csv")
+    dfp = _load_csv_safe(perm_path)
+    if dfp is None or dfp.empty:
+        st.error("No hay permisos configurados (permissions.csv).")
+        return False
+    fila = dfp[dfp["file_path"] == file_rel]
+    if fila.empty:
+        st.warning("El documento no está registrado en permisos.")
+        return False
+    allowed = str(fila.iloc[0].get("allowed_codes", "") or "")
+    allowed_set = {c.strip() for c in allowed.split(";") if c.strip()}
+    return passcode.strip() in allowed_set
+
+# En tu render_library(), cuando el usuario seleccione un archivo:
+file_list = sorted([p for p in CORPUS.glob("*") if p.is_file()])
+if not file_list:
+    st.info("No hay archivos en la biblioteca.")
+    return
+
+sel = st.selectbox("Elige un documento", options=[p.name for p in file_list])
+sel_path = CORPUS / sel
+
+with st.expander("🔐 Verificar permiso antes de abrir"):
+    code = st.text_input("Ingresa tu código de acceso", type="password")
+    if st.button("Validar y abrir"):
+        rel = f"__LIBRARY/{sel}"
+        if _check_permission(rel, code):
+            st.success("Acceso concedido ✅")
+            # vista/descarga segura:
+            if sel_path.suffix.lower() in [".txt", ".md", ".csv"]:
+                try:
+                    st.write(sel_path.read_text(encoding="utf-8")[:10000])
+                except Exception as e:
+                    st.error(f"No se pudo mostrar: {e}")
+            st.download_button(
+                "⬇️ Descargar",
+                sel_path.read_bytes(),
+                file_name=sel_path.name
+            )
+        else:
+            st.error("Acceso denegado ❌ – código inválido o sin permiso.")
