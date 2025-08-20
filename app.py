@@ -29,7 +29,15 @@ menu = st.sidebar.selectbox(
         "Orquestador",
     ],
 )
+menu = st.sidebar.selectbox(
+    "Selecciona un módulo:",
+    ["Inicio", "Visión", "Tabla T70", "Noticias", "Gematría", "Análisis del mensaje subliminal", "🧭 Orquestador de capas", "📚 Biblioteca"]
+)
 
+# ...
+elif menu == "📚 Biblioteca":
+    from modules.library import render_library
+    render_library()
 # =========================
 # Rutas auxiliares
 # =========================
