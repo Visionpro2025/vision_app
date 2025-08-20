@@ -32,10 +32,11 @@ elif menu == "Tabla T70":
         st.error(f"No se pudo cargar T70.csv: {e}")
         st.info("Verifica que el archivo **T70.csv** exista en la raíz del repositorio.")
 
-# ===== Noticias (módulo)
 elif menu == "Noticias":
-    from modules.noticias_module import render_noticias
-    render_noticias()
+    import importlib
+    import modules.noticias_module as noticias_module
+    importlib.reload(noticias_module)  # <- fuerza a recargar el archivo del módulo
+    noticias_module.render_noticias()
 
 # ===== Gematría (módulo)
 elif menu == "Gematría":
