@@ -1,4 +1,4 @@
-# modules/noticias_module.py — Noticias Pro: cruda/filtrada, explorador, análisis, limpieza
+# modules/noticias_module.py — Noticias PRO con NewsAPI + auto-acopio diario
 from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
@@ -9,7 +9,9 @@ import re
 
 ROOT = Path(__file__).resolve().parent.parent
 NEWS_CSV = ROOT / "noticias.csv"
-RUNS_NEWS = ROOT / "__RUNS" / "NEWS"; RUNS_NEWS.mkdir(parents=True, exist_ok=True)
+RUNS_NEWS = ROOT / "__RUNS" / "NEWS"
+RUNS_NEWS.mkdir(parents=True, exist_ok=True)
+STAMP = RUNS_NEWS / "last_fetch_UTC.txt"   # marca diario (YYYY-MM-DD)
 
 REQUIRED_COLS = [
     "id_noticia","fecha","sorteo","pais","fuente","titular","resumen",
@@ -17,7 +19,7 @@ REQUIRED_COLS = [
     "nivel_emocional_final","noticia_relevante","categorias_t70_ref","url"
 ]
 
-# ---------------- Utilidades base ----------------
+# ================== Utilidades base ==================
 @st.cache_data(show_spinner=False)
 def _load_news(path: Path) -> pd.DataFrame:
     try:
@@ -27,15 +29,15 @@ def _load_news(path: Path) -> pd.DataFrame:
     for c in REQUIRED_COLS:
         if c not in df.columns:
             df[c] = ""
-    # normaliza fecha a YYYY-MM-DD si viene con tiempo
+    # normaliza fecha a YYYY-MM-DD
     if "fecha" in df.columns:
         df["fecha"] = df["fecha"].astype(str).str.slice(0, 10)
     return df[REQUIRED_COLS]
 
 def _save_news(df: pd.DataFrame):
     df.to_csv(NEWS_CSV, index=False, encoding="utf-8")
+    _load_news.clear()   # limpia caché
     st.toast("noticias.csv guardado", icon="💾")
-    _load_news.clear()  # limpia caché
 
 def _to_int(x, default=0):
     try: return int(str(x).strip())
@@ -53,17 +55,31 @@ def _motivo(row: pd.Series, umbral: int, alto_impacto: list[str]) -> str:
 def _gen_id(prefix="N") -> str:
     today = datetime.utcnow().strftime("%Y-%m-%d")
     base = f"{prefix}-{today}"
-    # cuenta existentes hoy para secuencia
     df = _load_news(NEWS_CSV)
     n = sum(df["id_noticia"].astype(str).str.startswith(base)) + 1
     return f"{base}-{n:03d}"
 
-# ---------------- Explorador / Acopio ----------------
-def _fetch_news_newsapi(query: str, page_size: int = 50) -> pd.DataFrame:
-    """Usa NewsAPI si hay api_key en secrets. Si no, devuelve DF vacío."""
+# ============== NewsAPI ==============
+def _newsapi_key() -> str | None:
     try:
-        api_key = st.secrets["newsapi"]["api_key"]
+        return st.secrets["newsapi"]["api_key"]
     except Exception:
+        return None
+
+def _newsapi_query_for_lottery(current_lottery: str | None) -> str:
+    # Ajusta consultas por lotería; fallback general en español
+    qmap = {
+        "megamillions": '("mega millions" OR megamillions) OR lotería OR sorteo',
+        "powerball": 'powerball OR lotería OR sorteo',
+        "ny_lotto": '"new york lotto" OR "ny lotto" OR lotería',
+        "california_superlotto": '"superlotto plus" OR "california lottery" OR lotería',
+        "texas_lotto": '"texas lotto" OR "texas lottery" OR lotería',
+    }
+    return qmap.get(current_lottery or "", 'lotería OR sorteo OR jackpot OR "gran premio"')
+
+def _fetch_news_newsapi(query: str, page_size: int = 50) -> pd.DataFrame:
+    api_key = _newsapi_key()
+    if not api_key:
         return pd.DataFrame()
     url = "https://newsapi.org/v2/everything"
     params = dict(q=query, language="es", sortBy="publishedAt", pageSize=page_size, apiKey=api_key)
@@ -88,23 +104,51 @@ def _fetch_news_newsapi(query: str, page_size: int = 50) -> pd.DataFrame:
             "categorias_t70_ref": "",
             "url": raw.get("url",""),
         }).fillna("")
-        # evita duplicados por URL
         return df.drop_duplicates(subset=["url"])
     except Exception as e:
-        st.error(f"Explorador (NewsAPI) falló: {e}")
+        st.error(f"NewsAPI falló: {e}")
         return pd.DataFrame()
 
-# ---------------- Secciones de UI ----------------
+def _auto_harvest_if_needed(current_lottery: str | None):
+    """Se ejecuta 1 vez por día UTC. Si hay menos de 60 crudas tras filtros, intenta ampliar."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    last = STAMP.read_text().strip() if STAMP.exists() else ""
+    df_current = _load_news(NEWS_CSV)
+
+    # Ejecutar una vez al día
+    if last != today:
+        q = _newsapi_query_for_lottery(current_lottery)
+        extra = _fetch_news_newsapi(q, page_size=50)
+        if not extra.empty:
+            merged = pd.concat([df_current, extra], ignore_index=True)
+            if "url" in merged.columns:
+                merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+            _save_news(merged)
+            df_current = merged
+            st.toast("📰 Acopio diario ejecutado (NewsAPI).", icon="🕘")
+        STAMP.write_text(today)
+
+    # Garantizar mínimo 60 crudas (intenta ampliar si hay API)
+    if len(df_current) < 60:
+        api_key = _newsapi_key()
+        if api_key:
+            q = _newsapi_query_for_lottery(current_lottery)
+            extra = _fetch_news_newsapi(q, page_size=100)
+            if not extra.empty:
+                merged = pd.concat([df_current, extra], ignore_index=True)
+                if "url" in merged.columns:
+                    merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+                _save_news(merged)
+                st.toast(f"🔎 Ampliado automáticamente: {len(merged)} filas.", icon="➕")
+
+# ================== UI: Secciones ==================
 def _ui_crudas(df: pd.DataFrame):
     st.subheader("🗞️ Noticias crudas (primarias)")
-    st.caption("Listado sin filtro. Ordenadas por fecha descendente.")
+    st.caption("Lista sin filtro. Ordenadas por fecha descendente.")
     dff = df.sort_values(["fecha", "fuente", "titular"], ascending=[False, True, True]).reset_index(drop=True)
     if dff.empty:
         st.info("No hay noticias crudas para mostrar.")
         return dff
-    for _, r in dff.itertuples(index=False).zip():  # no usar; mantén estilo clásico
-        pass  # placeholder para linter
-    # render manual (más eficiente que iterrows en expansores largos)
     for i in range(min(len(dff), 200)):
         r = dff.iloc[i]
         titulo = (r["titular"] or "—").strip()
@@ -118,7 +162,7 @@ def _ui_filtradas(df: pd.DataFrame):
     st.subheader("🔥 Noticias filtradas (alto impacto)")
     colU, colW = st.columns([1, 1])
     with colU:
-        umbral = st.slider("Umbral de emoción final", 0, 100, 60)
+        umbral = st.slider("Umbral emoción final", 0, 100, 60)
     with colW:
         alto = st.multiselect(
             "Palabras de alto impacto",
@@ -150,7 +194,6 @@ def _ui_filtradas(df: pd.DataFrame):
 
 def _ui_procesar():
     st.subheader("⚙️ Procesar / Analizar noticias")
-    target = st.radio("Elegir analizador", ["Gematría", "Subliminal"], index=0, horizontal=True)
     c1, c2 = st.columns(2)
     with c1:
         if st.button("🔤 Abrir Gematría", use_container_width=True):
@@ -158,16 +201,17 @@ def _ui_procesar():
     with c2:
         if st.button("🌀 Abrir Subliminal", use_container_width=True):
             st.session_state["_nav"] = "🌀 Análisis subliminal"; st.rerun()
-    st.caption("Sugerencia: valida primero en Filtradas para pasar solo las más fuertes.")
+    st.caption("Valida primero en Filtradas y luego pasa solo las más fuertes.")
 
-def _ui_explorador(df: pd.DataFrame):
+def _ui_explorador(df: pd.DataFrame, current_lottery: str | None):
     st.subheader("🔎 Explorador de noticias")
-    st.caption("Busca más noticias de distintas fuentes. Si no hay NewsAPI configurado, usa el formulario manual.")
-    q = st.text_input("Consulta (ej. powerball OR megamillions OR lotería)", "powerball OR megamillions")
+    st.caption("Busca más noticias. Si no hay NewsAPI, usa la carga manual o subir CSV.")
+    q_default = _newsapi_query_for_lottery(current_lottery)
+    q = st.text_input("Consulta (ej. powerball OR megamillions OR lotería)", q_default)
     n = st.slider("Cantidad a traer (NewsAPI)", 20, 100, 50, step=10)
     colB1, colB2 = st.columns(2)
     with colB1:
-        if st.button("🌐 Traer con NewsAPI", use_container_width=True):
+        if st.button("🌐 Traer con NewsAPI", use_container_width=True, disabled=_newsapi_key() is None):
             extra = _fetch_news_newsapi(q, page_size=int(n))
             if extra.empty:
                 st.warning("No se trajo nada (revisa API key o consulta).")
@@ -246,7 +290,6 @@ def _ui_limpiar(df: pd.DataFrame):
     st.subheader("🧹 Borrar basura / residuos")
     if df.empty:
         st.info("No hay nada para limpiar."); return
-    # Filtros para seleccionar basura
     c1, c2, c3 = st.columns(3)
     f_fecha = c1.selectbox("Filtrar por fecha", options=["(todas)"] + sorted(df["fecha"].unique()))
     f_fuente = c2.selectbox("Filtrar por fuente", options=["(todas)"] + sorted(df["fuente"].unique()))
@@ -280,8 +323,7 @@ def _ui_limpiar(df: pd.DataFrame):
 def _ui_archivo(df: pd.DataFrame):
     st.subheader("🗂️ Archivo / Historial")
     if df.empty:
-        st.info("Sin historial aún.")
-        return
+        st.info("Sin historial aún."); return
     c1, c2 = st.columns(2)
     fechas = ["(todas)"] + sorted(df["fecha"].unique())
     sorteos = ["(todos)"] + sorted(df["sorteo"].unique())
@@ -290,23 +332,29 @@ def _ui_archivo(df: pd.DataFrame):
     dff = df.copy()
     if fs != "(todas)": dff = dff[dff["fecha"] == fs]
     if ss != "(todos)": dff = dff[dff["sorteo"] == ss]
-    st.dataframe(dff.sort_values(["fecha","fuente","titular"], ascending=[False, True, True]),
-                 use_container_width=True, hide_index=True)
+    st.dataframe(
+        dff.sort_values(["fecha","fuente","titular"], ascending=[False, True, True]),
+        use_container_width=True, hide_index=True
+    )
 
-# ---------------- Vista principal ----------------
-def render_noticias():
-    st.caption("Módulo de Noticias — gestión integral")
-    df = _load_news(NEWS_CSV)
+# ================== Vista principal ==================
+def render_noticias(current_lottery: str | None = None):
+    """Render del módulo. current_lottery es opcional (compatibilidad con app.py antiguo)."""
+    # 1) Auto-acopio (si hay API) y mínimo volumen
+    _auto_harvest_if_needed(current_lottery)
 
-    # Filtros globales (antes de botones)
+    # 2) Cargar df base
+    df_all = _load_news(NEWS_CSV)
+
+    # 3) Filtros globales
     colf1, colf2, colf3 = st.columns([1,1,2])
-    fechas = ["(todas)"] + sorted([f for f in df["fecha"].unique() if f])
-    sorteos = ["(todos)"] + sorted([s for s in df["sorteo"].unique() if s])
+    fechas = ["(todas)"] + sorted([f for f in df_all["fecha"].unique() if f])
+    sorteos = ["(todos)"] + sorted([s for s in df_all["sorteo"].unique() if s])
     fsel = colf1.selectbox("Fecha", options=fechas)
     ssel = colf2.selectbox("Sorteo", options=sorteos)
     q = colf3.text_input("Buscar (titular/resumen/etiquetas)")
 
-    base = df.copy()
+    base = df_all.copy()
     if fsel != "(todas)": base = base[base["fecha"] == fsel]
     if ssel != "(todos)": base = base[base["sorteo"] == ssel]
     if q.strip():
@@ -320,7 +368,7 @@ def render_noticias():
     st.info(f"Noticias tras filtros: **{len(base)}**")
     st.markdown("---")
 
-    # Botones de sección
+    # 4) Botones de sección
     b1, b2, b3, b4, b5 = st.columns(5)
     show_crudas = b1.button("🗞️ Crudas (primarias)", type="secondary", use_container_width=True)
     show_filtradas = b2.button("🔥 Filtradas (impacto)", type="secondary", use_container_width=True)
@@ -328,33 +376,28 @@ def render_noticias():
     show_expl = b4.button("🔎 Explorador / Ingreso", type="secondary", use_container_width=True)
     show_clean = b5.button("🧹 Limpiar", type="secondary", use_container_width=True)
 
-    # Si hay pocas, sugiere explorador
-    if len(base) < 60:
-        st.warning(f"Menos de 60 noticias crudas: {len(base)}. Te recomiendo usar el **Explorador** para ampliar.")
-        show_expl = True  # autoabre
+    # Sugerencia si hay poco volumen
+    if len(base) < 60 and _newsapi_key():
+        st.warning(f"Menos de 60 noticias crudas ({len(base)}). Usa **Explorador** para ampliar.")
+        show_expl = True
 
-    # Render condicional de secciones
+    # 5) Render condicional
     if show_crudas:
-        _ui_crudas(base)
-        st.markdown("---")
+        _ui_crudas(base); st.markdown("---")
     if show_filtradas:
-        _ui_filtradas(base)
-        st.markdown("---")
+        _ui_filtradas(base); st.markdown("---")
     if show_proc:
-        _ui_procesar()
-        st.markdown("---")
+        _ui_procesar(); st.markdown("---")
     if show_expl:
-        _ui_explorador(df)  # usar DF completo para merge
-        st.markdown("---")
+        _ui_explorador(df_all, current_lottery); st.markdown("---")
     if show_clean:
-        _ui_limpiar(df)
-        st.markdown("---")
+        _ui_limpiar(df_all); st.markdown("---")
 
-    # Archivo / historial siempre disponible
+    # 6) Archivo/historial siempre disponible
     with st.expander("🗂️ Ver archivo / historial"):
-        _ui_archivo(df)
+        _ui_archivo(df_all)
 
-    # Descargas rápidas de lo filtrado por barra superior
+    # 7) Descargas rápidas
     colD1, colD2 = st.columns(2)
     with colD1:
         st.download_button(
@@ -365,11 +408,10 @@ def render_noticias():
             use_container_width=True,
         )
     with colD2:
-        # respaldo completo
         st.download_button(
             "⬇️ Descargar noticias.csv completo",
             _load_news(NEWS_CSV).to_csv(index=False).encode("utf-8"),
             file_name=f"noticias_completo_{datetime.utcnow().strftime('%Y%m%d')}.csv",
             mime="text/csv",
             use_container_width=True,
-                      )
+                                                       )
