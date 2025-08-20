@@ -11,20 +11,16 @@ st.title("🔮 Sistema Predictivo Visión")
 # ===== Menú lateral (único)
 menu = st.sidebar.selectbox(
     "Selecciona un módulo:",
-    ["Inicio", "Visión", "Tabla T70", "Noticias", "Gematría"]
-)elif menu == "Análisis del mensaje subliminal":
-    from modules.subliminal_module import render_subliminal
-    render_subliminal()
+    ["Inicio", "Visión", "Tabla T70", "Noticias", "Gematría", "Análisis del mensaje subliminal"]
+)
 
-# ===== Inicio
+# ===== Ruteo por módulo
 if menu == "Inicio":
     st.write("Bienvenido a la App del sistema Visión 🚀")
 
-# ===== Visión (placeholder por ahora)
 elif menu == "Visión":
     st.write("Aquí estará la lógica principal del sistema Visión.")
 
-# ===== Tabla T70
 elif menu == "Tabla T70":
     st.subheader("📊 Tabla T70")
     try:
@@ -37,10 +33,13 @@ elif menu == "Tabla T70":
 elif menu == "Noticias":
     import importlib
     import modules.noticias_module as noticias_module
-    importlib.reload(noticias_module)  # <- fuerza a recargar el archivo del módulo
+    importlib.reload(noticias_module)   # fuerza recarga del módulo
     noticias_module.render_noticias()
 
-# ===== Gematría (módulo)
 elif menu == "Gematría":
     from modules.gematria import show_gematria
     show_gematria()
+
+elif menu == "Análisis del mensaje subliminal":
+    from modules.subliminal_module import render_subliminal
+    render_subliminal()
