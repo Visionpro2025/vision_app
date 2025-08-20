@@ -1,0 +1,35 @@
+import streamlit as st
+import os
+import pandas as pd
+
+LIB_PATH = "__LIBRARY"
+
+def show_library():
+    st.title("📚 Biblioteca de referencia")
+
+    if not os.path.exists(LIB_PATH):
+        st.error(f"No existe la carpeta {LIB_PATH}. Crea la carpeta en tu repo.")
+        return
+
+    files = os.listdir(LIB_PATH)
+    if not files:
+        st.warning("La biblioteca está vacía. Agrega archivos en la carpeta __LIBRARY.")
+        return
+
+    # Selector de archivos
+    file_selected = st.selectbox("Selecciona un archivo de la biblioteca:", files)
+
+    if file_selected:
+        file_path = os.path.join(LIB_PATH, file_selected)
+
+        # Mostrar según extensión
+        if file_selected.endswith(".txt") or file_selected.endswith(".md"):
+            with open(file_path, "r", encoding="utf-8") as f:
+                st.text(f.read())
+
+        elif file_selected.endswith(".csv"):
+            df = pd.read_csv(file_path)
+            st.dataframe(df)
+
+        else:
+            st.info("Formato no soportado todavía. Sube archivos .txt, .md o .csv")
