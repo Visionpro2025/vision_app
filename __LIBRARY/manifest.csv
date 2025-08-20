@@ -1,2 +1,6 @@
-title,file_id,description,tags
+
 Documento de prueba (Drive),1bJUx-6OR5KtwaCqW8KhkkvhXImEy6EFy,Google Doc de prueba para la Biblioteca,drive;doc
+title,file_id,type,description,tags
+Documento de prueba (Drive),1bJUx-6OR5KtwaCqW8KhkkvhXImEy6EFy,docx,Google Doc de prueba,drive;doc
+Ejemplo PDF,1aBcDeFgHiJkLmNoPqRStUvWxYz123456,pdf,Manual de referencia,drive;pdf
+Ejemplo TXT,1zYxWvUtSrQpOnMlKjIhGfEdCbAa987654,txt,Notas rápidas,drive;txt
