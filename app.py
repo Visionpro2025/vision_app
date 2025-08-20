@@ -12,7 +12,9 @@ st.title("🔮 Sistema Predictivo Visión")
 menu = st.sidebar.selectbox(
     "Selecciona un módulo:",
     ["Inicio", "Visión", "Tabla T70", "Noticias", "Gematría"]
-)
+)elif menu == "Análisis del mensaje subliminal":
+    from modules.subliminal_module import render_subliminal
+    render_subliminal()
 
 # ===== Inicio
 if menu == "Inicio":
