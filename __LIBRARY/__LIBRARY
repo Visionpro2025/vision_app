@@ -16,13 +16,17 @@ def show_library():
         st.warning("La biblioteca está vacía. Agrega archivos en la carpeta __LIBRARY.")
         return
 
-    # Selector de archivos
-    file_selected = st.selectbox("Selecciona un archivo de la biblioteca:", files)
+    st.write(f"📂 Total archivos: **{len(files)}**")
+
+    # Selector para abrir archivo
+    file_selected = st.selectbox("Selecciona un archivo:", files)
 
     if file_selected:
         file_path = os.path.join(LIB_PATH, file_selected)
 
-        # Mostrar según extensión
+        st.subheader(f"📖 {file_selected}")
+
+        # Mostrar según el tipo de archivo
         if file_selected.endswith(".txt") or file_selected.endswith(".md"):
             with open(file_path, "r", encoding="utf-8") as f:
                 st.text(f.read())
@@ -31,5 +35,8 @@ def show_library():
             df = pd.read_csv(file_path)
             st.dataframe(df)
 
+        elif file_selected.endswith((".png", ".jpg", ".jpeg")):
+            st.image(file_path, use_column_width=True)
+
         else:
-            st.info("Formato no soportado todavía. Sube archivos .txt, .md o .csv")
+            st.info("⚠️ Formato no soportado todavía. Sube .txt, .md, .csv o imágenes.")
