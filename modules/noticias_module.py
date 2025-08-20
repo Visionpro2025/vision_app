@@ -1,124 +1,175 @@
-# modules/noticias_module.py — PRO UI
+# modules/noticias_module.py — Dual view + auto-acopio diario
 from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
 import pandas as pd
 import streamlit as st
+import requests
 
 ROOT = Path(__file__).resolve().parent.parent
+NEWS_CSV = ROOT / "noticias.csv"
+RUNS_NEWS = ROOT / "__RUNS" / "NEWS"; RUNS_NEWS.mkdir(parents=True, exist_ok=True)
+STAMP = RUNS_NEWS / "last_fetch_UTC.txt"
 
-@st.cache_data(show_spinner=False)
-def _load_csv(path: Path) -> pd.DataFrame | None:
+def _ensure_cols(df: pd.DataFrame) -> pd.DataFrame:
+    cols = ["id_noticia","fecha","sorteo","pais","fuente","titular","resumen",
+            "etiquetas","nivel_emocional_diccionario","nivel_emocional_modelo",
+            "nivel_emocional_final","noticia_relevante","categorias_t70_ref","url"]
+    for c in cols:
+        if c not in df.columns: df[c] = ""
+    return df[cols]
+
+def _fetch_news(query: str) -> pd.DataFrame:
     try:
-        return pd.read_csv(path, dtype=str, encoding="utf-8")
+        api_key = st.secrets["newsapi"]["api_key"]
+    except Exception:
+        st.info("Configura [newsapi] en .streamlit/secrets.toml para acopio automático.")
+        return pd.DataFrame()
+    url = "https://newsapi.org/v2/everything"
+    params = {"q": query, "language":"es","sortBy":"publishedAt","pageSize":50,"apiKey":api_key}
+    try:
+        r = requests.get(url, params=params, timeout=20); r.raise_for_status()
+        arts = r.json().get("articles", [])
+        if not arts: return pd.DataFrame()
+        raw = pd.DataFrame(arts)
+        df = pd.DataFrame({
+            "id_noticia": raw["url"].fillna("").apply(lambda u: f"API-{abs(hash(u))}"[:18]),
+            "fecha": raw.get("publishedAt",""),
+            "sorteo": "",
+            "pais": "",
+            "fuente": raw.get("source","").apply(lambda s: (s or {}).get("name","")) if "source" in raw.columns else "",
+            "titular": raw.get("title",""),
+            "resumen": raw.get("description",""),
+            "etiquetas": "",
+            "nivel_emocional_diccionario": "",
+            "nivel_emocional_modelo": "",
+            "nivel_emocional_final": "",
+            "noticia_relevante": True,
+            "categorias_t70_ref": "",
+            "url": raw.get("url",""),
+        })
+        return _ensure_cols(df).drop_duplicates(subset=["url"])
     except Exception as e:
-        st.error(f"❌ Error al leer {path.name}: {e}")
-        return None
+        st.error(f"Acopio falló: {e}"); return pd.DataFrame()
 
-def _kpi(title: str, value: str, sub: str = ""):
-    st.markdown(
-        f"""
-        <div style="border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:12px 14px;background:rgba(255,255,255,.03)">
-          <div style="opacity:.8;font-size:.82rem">{title}</div>
-          <div style="font-weight:800;font-size:1.6rem;margin-top:4px">{value}</div>
-          <div style="opacity:.7;font-size:.78rem">{sub}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+def _auto_harvest_if_needed(current_lottery: str):
+    """Ejecuta 1 vez por día UTC al abrir la sección."""
+    today = datetime.utcnow().strftime("%Y-%m-%d")
+    last = STAMP.read_text().strip() if STAMP.exists() else ""
+    if last == today: return
+    # query por lotería activa
+    qmap = {
+        "megamillions": "megamillions OR mega millions",
+        "powerball": "powerball",
+    }
+    query = qmap.get(current_lottery, "lotería OR loteria OR jackpot OR sorteo")
+    df_new = _fetch_news(query)
+    if df_new.empty:
+        STAMP.write_text(today); return
+    if NEWS_CSV.exists():
+        try: df_old = pd.read_csv(NEWS_CSV, dtype=str, encoding="utf-8")
+        except: df_old = pd.DataFrame()
+    else:
+        df_old = pd.DataFrame()
+    merged = pd.concat([df_old, df_new], ignore_index=True)
+    if "url" in merged.columns:
+        merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+    merged.to_csv(NEWS_CSV, index=False, encoding="utf-8")
+    STAMP.write_text(today)
+    st.toast(f"Noticias actualizadas para {current_lottery}. Filas totales: {len(merged)}", icon="📰")
 
-def render_noticias():
-    st.subheader("📰 Noticias — bitácora del sorteo")
+def _reason_row(row: pd.Series, umbral: int = 60) -> str:
+    """Motivo de filtrado para vista 'Filtrada'."""
+    try:
+        em_dic = int(str(row.get("nivel_emocional_diccionario","") or 0))
+        em_mod = int(str(row.get("nivel_emocional_modelo","") or 0))
+        em_fin = int(str(row.get("nivel_emocional_final","") or 0))
+    except: em_dic = em_mod = em_fin = 0
+    tags = str(row.get("etiquetas",""))
+    # Criterio ejemplo: final >= umbral OR contiene palabras de alto impacto
+    alto_impacto = any(w in (str(row.get("titular",""))+" "+str(row.get("resumen",""))).lower()
+                       for w in ["récord","fraude","escándalo","crisis","millones","histórico"])
+    if em_fin >= umbral or alto_impacto:
+        return f"Incluida: nivel_emocional_final={em_fin} (umbral={umbral}){' + alto impacto' if alto_impacto else ''}"
+    return f"Excluida: nivel_emocional_final={em_fin} < umbral={umbral}"
 
-    news_path = ROOT / "noticias.csv"
-    st.caption(f"📄 Ruta: {news_path} | existe={news_path.exists()}")
+def render_noticias(current_lottery: str):
+    st.caption(f"Lotería activa: **{current_lottery}**")
+    # Auto-acopio 1 vez por día
+    _auto_harvest_if_needed(current_lottery)
 
-    if not news_path.exists():
-        st.error("No encuentro `noticias.csv` en la raíz del repo.")
-        return
+    if not NEWS_CSV.exists():
+        st.error("No encuentro noticias.csv en la raíz del repo."); return
+    try:
+        df = pd.read_csv(NEWS_CSV, dtype=str, encoding="utf-8").fillna("")
+    except Exception as e:
+        st.error(f"No pude leer noticias.csv: {e}"); return
+    if df.empty:
+        st.info("noticias.csv está vacío."); return
 
-    df = _load_csv(news_path)
-    if df is None or df.empty:
-        st.warning("`noticias.csv` vacío o ilegible.")
-        return
+    # Filtros rápidos
+    colf1, colf2, colf3 = st.columns([1,1,2])
+    fechas = ["(todas)"] + sorted([f for f in df["fecha"].unique() if f])
+    fsel = colf1.selectbox("Fecha", options=fechas)
+    sopts = sorted(df.get("sorteo","").unique())
+    ssel = colf2.multiselect("Sorteo(s)", options=sopts, default=[])
+    q = colf3.text_input("Buscar (titular/resumen/etiquetas)")
 
-    # Normalización de tipos esperados
-    for col in ["noticia_relevante"]:
-        if col in df.columns:
-            df[col] = df[col].astype(str).str.lower().isin(["true", "1", "sí", "si", "y"])
+    dff = df.copy()
+    if fsel != "(todas)": dff = dff[dff["fecha"] == fsel]
+    if ssel: dff = dff[dff["sorteo"].isin(ssel)]
+    if q.strip():
+        qn = q.lower()
+        dff = dff[
+            dff["titular"].str.lower().str.contains(qn, na=False) |
+            dff["resumen"].str.lower().str.contains(qn, na=False) |
+            dff["etiquetas"].str.lower().str.contains(qn, na=False)
+        ]
 
-    # KPIs
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        _kpi("Total noticias", f"{len(df)}")
-    with c2:
-        relevantes = int(df.get("noticia_relevante", pd.Series([False]*len(df))).sum())
-        _kpi("Relevantes", f"{relevantes}", f"{relevantes/len(df)*100:.0f}% del total")
-    with c3:
-        try:
-            em = pd.to_numeric(df.get("nivel_emocional_final", "0"), errors="coerce").fillna(0)
-            _kpi("Emoción promedio", f"{em.mean():.0f}/100")
-        except Exception:
-            _kpi("Emoción promedio", "—")
-    with c4:
-        fechas = df.get("fecha", pd.Series())
-        if not fechas.empty:
-            _kpi("Rango fechas", f"{min(fechas)} → {max(fechas)}")
-        else:
-            _kpi("Rango fechas", "—")
+    st.info(f"Coincidencias tras filtros: **{len(dff)}**")
+    st.markdown("---")
 
-    st.markdown("<hr style='opacity:.15'>", unsafe_allow_html=True)
+    # Doble ventana: Cruda vs Filtrada
+    colL, colR = st.columns(2)
 
-    # ---------------- Filtros
-    with st.expander("🔎 Filtros", expanded=True):
-        colf, cols, colk, colr = st.columns([1, 1, 2, 1])
+    with colL:
+        st.subheader("🗞️ Cruda (primaria)")
+        st.caption("Noticias tal cual llegan del acopio / CSV (sin filtro).")
+        for _, r in dff.head(50).iterrows():  # limitar para performance
+            with st.expander(f"📰 {r['titular'][:90]}"):
+                st.write(r["resumen"] or "—")
+                st.write(f"**Fuente:** {r['fuente']} · **Fecha:** {r['fecha']} · **Sorteo:** {r['sorteo'] or '—'}")
+                if r.get("url"):
+                    st.markdown(f"[🔗 Abrir fuente]({r['url']})")
+                st.caption(f"Etiquetas: `{r['etiquetas']}` • Emoción(dic/mod/fin): {r['nivel_emocional_diccionario']}/{r['nivel_emocional_modelo']}/{r['nivel_emocional_final']}")
 
-        fechas_opts = ["(todas)"] + sorted([f for f in df["fecha"].dropna().unique() if f])
-        fecha_sel = colf.selectbox("Fecha", options=fechas_opts)
+    with colR:
+        st.subheader("✅ Filtrada (alta relevancia)")
+        umbral = st.slider("Umbral de emoción final", 0, 100, 60)
+        # aplica criterio
+        mask = []
+        reasons = []
+        for _, rr in dff.iterrows():
+            reason = _reason_row(rr, umbral=umbral)
+            reasons.append(reason)
+            mask.append(reason.startswith("Incluida"))
+        dff["__reason"] = reasons
+        df_ok = dff[mask]
+        st.caption(f"Seleccionadas: **{len(df_ok)}** / {len(dff)}")
+        for _, r in df_ok.head(50).iterrows():
+            with st.expander(f"🔥 {r['titular'][:90]}"):
+                st.write(r["resumen"] or "—")
+                st.write(f"**Motivo:** {r['__reason']}")
+                st.write(f"**Fuente:** {r['fuente']} · **Fecha:** {r['fecha']} · **Sorteo:** {r['sorteo'] or '—'}")
+                if r.get("url"):
+                    st.markdown(f"[🔗 Abrir fuente]({r['url']})")
+                st.caption(f"Etiquetas: `{r['etiquetas']}` • Emoción(dic/mod/fin): {r['nivel_emocional_diccionario']}/{r['nivel_emocional_modelo']}/{r['nivel_emocional_final']}")
 
-        sorteos = sorted(df.get("sorteo", pd.Series()).dropna().unique())
-        sorteo_sel = cols.multiselect("Sorteo(s)", options=sorteos, default=[])
-
-        q = colk.text_input("Buscar en titular/resumen/etiquetas", "")
-
-        solo_rel = colr.checkbox("Solo relevantes", value=False)
-
-        df_f = df.copy()
-        if fecha_sel != "(todas)":
-            df_f = df_f[df_f["fecha"] == fecha_sel]
-        if sorteo_sel:
-            df_f = df_f[df_f["sorteo"].isin(sorteo_sel)]
-        if q.strip():
-            qn = q.lower()
-            df_f = df_f[
-                df_f["titular"].str.lower().str.contains(qn, na=False) |
-                df_f["resumen"].str.lower().str.contains(qn, na=False) |
-                df_f["etiquetas"].str.lower().str.contains(qn, na=False)
-            ]
-        if solo_rel and "noticia_relevante" in df_f.columns:
-            df_f = df_f[df_f["noticia_relevante"] == True]
-
-        st.info(f"Coincidencias tras filtros: **{len(df_f)}**")
-
-    # ---------------- Tabla
-    st.dataframe(df_f, use_container_width=True, hide_index=True)
-
-    # ---------------- Descarga
-    fn = f"noticias_filtrado_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}Z.csv"
-    st.download_button(
-        "⬇️ Descargar CSV filtrado",
-        df_f.to_csv(index=False).encode("utf-8"),
-        file_name=fn,
-        mime="text/csv",
-    )
-
-    # ---------------- Vista rápida por sorteo
-    with st.expander("📊 Resumen por sorteo"):
-        if "sorteo" in df_f.columns:
-            pv = df_f.groupby("sorteo")["id_noticia"].count().sort_values(ascending=False)
-            st.bar_chart(pv)
-        else:
-            st.caption("No hay columna `sorteo`.")
-
-
+    st.markdown("---")
+    # Descargas rápidas
+    cdl, cdr = st.columns(2)
+    with cdl:
+        st.download_button("⬇️ Descargar vista cruda (CSV)", dff.drop(columns=["__reason"], errors="ignore").to_csv(index=False).encode("utf-8"), "noticias_cruda.csv", "text/csv")
+    with cdr:
+        st.download_button("⬇️ Descargar vista filtrada (CSV)", df_ok.drop(columns=["__reason"], errors="ignore").to_csv(index=False).encode("utf-8"), "noticias_filtrada.csv", "text/csv")
      
