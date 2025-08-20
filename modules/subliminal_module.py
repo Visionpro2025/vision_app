@@ -3,6 +3,7 @@ from datetime import datetime
 import streamlit as st
 import pandas as pd
 import re
+from functools import lru_cache
 
 # ===========================
 # Configuración y utilidades
@@ -24,31 +25,23 @@ def _load_csv_safe(path: Path):
         st.error(f"Error al leer {path.name}: {e}")
         return None
 
-# =========================================
-# Backend NLP (opcional) + plan B diccionario
-# =========================================
+# ====================================================
+# Backend NLP (HuggingFace) + plan B (diccionario)
+# ====================================================
 
-def _nlp_backend(text: str):
-    """
-    Intenta usar un backend NLP si está instalado.
-    Si no hay modelo disponible, devuelve None y se usará el plan B por diccionario.
-    """
+@lru_cache(maxsize=1)
+def _nlp_backend_sentiment():
     try:
-        from transformers import pipeline  # tipo: ignore
-        # Intento genérico multilenguaje (si el runtime lo tiene)
-        clf = pipeline("sentiment-analysis")
-        out = clf(text[:512])[0]  # truncamos para robustez
-        # Normalizamos a escala 0–100
-        label = str(out.get("label", "")).lower()
-        score = float(out.get("score", 0.0))
-        if "pos" in label:
-            return {"emocion": "esperanza", "intensidad": int(50 + score * 50)}
-        if "neg" in label:
-            return {"emocion": "miedo", "intensidad": int(50 + score * 50)}
-        if "neu" in label:
-            return {"emocion": "neutral", "intensidad": int(score * 50)}
-        # fallback
-        return {"emocion": "indignación", "intensidad": int(40 + score * 60)}
+        from transformers import pipeline  # type: ignore
+        return pipeline("sentiment-analysis")
+    except Exception:
+        return None
+
+@lru_cache(maxsize=1)
+def _nlp_backend_arquetipo():
+    try:
+        from transformers import pipeline  # type: ignore
+        return pipeline("text-classification")
     except Exception:
         return None
 
@@ -77,9 +70,21 @@ def analizar_sentimiento(texto: str) -> dict:
     texto_n = (texto or "").lower()
 
     # Intento NLP real
-    nlp_res = _nlp_backend(texto_n)
-    if nlp_res is not None:
-        return nlp_res
+    clf = _nlp_backend_sentiment()
+    if clf is not None:
+        try:
+            out = clf(texto[:512])[0]
+            label = str(out.get("label", "")).lower()
+            score = float(out.get("score", 0.0))
+            if "pos" in label:
+                return {"emocion": "esperanza", "intensidad": int(50 + score * 50)}
+            if "neg" in label:
+                return {"emocion": "miedo", "intensidad": int(50 + score * 50)}
+            if "neu" in label:
+                return {"emocion": "neutral", "intensidad": int(score * 50)}
+            return {"emocion": "indignación", "intensidad": int(40 + score * 60)}
+        except Exception:
+            pass
 
     # Plan B: conteo por diccionario
     scores = {emo: 0 for emo in EMO_LEX}
@@ -87,7 +92,6 @@ def analizar_sentimiento(texto: str) -> dict:
         for w in palabras:
             scores[emo] += len(re.findall(rf"\b{re.escape(w)}\b", texto_n))
 
-    # Escala de intensidad simple
     emo_dom = max(scores, key=scores.get) if scores else "neutral"
     total = sum(scores.values())
     intensidad = 20 if total == 0 else min(100, 40 + total * 10)
@@ -99,11 +103,25 @@ def analizar_sentimiento(texto: str) -> dict:
 
 def clasificar_arquetipo(texto: str) -> str:
     texto_n = (texto or "").lower()
+
+    # Intento NLP real
+    clf = _nlp_backend_arquetipo()
+    if clf is not None:
+        try:
+            out = clf(texto[:512])[0]
+            label = str(out.get("label", ""))
+            if label:
+                return label
+        except Exception:
+            pass
+
+    # Plan B: patrones regex
     for nombre, patrones in ARCHETYPES.items():
         for pat in patrones:
             if re.search(pat, texto_n):
                 return nombre
-    # Heurística muy simple si no hay match:
+
+    # Heurística
     if any(w in texto_n for w in ["récord", "logro", "ganador", "premio"]):
         return "Héroe"
     if any(w in texto_n for w in ["fraude", "escándalo", "acusación"]):
@@ -189,4 +207,4 @@ def render_subliminal():
         df_out.to_csv(index=False).encode("utf-8"),
         file_name=fn,
         mime="text/csv"
-      )
+        )
