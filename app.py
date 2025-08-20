@@ -1,137 +1,195 @@
-
-# ============================
-# 🔮 Aplicación Visión — app.py
-# ============================
-
+# app.py — Visión (UI Pro)
+from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
-import pandas as pd
+import importlib
 import streamlit as st
+import pandas as pd
 
-# ──────────────────────────────────────────────────────────────────────────────
+# =========================
 # Configuración de página
-# ──────────────────────────────────────────────────────────────────────────────
-st.set_page_config(page_title="Visión", page_icon="🔮", layout="wide")
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Utilidades mínimas (cacheadas)
-# ──────────────────────────────────────────────────────────────────────────────
-ROOT = Path(__file__).resolve().parent
-
-@st.cache_data(show_spinner=False)
-def _read_csv_safe(path: Path) -> pd.DataFrame | None:
-    try:
-        return pd.read_csv(path, dtype=str, encoding="utf-8")
-    except Exception as e:
-        st.error(f"No se pudo leer {path.name}: {e}")
-        return None
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Título
-# ──────────────────────────────────────────────────────────────────────────────
-st.title("🔮 Sistema Predictivo Visión")
-st.caption("Menú maestro para navegar por las capas del sistema.")
-
-# ──────────────────────────────────────────────────────────────────────────────
-# Menú lateral (único)
-# ──────────────────────────────────────────────────────────────────────────────
-menu = st.sidebar.selectbox(
-    "Selecciona un módulo:",
-    [
-        "🏠 Inicio",
-        "👁️ Visión",
-        "📊 Tabla T70",
-        "📰 Noticias",
-        "🔤 Gematría",
-        "🌀 Análisis del mensaje subliminal",
-        "🧭 Orquestador de capas",
-        "📚 Biblioteca",
-    ],
+# =========================
+st.set_page_config(
+    page_title="Sistema Predictivo Visión",
+    page_icon="🔮",
+    layout="wide",
+    menu_items={
+        "Get help": None,
+        "Report a bug": None,
+        "About": "Visión · Plataforma modular para análisis predictivo.",
+    },
 )
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Router de vistas (cada elif llama a su módulo)
-# ──────────────────────────────────────────────────────────────────────────────
-if menu == "🏠 Inicio":
-    st.subheader("Bienvenido 👋")
-    st.write(
-        "Usa el menú de la izquierda para abrir **Noticias**, **Gematría**, "
-        "**Análisis del mensaje subliminal**, **📚 Biblioteca** o el **🧭 Orquestador**."
+ROOT = Path(__file__).resolve().parent
+RUNS = ROOT / "__RUNS"
+RUNS.mkdir(parents=True, exist_ok=True)
+
+# =========================
+# Utilidades de UI
+# =========================
+def kpi_card(title: str, value: str | int | float, help_text: str = ""):
+    st.markdown(
+        f"""
+        <div style="padding:14px;border-radius:14px;border:1px solid rgba(255,255,255,.1);
+                    background:rgba(255,255,255,.03);">
+            <div style="opacity:.75;font-size:.9rem">{title}</div>
+            <div style="font-weight:700;font-size:1.6rem;line-height:1.2">{value}</div>
+            <div style="opacity:.55;font-size:.85rem">{help_text}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
-    # Estado rápido de archivos base
-    col1, col2 = st.columns(2)
-    with col1:
-        news_path = ROOT / "noticias.csv"
-        ok = news_path.exists()
-        st.metric("noticias.csv", "OK ✅" if ok else "Falta ⚠️")
-        if ok:
-            df = _read_csv_safe(news_path)
-            if df is not None:
-                st.caption(f"Filas: {len(df)}")
-    with col2:
-        t70_path = ROOT / "T70.csv"
-        ok = t70_path.exists()
-        st.metric("T70.csv", "OK ✅" if ok else "Falta ⚠️")
-        if ok:
-            df = _read_csv_safe(t70_path)
-            if df is not None:
-                st.caption(f"Filas: {len(df)}")
 
-elif menu == "👁️ Visión":
-    st.subheader("Visión (placeholder)")
-    st.info("Aquí irá la lógica principal de series/estrategia de la app.")
-
-elif menu == "📊 Tabla T70":
-    st.subheader("📊 Tabla T70")
-    path = ROOT / "T70.csv"
-    if not path.exists():
-        st.warning("No encuentro **T70.csv** en la raíz del repositorio.")
-    else:
-        df = _read_csv_safe(path)
-        if df is not None:
-            st.dataframe(df, use_container_width=True)
-
-elif menu == "📰 Noticias":
+@st.cache_data(show_spinner=False)
+def _safe_read_csv(path: Path) -> pd.DataFrame | None:
     try:
-        from modules.noticias_module import render_noticias
-        render_noticias()
-    except Exception as e:
-        st.error(f"Error al cargar Noticias: {e}")
+        return pd.read_csv(path, dtype=str, encoding="utf-8")
+    except Exception:
+        return None
 
-elif menu == "🔤 Gematría":
+def file_badge(path: Path) -> str:
+    return "✅" if path.exists() else "❌"
+
+# =========================
+# Sidebar pro
+# =========================
+with st.sidebar:
+    # Si tienes un logo, ponlo en la raíz y descomenta:
+    # st.image("logo.png", use_container_width=True)
+    st.markdown("### 🔮 Visión")
+    st.caption("Suite de análisis modular")
+
+    section = st.radio(
+        "Navegación",
+        [
+            "🏠 Inicio",
+            "📰 Noticias",
+            "🔤 Gematría",
+            "🌀 Análisis del mensaje subliminal",
+            "📚 Biblioteca",
+            "🧭 Orquestador de capas",
+        ],
+        index=0,
+    )
+
+    st.markdown("---")
+    st.caption(
+        "© Visión · " + datetime.utcnow().strftime("última recarga: %Y-%m-%d %H:%M:%SZ")
+    )
+
+# =========================
+# Portada
+# =========================
+if section == "🏠 Inicio":
+    st.title("🔮 Sistema Predictivo Visión")
+    st.write(
+        "Menú maestro para navegar por las capas del sistema. "
+        "Usa la barra lateral para abrir cada módulo."
+    )
+
+    # chequeos rápidos
+    news_p = ROOT / "noticias.csv"
+    t70_p = ROOT / "T70.csv"
+
+    c1, c2, c3 = st.columns([1.2, 1, 1])
+    with c1:
+        st.subheader("Estado de insumos")
+        col_a, col_b = st.columns(2)
+        with col_a:
+            kpi_card("noticias.csv", file_badge(news_p), "bitácora")
+        with col_b:
+            kpi_card("T70.csv", file_badge(t70_p), "Tabla de tendencias")
+
+        # detalles
+        st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+        if news_p.exists():
+            df_n = _safe_read_csv(news_p) or pd.DataFrame()
+            st.success(f"noticias.csv OK {len(df_n)} filas")
+        else:
+            st.warning("Falta **noticias.csv** en la raíz del repo.")
+
+        if t70_p.exists():
+            df_t = _safe_read_csv(t70_p) or pd.DataFrame()
+            st.success(f"T70.csv OK {len(df_t)} filas")
+        else:
+            st.warning("Falta **T70.csv** en la raíz del repo.")
+
+    with c2:
+        st.subheader("Métricas")
+        total_mods = 4
+        ready = int(news_p.exists()) + int(t70_p.exists())
+        kpi_card("Módulos", total_mods, "Noticias · Gematría · Subliminal · Biblioteca")
+        kpi_card("Insumos listos", f"{ready}/2")
+
+    with c3:
+        st.subheader("Acciones")
+        if st.button("↻ Re-cargar datos"):
+            st.cache_data.clear()
+            st.experimental_rerun()
+        st.caption("Limpia caché y recarga el estado de archivos.")
+
+# =========================
+# Noticias
+# =========================
+elif section == "📰 Noticias":
     try:
-        from modules.gematria import show_gematria
-        show_gematria()
+        mod = importlib.import_module("modules.noticias_module")
+        st.title("📰 Noticias — bitácora del sorteo")
+        mod.render_noticias()
     except Exception as e:
-        st.error(f"Error en módulo Gematría: {e}")
+        st.error("No se pudo cargar el módulo de noticias.")
+        st.exception(e)
 
-elif menu == "🌀 Análisis del mensaje subliminal":
+# =========================
+# Gematría
+# =========================
+elif section == "🔤 Gematría":
     try:
-        from modules.subliminal_module import render_subliminal
-        render_subliminal()
+        mod = importlib.import_module("modules.gematria")
+        st.title("🔤 Gematría")
+        mod.show_gematria()
     except Exception as e:
-        st.error(f"Error en módulo Subliminal: {e}")
+        st.error("No se pudo cargar el módulo de gematría.")
+        st.exception(e)
 
-elif menu == "🧭 Orquestador de capas":
+# =========================
+# Subliminal
+# =========================
+elif section == "🌀 Análisis del mensaje subliminal":
     try:
-        from modules.orchestrator import render_orchestrator
-        render_orchestrator()
+        mod = importlib.import_module("modules.subliminal_module")
+        st.title("🌀 Análisis del mensaje subliminal")
+        mod.render_subliminal()
     except Exception as e:
-        st.error(f"Error en módulo Orquestador: {e}")
+        st.error("No se pudo cargar el módulo de subliminal.")
+        st.exception(e)
 
-elif menu == "📚 Biblioteca":
+# =========================
+# Biblioteca
+# =========================
+elif section == "📚 Biblioteca":
     try:
-        from modules.library import render_library
-        render_library()
+        mod = importlib.import_module("modules.library")
+        st.title("📚 Biblioteca")
+        mod.render_library()
     except Exception as e:
-        st.error(f"Error en módulo Biblioteca: {e}")
+        st.error("No se pudo cargar el módulo de biblioteca.")
+        st.exception(e)
 
-else:
-    st.error("Opción de menú no reconocida.")
+# =========================
+# Orquestador
+# =========================
+elif section == "🧭 Orquestador de capas":
+    try:
+        mod = importlib.import_module("modules.orchestrator")
+        st.title("🧭 Orquestador de capas")
+        mod.render_orchestrator()
+    except Exception as e:
+        st.error("No se pudo cargar el módulo de orquestador.")
+        st.exception(e)
 
-# ──────────────────────────────────────────────────────────────────────────────
-# Pie de página
-# ──────────────────────────────────────────────────────────────────────────────
-st.caption(
-    f"© Visión · última recarga: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%SZ')}"
-        )
+# =========================
+# Footer
+# =========================
+st.markdown("---")
+st.caption("Hecho con ❤️ y Streamlit · Visión")
