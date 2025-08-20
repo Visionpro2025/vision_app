@@ -1,157 +1,213 @@
-# modules/orchestrator.py
+ # modules/orchestrator.py
+from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
+import json
+import traceback
+
 import streamlit as st
 import pandas as pd
 
-# ===== Rutas base
+from .logger_setup import get_logger
+
+# ===== Rutas base y carpetas de trabajo
 ROOT = Path(__file__).resolve().parent.parent
 RUNS = ROOT / "__RUNS" / "ORCHESTRATOR"
 RUNS.mkdir(parents=True, exist_ok=True)
 
-# ===== Utilidades mínimas
-def _load_csv_safe(path: Path) -> pd.DataFrame | None:
+LOG = get_logger("orchestrator")
+
+# ====== utilidades cacheadas
+@st.cache_data(show_spinner=False)
+def _load_csv(path: Path) -> pd.DataFrame | None:
     try:
         return pd.read_csv(path, dtype=str, encoding="utf-8")
     except Exception as e:
+        LOG.exception("Error leyendo %s", path)
         st.error(f"Error al leer {path.name}: {e}")
         return None
 
-# ===== Chequeos de salud muy básicos
-def _check_noticias() -> tuple[bool, str]:
-    path = ROOT / "noticias.csv"
-    if not path.exists():
-        return False, "No se encontró noticias.csv en la raíz."
-    df = _load_csv_safe(path)
+def _save_json(data: dict, path: Path) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+
+# ====== chequeos de salud por capa
+def _check_noticias():
+    p = ROOT / "noticias.csv"
+    if not p.exists():
+        return False, "No se encontró noticias.csv"
+    df = _load_csv(p)
     if df is None or df.empty:
-        return False, "noticias.csv está vacío o ilegible."
+        return False, "noticias.csv vacío o ilegible"
+    cols_req = {
+        "id_noticia","fecha","sorteo","pais","fuente",
+        "titular","resumen","etiquetas",
+    }
+    if not cols_req.issubset(set(df.columns)):
+        faltan = cols_req - set(df.columns)
+        return False, f"Columnas faltantes en noticias.csv: {', '.join(sorted(faltan))}"
     return True, f"OK ({len(df)} filas)."
 
-def _check_t70() -> tuple[bool, str]:
-    path = ROOT / "T70.csv"
-    if not path.exists():
-        return False, "No se encontró T70.csv en la raíz."
-    df = _load_csv_safe(path)
+def _check_t70():
+    p = ROOT / "T70.csv"
+    if not p.exists():
+        return False, "No se encontró T70.csv"
+    df = _load_csv(p)
     if df is None or df.empty:
-        return False, "T70.csv está vacío o ilegible."
+        return False, "T70.csv vacío o ilegible"
     return True, f"OK ({len(df)} filas)."
 
-def _check_gematria() -> tuple[bool, str]:
-    # Chequeo simple: que el módulo exista y se pueda importar
+def _check_gematria():
     try:
-        from modules.gematria import show_gematria  # noqa: F401
+        from . import gematria  # solo prueba de import
         return True, "OK (módulo importado)."
     except Exception as e:
-        return False, f"No se pudo importar modules/gematria.py: {e}"
+        LOG.exception("Error importando gematria")
+        return False, f"Fallo import gematria: {e}"
 
-def _check_subliminal() -> tuple[bool, str]:
+def _check_subliminal():
     try:
-        from modules.subliminal_module import render_subliminal  # noqa: F401
+        from .subliminal_module import extraer_mensaje_subliminal  # noqa
         return True, "OK (módulo importado)."
     except Exception as e:
-        return False, f"No se pudo importar modules/subliminal_module.py: {e}"
+        LOG.exception("Error importando subliminal_module")
+        return False, f"Fallo import subliminal: {e}"
 
-# ===== Ejecutores (llaman a cada vista en un expander)
-def _run_noticias():
-    from modules.noticias_module import render_noticias
-    with st.expander("📰 Noticias (vista)", expanded=False):
-        render_noticias()
+# ====== pasos de pipeline
+def step_noticias():
+    ok, msg = _check_noticias()
+    if not ok:
+        raise RuntimeError(msg)
+    LOG.info("Noticias listas: %s", msg)
+    return msg
 
-def _run_gematria():
-    from modules.gematria import show_gematria
-    with st.expander("🔤 Gematría (vista)", expanded=False):
-        show_gematria()
+def step_gematria(dry_run: bool = True):
+    """
+    Placeholder: valida módulo. Si en el futuro agregas un batch,
+    aquí leerá noticias y generará __RUNS/GEMATRIA/*.csv
+    """
+    ok, msg = _check_gematria()
+    if not ok:
+        raise RuntimeError(msg)
+    if dry_run:
+        LOG.info("Gematría (dry-run): %s", msg)
+        return "Gematría verificada (dry-run)."
+    # Aquí iría la ejecución real cuando exista función batch
+    return "Gematría ejecutada."
 
-def _run_subliminal():
-    from modules.subliminal_module import render_subliminal
-    with st.expander("🌀 Análisis del mensaje subliminal (vista)", expanded=False):
-        render_subliminal()
+def step_subliminal():
+    ok, msg = _check_subliminal()
+    if not ok:
+        raise RuntimeError(msg)
 
-def _run_t70():
-    path = ROOT / "T70.csv"
-    with st.expander("📊 Tabla T70 (vista)", expanded=False):
-        if path.exists():
-            df = _load_csv_safe(path)
-            if df is not None:
-                st.dataframe(df, use_container_width=True)
-        else:
-            st.warning("No se encontró T70.csv")
+    from .subliminal_module import extraer_mensaje_subliminal  # usa tu backend real
+    df = _load_csv(ROOT / "noticias.csv")
+    assert df is not None
+    out_rows = []
+    for _, r in df.iterrows():
+        text = " ".join([
+            str(r.get("titular", "")),
+            str(r.get("resumen", "")),
+            str(r.get("etiquetas", "")),
+        ])
+        res = extraer_mensaje_subliminal(text)
+        out_rows.append({
+            "id_noticia": r.get("id_noticia", ""),
+            "emocion": res["emocion"],
+            "intensidad": res["intensidad"],
+            "arquetipo": res["arquetipo"],
+            "mensaje": res["mensaje"],
+            "timestamp": datetime.utcnow().isoformat(timespec="seconds")+"Z",
+        })
+    df_out = pd.DataFrame(out_rows)
+    out_path = RUNS / f"subliminal_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    df_out.to_csv(out_path, index=False, encoding="utf-8")
+    LOG.info("Subliminal exportado: %s", out_path.name)
+    return f"Subliminal exportado: {out_path.name}"
 
-# ===== Vista principal del orquestador
+def step_consolidar():
+    """
+    Placeholder: ejemplo para consolidar salidas de capas en un único reporte.
+    """
+    # Por ahora solo indica que el paso existe
+    return "Consolidación (placeholder)."
+
+# ====== UI
 def render_orchestrator():
-    st.subheader("🧭 Orquestador de capas (esqueleto)")
+    st.header("⏱️ Orquestador de capas (pipeline)")
+    st.caption(f"Base: `{ROOT}`  ·  Runs: `__RUNS/ORCHESTRATOR`")
 
-    # Estado rápido
-    c1, c2, c3, c4 = st.columns(4)
-    ok_news, msg_news = _check_noticias()
-    ok_t70, msg_t70 = _check_t70()
-    ok_gem, msg_gem = _check_gematria()
-    ok_sub, msg_sub = _check_subliminal()
+    # Estado rápido de salud
+    with st.expander("✅ Chequeos rápidos (salud de capas)", expanded=True):
+        for name, fn in [
+            ("📰 Noticias", _check_noticias),
+            ("📊 T70", _check_t70),
+            ("🔤 Gematría", _check_gematria),
+            ("🌀 Subliminal", _check_subliminal),
+        ]:
+            ok, msg = fn()
+            icon = "✅" if ok else "⚠️"
+            st.write(f"**{name}** — {icon} {msg}")
 
-    with c1:
-        st.metric("📰 Noticias", "OK ✅" if ok_news else "Revisar ⚠️")
-        st.caption(msg_news)
-    with c2:
-        st.metric("📊 T70", "OK ✅" if ok_t70 else "Revisar ⚠️")
-        st.caption(msg_t70)
-    with c3:
-        st.metric("🔤 Gematría", "OK ✅" if ok_gem else "Revisar ⚠️")
-        st.caption(msg_gem)
-    with c4:
-        st.metric("🌀 Subliminal", "OK ✅" if ok_sub else "Revisar ⚠️")
-        st.caption(msg_sub)
+    st.write("---")
+    st.subheader("▶️ Ejecutar pipeline")
 
-    st.divider()
+    colA, colB, colC, colD = st.columns(4)
+    with colA:
+        run_news = st.checkbox("Noticias", value=True)
+    with colB:
+        run_gem = st.checkbox("Gematría (dry-run)", value=True)
+    with colC:
+        run_sub = st.checkbox("Subliminal", value=True)
+    with colD:
+        run_cons = st.checkbox("Consolidar", value=False)
 
-    # Orden de ejecución
-    st.markdown("### Orden de ejecución")
-    opciones = ["📰 Noticias", "🔤 Gematría", "🌀 Subliminal", "📊 T70"]
-    order = st.multiselect(
-        "Selecciona y ordena (usa el orden visual):",
-        options=opciones,
-        default=["📰 Noticias", "🔤 Gematría", "🌀 Subliminal"]
-    )
-    st.caption("Orden propuesto: " + (" → ".join(order) if order else "(ninguno)"))
+    run_btn = st.button("🚀 Ejecutar ahora", use_container_width=True)
 
-    detener_en_fallo = st.checkbox("Detener si una capa clave falla", value=True)
+    if not run_btn:
+        return
 
-    if st.button("▶️ Ejecutar"):
-        st.info(f"Iniciando pipeline a las {datetime.utcnow().strftime('%H:%M:%SZ')}…")
-        for step in order:
-            # Chequeo previo por paso
-            if step == "📰 Noticias":
-                ok, msg = ok_news, msg_news
-            elif step == "🔤 Gematría":
-                ok, msg = ok_gem, msg_gem
-            elif step == "🌀 Subliminal":
-                ok, msg = ok_sub, msg_sub
-            elif step == "📊 T70":
-                ok, msg = ok_t70, msg_t70
-            else:
-                ok, msg = False, "Paso desconocido."
+    # Bitácora de la corrida
+    run_id = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+    run_log = {
+        "run_id": run_id,
+        "started_at": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "steps": [],
+        "status": "running",
+    }
+    log_path = RUNS / f"run_{run_id}.json"
+    _save_json(run_log, log_path)
 
-            if not ok:
-                st.error(f"❌ {step}: {msg}")
-                if detener_en_fallo:
-                    st.warning(f"⛔ Pipeline detenido en **{step}** por política de bloqueo.")
-                    return
-                else:
-                    st.info("Se continúa por tolerancia…")
+    steps = []
+    if run_news: steps.append(("Noticias", step_noticias))
+    if run_gem:  steps.append(("Gematría", step_gematria))
+    if run_sub:  steps.append(("Subliminal", step_subliminal))
+    if run_cons: steps.append(("Consolidación", step_consolidar))
 
-            # Ejecución de la vista correspondiente
-            try:
-                if step == "📰 Noticias":
-                    _run_noticias()
-                elif step == "🔤 Gematría":
-                    _run_gematria()
-                elif step == "🌀 Subliminal":
-                    _run_subliminal()
-                elif step == "📊 T70":
-                    _run_t70()
-            except Exception as e:
-                st.exception(e)
-                if detener_en_fallo:
-                    st.warning(f"⛔ Pipeline detenido por error en **{step}**.")
-                    return
+    prog = st.progress(0, text="Iniciando…")
+    status_box = st.empty()
 
-        st.success("✅ Pipeline finalizado.")
+    try:
+        for i, (label, fn) in enumerate(steps, start=1):
+            status_box.info(f"Ejecutando **{label}** …")
+            LOG.info("Paso: %s", label)
+            result_msg = fn()
+            run_log["steps"].append({"step": label, "ok": True, "msg": result_msg})
+            _save_json(run_log, log_path)
+            prog.progress(int(i / max(len(steps),1) * 100), text=f"{label} ✓")
+
+        run_log["status"] = "success"
+        run_log["finished_at"] = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+        _save_json(run_log, log_path)
+        st.success("Pipeline finalizado correctamente ✅")
+        st.code(json.dumps(run_log, ensure_ascii=False, indent=2))
+
+    except Exception as e:
+        LOG.exception("Pipeline: error en ejecución")
+        run_log["status"] = "error"
+        run_log["error"] = f"{type(e).__name__}: {e}"
+        run_log["traceback"] = traceback.format_exc()
+        run_log["finished_at"] = datetime.utcnow().isoformat(timespec="seconds") + "Z"
+        _save_json(run_log, log_path)
+        st.error(f"❌ Error: {e}")
+        st.exception(e)
