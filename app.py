@@ -1,4 +1,4 @@
-# app.py — Visión (UI Pro)
+# app.py — Visión (UI Pro) — FIX DataFrame truthiness
 from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
@@ -41,11 +41,12 @@ def kpi_card(title: str, value: str | int | float, help_text: str = ""):
     )
 
 @st.cache_data(show_spinner=False)
-def _safe_read_csv(path: Path) -> pd.DataFrame | None:
+def _safe_read_csv(path: Path) -> pd.DataFrame:
+    """Lee CSV y siempre devuelve un DataFrame (vacío si falla)."""
     try:
         return pd.read_csv(path, dtype=str, encoding="utf-8")
     except Exception:
-        return None
+        return pd.DataFrame()
 
 def file_badge(path: Path) -> str:
     return "✅" if path.exists() else "❌"
@@ -54,8 +55,7 @@ def file_badge(path: Path) -> str:
 # Sidebar pro
 # =========================
 with st.sidebar:
-    # Si tienes un logo, ponlo en la raíz y descomenta:
-    # st.image("logo.png", use_container_width=True)
+    # st.image("logo.png", use_container_width=True)  # opcional si subes un logo
     st.markdown("### 🔮 Visión")
     st.caption("Suite de análisis modular")
 
@@ -100,17 +100,23 @@ if section == "🏠 Inicio":
         with col_b:
             kpi_card("T70.csv", file_badge(t70_p), "Tabla de tendencias")
 
-        # detalles
         st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+
         if news_p.exists():
-            df_n = _safe_read_csv(news_p) or pd.DataFrame()
-            st.success(f"noticias.csv OK {len(df_n)} filas")
+            df_n = _safe_read_csv(news_p)
+            if df_n.empty:
+                st.warning("`noticias.csv` existe pero está vacío o ilegible.")
+            else:
+                st.success(f"noticias.csv OK · filas: {len(df_n)}")
         else:
             st.warning("Falta **noticias.csv** en la raíz del repo.")
 
         if t70_p.exists():
-            df_t = _safe_read_csv(t70_p) or pd.DataFrame()
-            st.success(f"T70.csv OK {len(df_t)} filas")
+            df_t = _safe_read_csv(t70_p)
+            if df_t.empty:
+                st.warning("`T70.csv` existe pero está vacío o ilegible.")
+            else:
+                st.success(f"T70.csv OK · filas: {len(df_t)}")
         else:
             st.warning("Falta **T70.csv** en la raíz del repo.")
 
@@ -125,7 +131,7 @@ if section == "🏠 Inicio":
         st.subheader("Acciones")
         if st.button("↻ Re-cargar datos"):
             st.cache_data.clear()
-            st.experimental_rerun()
+            st.rerun()
         st.caption("Limpia caché y recarga el estado de archivos.")
 
 # =========================
