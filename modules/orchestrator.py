@@ -32,6 +32,13 @@ def _save_json(data: dict, path: Path) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 # ====== chequeos de salud por capa
+def _check_bibliography():
+    corpus = ROOT / "__CORPUS" / "GEMATRIA"
+    needed = ["bibliography.md"]
+    missing = [f for f in needed if not (corpus / f).exists()]
+    if missing:
+        return False, f"Falta: {', '.join(missing)}"
+    return True, "OK (bibliografía base presente)."
 def _check_noticias():
     p = ROOT / "noticias.csv"
     if not p.exists():
