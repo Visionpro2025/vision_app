@@ -1,3 +1,7 @@
+def render_noticias():
+    st.subheader("📰 Noticias — bitácora del sorteo")
+    st.warning("Noticias v2 — módulo recargado")  # marca visible
+    ...
 from pathlib import Path
 import streamlit as st
 import pandas as pd
