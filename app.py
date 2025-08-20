@@ -1,11 +1,10 @@
-from pathlib import Path
+  from pathlib import Path
 import pandas as pd
 import streamlit as st
 
-# Configuración de página
 st.set_page_config(page_title="Visión", page_icon="🔮", layout="wide")
 
-# ===== Título general
+# ===== Título
 st.title("🔮 Sistema Predictivo Visión")
 
 # ===== Menú lateral (único)
@@ -33,7 +32,7 @@ elif menu == "Tabla T70":
 elif menu == "Noticias":
     import importlib
     import modules.noticias_module as noticias_module
-    importlib.reload(noticias_module)   # fuerza recarga del módulo
+    importlib.reload(noticias_module)   # recarga por si actualizas el módulo
     noticias_module.render_noticias()
 
 elif menu == "Gematría":
@@ -42,4 +41,5 @@ elif menu == "Gematría":
 
 elif menu == "Análisis del mensaje subliminal":
     from modules.subliminal_module import render_subliminal
-    render_subliminal()
+    render_subliminal()  
+
