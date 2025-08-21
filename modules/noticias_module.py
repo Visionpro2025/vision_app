@@ -502,7 +502,12 @@ def render_noticias():
     """Módulo de Noticias (in-app): crudas, filtradas, procesar, explorador, limpiar, archivo."""
     # 1) Acopio diario y volumen mínimo (si hay NewsAPI)
     _auto_harvest_if_needed()
-
+# === Contadores visibles
+cA, cB = st.columns(2)
+with cA:
+    st.metric("📰 Crudas (primarias)", len(df_cruda))
+with cB:
+    st.metric("✅ Filtradas (alto impacto)", len(df_filtrada))
     # 2) Carga base
     df_all = _load_news(NEWS_CSV)
 
