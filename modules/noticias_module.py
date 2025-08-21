@@ -80,13 +80,25 @@ def _newsapi_key() -> str | None:
         return st.secrets["newsapi"]["api_key"]
     except Exception:
         return None
-
-def _default_query() -> str:
-    return (
-        "huracán OR tormenta OR tornado OR inundación OR terremoto OR incendio OR evacuación OR emergencia "
-        "OR tiroteo OR ataque OR explosión OR guerra OR conflicto OR terrorismo OR tragedia OR muertos OR fallecidos "
-        "OR crisis OR colapso OR apagón OR quiebra OR récord OR histórico"
-    )
+    def _default_queries() -> list[str]:
+    # Temas de alto impacto (en / es) — centrados en USA
+    return [
+        # desastres naturales / clima severo
+        "hurricane OR tropical storm OR wildfire OR earthquake OR flood OR tornado OR heatwave",
+        "huracán OR tormenta tropical OR incendio forestal OR terremoto OR inundación OR tornado OR ola de calor",
+        # violencia / seguridad
+        "mass shooting OR explosion OR terror attack OR active shooter",
+        "tiroteo masivo OR explosión OR ataque terrorista OR atentado",
+        # crisis públicas / fallas críticas
+        "blackout OR grid failure OR cyberattack OR data breach OR chemical spill",
+        "apagón OR fallo eléctrico OR ciberataque OR brecha de datos OR derrame químico",
+        # economía / colapsos
+        "recession OR bankruptcy OR market crash OR bank failure",
+        "recesión OR quiebra OR colapso bursátil OR cierre bancario",
+        # récords / eventos “históricos”
+        "record high OR historic OR unprecedented",
+        "récord histórico OR sin precedentes",
+    ]
 
 # ====== NLP / Lexicón ======
 def _nlp_backend(text: str) -> dict | None:
