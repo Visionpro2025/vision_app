@@ -6,7 +6,87 @@ import pandas as pd
 import streamlit as st
 import requests
 import re
+# ==== Helpers para NewsAPI y utilidades ====
+from datetime import datetime, timedelta
+import requests
 
+NEWS_COLS = [
+    "id_noticia","fecha","sorteo","pais","fuente","titular","resumen","etiquetas",
+    "nivel_emocional_diccionario","nivel_emocional_modelo","nivel_emocional_final",
+    "noticia_relevante","categorias_t70_ref","url"
+]
+
+def _ensure_news_cols(df: pd.DataFrame) -> pd.DataFrame:
+    for c in NEWS_COLS:
+        if c not in df.columns:
+            df[c] = ""
+    return df[NEWS_COLS]
+
+def _read_news_csv(path: Path) -> pd.DataFrame:
+    try:
+        df = pd.read_csv(path, dtype=str, encoding="utf-8")
+        df = _ensure_news_cols(df)
+        return df
+    except Exception:
+        return pd.DataFrame(columns=NEWS_COLS)
+
+def _write_news_csv(path: Path, df: pd.DataFrame):
+    df = _ensure_news_cols(df)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    df.to_csv(path, index=False, encoding="utf-8")
+
+def _newsapi_key() -> str | None:
+    try:
+        return st.secrets["newsapi"]["api_key"]
+    except Exception:
+        return None
+
+def fetch_news_newsapi(query: str, date_from: str, date_to: str, page_size: int = 50) -> list[dict]:
+    """Devuelve lista simplificada de artículos usando NewsAPI (si hay clave)."""
+    api_key = _newsapi_key()
+    if not api_key:
+        st.warning("No hay API key en .streamlit/secrets.toml → [newsapi].")
+        return []
+    url = "https://newsapi.org/v2/everything"
+    params = {
+        "q": query,
+        "language": "en",
+        "from": date_from,
+        "to": date_to,
+        "sortBy": "relevancy",
+        "pageSize": max(1, min(page_size, 100)),
+        "apiKey": api_key,
+    }
+    try:
+        r = requests.get(url, params=params, timeout=20)
+        r.raise_for_status()
+        data = r.json()
+        arts = data.get("articles", [])
+        out = []
+        for a in arts:
+            out.append({
+                "fecha": (a.get("publishedAt","") or "")[:10],
+                "fuente": (a.get("source",{}) or {}).get("name",""),
+                "titular": a.get("title","") or "",
+                "resumen": a.get("description","") or "",
+                "url": a.get("url","") or "",
+                "pais": "US",         # asumimos foco en EE.UU.
+                "sorteo": "",         # usuario podrá ajustar luego
+                "etiquetas": "",
+                "nivel_emocional_diccionario": "",
+                "nivel_emocional_modelo": "",
+                "nivel_emocional_final": "",
+                "noticia_relevante": "",
+                "categorias_t70_ref": "",
+            })
+        return out
+    except Exception as e:
+        st.error(f"Error consultando NewsAPI: {e}")
+        return []
+
+def _make_id(prefix: str = "N") -> str:
+    ts = datetime.utcnow().strftime("%Y%m%d-%H%M%S")
+    return f"{prefix}-{ts}"
 ROOT = Path(__file__).resolve().parent.parent
 NEWS_CSV = ROOT / "noticias.csv"
 RUNS_NEWS = ROOT / "__RUNS" / "NEWS"
