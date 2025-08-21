@@ -508,6 +508,79 @@ with cA:
     st.metric("📰 Crudas (primarias)", len(df_cruda))
 with cB:
     st.metric("✅ Filtradas (alto impacto)", len(df_filtrada))
+    # ================= Acciones finales sobre noticias =================
+st.markdown("----")
+st.subheader("⚙️ Acciones sobre la selección")
+
+# Intentamos usar los DF que ya calculaste arriba;
+# si no existen, creamos vacíos para no romper la app.
+try:
+    df_cruda  # noqa: F821
+except NameError:
+    df_cruda = pd.DataFrame()
+
+try:
+    df_filtrada  # noqa: F821
+except NameError:
+    df_filtrada = pd.DataFrame()
+
+# ¿Qué conjunto quieres analizar?
+base_set = st.radio(
+    "Conjunto a procesar:",
+    ["Filtrada (recomendada)", "Cruda (primaria)"],
+    horizontal=True,
+)
+df_target = df_filtrada if base_set.startswith("Filtrada") else df_cruda
+
+# Selección de noticias a enviar
+titulos = list(df_target.get("titular", pd.Series(dtype=str)))
+seleccion = st.multiselect(
+    "Selecciona hasta 10 noticias para analizar:",
+    titulos,
+    max_selections=10,
+)
+
+c1, c2, c3 = st.columns([1, 1, 1])
+with c1:
+    analizador = st.selectbox("Analizador", ["Gematría", "Subliminal"])
+with c2:
+    lanzar = st.button("▶️ Procesar selección", use_container_width=True)
+with c3:
+    st.caption("No recarga la página; sólo marca en memoria lo que procesarás.")
+
+if lanzar:
+    st.session_state["to_analyze"] = {
+        "analizador": analizador,
+        "items": seleccion,
+        "conjunto": "filtrada" if base_set.startswith("Filtrada") else "cruda",
+    }
+    st.success(
+        f"Se enviaron {len(seleccion)} ítems a **{analizador}**. "
+        "Abre el módulo correspondiente para ver/validar resultados."
+    )
+
+# ===== Descargas (unificadas) =====
+st.markdown("### ⬇️ Exportar vistas")
+d1, d2 = st.columns(2)
+with d1:
+    st.download_button(
+        "Descargar vista cruda (CSV)",
+        df_cruda.to_csv(index=False).encode("utf-8"),
+        file_name="news_raw.csv",
+        mime="text/csv",
+        disabled=df_cruda.empty,
+        use_container_width=True,
+    )
+with d2:
+    st.download_button(
+        "Descargar vista filtrada (CSV)",
+        df_filtrada.to_csv(index=False).encode("utf-8"),
+        file_name="news_filtered.csv",
+        mime="text/csv",
+        disabled=df_filtrada.empty,
+        use_container_width=True,
+    )
+# ==================================================================
     # 2) Carga base
     df_all = _load_news(NEWS_CSV)
 
