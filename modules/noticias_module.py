@@ -155,7 +155,52 @@ def _motivo_inclusion(fin: int, umbral: int, alto_hit: bool) -> str:
 
 # ================== NewsAPI ==================
 def _fetch_news_newsapi(query: str, page_size: int = 50) -> pd.DataFrame:
-   def _harvest_multi(page_size: int = 50) -> pd.DataFrame:
+   # === Google News RSS (sin API key) ===
+import feedparser
+from urllib.parse import quote_plus
+
+def _fetch_news_rss_google(query: str, max_items: int = 60) -> pd.DataFrame:
+    """
+    Busca en Google News (RSS) por la consulta dada, último ~7 días.
+    No requiere API. Idioma español de EE.UU.
+    """
+    # ejemplo: https://news.google.com/rss/search?q=huracán+when:7d&hl=es-419&gl=US&ceid=US:es-419
+    q = quote_plus(query)
+    rss_url = f"https://news.google.com/rss/search?q={q}+when:7d&hl=es-419&gl=US&ceid=US:es-419"
+    feed = feedparser.parse(rss_url)
+
+    rows = []
+    for entry in feed.entries[:max_items]:
+        # algunas entradas traen medio dentro del título; cuidamos limpieza
+        titulo = entry.get("title", "") or ""
+        resumen = entry.get("summary", "") or ""
+        link = entry.get("link", "") or ""
+        fuente = (entry.get("source", {}) or {}).get("title", "")
+        # fecha: pubDate o updated
+        published = entry.get("published", "") or entry.get("updated", "") or ""
+        fecha = published[:10] if len(published) >= 10 else datetime.utcnow().strftime("%Y-%m-%d")
+
+        rows.append({
+            "id_noticia": f"RSS-{abs(hash(link))}"[:18],
+            "fecha": fecha,
+            "sorteo": "",
+            "pais": "US",
+            "fuente": fuente or "Google News",
+            "titular": titulo,
+            "resumen": resumen,
+            "etiquetas": "rss;google_news",
+            "nivel_emocional_diccionario": "",
+            "nivel_emocional_modelo": "",
+            "nivel_emocional_final": "",
+            "noticia_relevante": "",
+            "categorias_t70_ref": "",
+            "url": link,
+        })
+    df = pd.DataFrame(rows).fillna("")
+    if not df.empty and "url" in df.columns:
+        df = df.drop_duplicates(subset=["url"]).reset_index(drop=True)
+    return df
+    def _harvest_multi(page_size: int = 50) -> pd.DataFrame:
     """Dispara varias consultas de alto impacto y devuelve un solo DataFrame."""
     queries = _default_queries()
     frames = []
