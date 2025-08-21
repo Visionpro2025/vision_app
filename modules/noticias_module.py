@@ -499,8 +499,9 @@ def render_noticias():
     show_proc       = b3.button("⚙️ Procesar/Analizar",
     use_container_width=True)
     show_expl       = b4.button("🔎 Explorador / Ingreso",  use_container_width=True)
-    show_clean      = b5.button("🧹 Limpiar",               use_container_width=True)
-
+    show_clean      = b5.button("🧹 Limpiar",              use_container_width=True)
+elif menu == "🔎 Explorador": 
+    _ui_explorador(df_all)
     if len(base) < 60 and _newsapi_key():
         st.warning(f"Menos de 60 crudas ({len(base)}). Usa **Explorador** para ampliar.")
 
