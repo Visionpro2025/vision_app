@@ -155,6 +155,20 @@ def _motivo_inclusion(fin: int, umbral: int, alto_hit: bool) -> str:
 
 # ================== NewsAPI ==================
 def _fetch_news_newsapi(query: str, page_size: int = 50) -> pd.DataFrame:
+   def _harvest_multi(page_size: int = 50) -> pd.DataFrame:
+    """Dispara varias consultas de alto impacto y devuelve un solo DataFrame."""
+    queries = _default_queries()
+    frames = []
+    for q in queries:
+        df = _fetch_news_newsapi(q, page_size=page_size)
+        if not df.empty:
+            frames.append(df)
+    if not frames:
+        return pd.DataFrame(columns=REQUIRED_COLS)
+    merged = pd.concat(frames, ignore_index=True)
+    if "url" in merged.columns:
+        merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+    return merged
     api_key = _newsapi_key()
     if not api_key:
         return pd.DataFrame()
@@ -187,9 +201,32 @@ def _fetch_news_newsapi(query: str, page_size: int = 50) -> pd.DataFrame:
         return pd.DataFrame()
 
 def _auto_harvest_if_needed():
+    """Acopio automático (1 vez/día) usando múltiples consultas + refuerzo si hay poco volumen."""
     today = datetime.utcnow().strftime("%Y-%m-%d")
     last = STAMP.read_text().strip() if STAMP.exists() else ""
     df_current = _load_news(NEWS_CSV)
+
+    # Ejecutar 1 vez al día con variedad
+    if last != today and _newsapi_key():
+        extra = _harvest_multi(page_size=100)  # << usa el recolector múltiple
+        if not extra.empty:
+            merged = pd.concat([df_current, extra], ignore_index=True)
+            if "url" in merged.columns:
+                merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+            _save_news(merged)
+            df_current = merged
+            st.toast(f"📰 Acopio diario (multi): +{len(extra)} nuevas.", icon="🕘")
+        STAMP.write_text(today)
+
+    # Refuerzo de volumen mínimo (sube el piso para asegurar variedad)
+    if len(df_current) < 200 and _newsapi_key():
+        extra = _harvest_multi(page_size=100)  # << usa multi de nuevo
+        if not extra.empty:
+            merged = pd.concat([df_current, extra], ignore_index=True)
+            if "url" in merged.columns:
+                merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+            _save_news(merged)
+            st.toast(f"🔎 Refuerzo automático: total {len(merged)} filas.", icon="➕")
 
     if last != today and _newsapi_key():
         extra = _fetch_news_newsapi(_default_query(), page_size=50)
@@ -305,12 +342,15 @@ def _ui_procesar():
 def _ui_explorador(df: pd.DataFrame):
     st.subheader("🔎 Explorador / Ingreso")
     st.caption("Trae más noticias (NewsAPI) o agrega manualmente. Todo se queda dentro de la app.")
-    q = st.text_input("Consulta (amplia)", _default_query())
-    n = st.slider("Cantidad a traer (NewsAPI)", 20, 100, 50, step=10)
+
+    # Consulta libre (opcional) para una sola búsqueda puntual
+    q = st.text_input("Consulta única (opcional)", "earthquake OR hurricane OR blackout")
+
     c1, c2 = st.columns(2)
     with c1:
-        if st.button("🌐 Traer con NewsAPI", use_container_width=True, disabled=_newsapi_key() is None):
-            extra = _fetch_news_newsapi(q, page_size=int(n))
+        if st.button("🌐 Traer con NewsAPI (consulta única)", use_container_width=True, disabled=_newsapi_key() is None):
+            # ÚNICA consulta (rápida)
+            extra = _fetch_news_newsapi(q, page_size=100)
             if extra.empty:
                 st.warning("No se trajo nada (revisa API key o consulta).")
             else:
@@ -318,14 +358,18 @@ def _ui_explorador(df: pd.DataFrame):
                 if "url" in merged.columns:
                     merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
                 _save_news(merged); st.success(f"+{len(merged)-len(df)} noticias nuevas."); st.rerun()
+
     with c2:
-        st.download_button(
-            "⬇️ Descargar noticias actuales (CSV)",
-            df.to_csv(index=False).encode("utf-8"),
-            file_name=f"noticias_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}Z.csv",
-            mime="text/csv",
-            use_container_width=True,
-        )
+        if st.button("🛰 Traer variedad (multi-consulta)", use_container_width=True, disabled=_newsapi_key() is None):
+            # MÚLTIPLES consultas temáticas (alto impacto, más volumen)
+            extra = _harvest_multi(page_size=100)
+            if extra.empty:
+                st.warning("No se trajo nada (revisa API key o límite diario de NewsAPI).")
+            else:
+                merged = pd.concat([df, extra], ignore_index=True)
+                if "url" in merged.columns:
+                    merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+                _save_news(merged); st.success(f"+{len(merged)-len(df)} noticias nuevas (variedad)."); st.rerun()
 
     st.markdown("---")
     st.markdown("### ✍️ Ingreso manual (una noticia)")
@@ -353,6 +397,21 @@ def _ui_explorador(df: pd.DataFrame):
                 "noticia_relevante": "", "categorias_t70_ref": "", "url": url.strip(),
             }
             df2 = pd.concat([df2, pd.DataFrame([new_row])], ignore_index=True)
+            _save_news(df2); st.success("Noticia agregada."); st.rerun()
+
+    st.markdown("### ⬆️ Cargar CSV adicional")
+    up = st.file_uploader("Subir CSV con mismas columnas de noticias.csv", type=["csv"])
+    if up is not None:
+        try:
+            extra = pd.read_csv(up, dtype=str, encoding="utf-8").fillna("")
+            for c in REQUIRED_COLS:
+                if c not in extra.columns: extra[c] = ""
+            merged = pd.concat([df, extra[REQUIRED_COLS]], ignore_index=True)
+            if "url" in merged.columns:
+                merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+            _save_news(merged); st.success(f"Se agregaron {len(merged)-len(df)} filas."); st.rerun()
+        except Exception as e:
+            st.error(f"No pude leer el CSV subido: {e}")
             _save_news(df2); st.success("Noticia agregada."); st.rerun()
 
     st.markdown("### ⬆️ Cargar CSV adicional")
