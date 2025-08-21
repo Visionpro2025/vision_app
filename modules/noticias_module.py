@@ -384,9 +384,41 @@ def _ui_procesar():
             st.session_state["_nav"] = "🌀 Análisis subliminal"; st.rerun()
     st.caption("Sugerencia: pasa a análisis solo las noticias filtradas (alto impacto).")
 
-def _ui_explorador(df: pd.DataFrame):
     st.subheader("🔎 Explorador / Ingreso")
-    st.caption("Trae más noticias (NewsAPI) o agrega manualmente. Todo se queda dentro de la app.")
+st.caption("Trae más noticias desde varias fuentes o agrega manualmente. Todo se queda en la app.")
+
+# Fuente y consulta
+fuente = st.selectbox("Fuente", ["Google News (RSS)", "NewsAPI"], index=0)
+q = st.text_input("Consulta (amplia)", _default_query())
+n = st.slider("Cantidad a traer", 20, 100, 60, step=10)
+
+c1, c2 = st.columns(2)
+with c1:
+    if st.button("📥 Traer noticias", use_container_width=True):
+        if fuente == "Google News (RSS)":
+            extra = _fetch_news_rss_google(q, max_items=int(n))
+        else:
+            # NewsAPI requiere API key en .streamlit/secrets.toml
+            extra = _fetch_news_newsapi(q, page_size=int(n))
+
+        if extra is None or extra.empty:
+            st.warning("No se trajo nada (prueba otra consulta o fuente).")
+        else:
+            merged = pd.concat([df, extra], ignore_index=True)
+            if "url" in merged.columns:
+                merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+            _save_news(merged)
+            st.success(f"+{len(merged) - len(df)} noticias nuevas agregadas.")
+            st.rerun()
+
+with c2:
+    st.download_button(
+        "⬇️ Descargar noticias actuales (CSV)",
+        df.to_csv(index=False).encode("utf-8"),
+        file_name=f"noticias_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}Z.csv",
+        mime="text/csv",
+        use_container_width=True,
+    )
 
     # Consulta libre (opcional) para una sola búsqueda puntual
     q = st.text_input("Consulta única (opcional)", "earthquake OR hurricane OR blackout")
