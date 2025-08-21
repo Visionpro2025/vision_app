@@ -1,4 +1,4 @@
-# modules/noticias_module.py — Noticias PRO con NewsAPI + auto-acopio diario
+# modules/noticias_module.py — Filtro emocional PRO (USA) + mini-menú in-app
 from __future__ import annotations
 from pathlib import Path
 from datetime import datetime
@@ -13,11 +13,44 @@ RUNS_NEWS = ROOT / "__RUNS" / "NEWS"
 RUNS_NEWS.mkdir(parents=True, exist_ok=True)
 STAMP = RUNS_NEWS / "last_fetch_UTC.txt"   # marca diario (YYYY-MM-DD)
 
+# ================== Config general ==================
 REQUIRED_COLS = [
     "id_noticia","fecha","sorteo","pais","fuente","titular","resumen",
     "etiquetas","nivel_emocional_diccionario","nivel_emocional_modelo",
     "nivel_emocional_final","noticia_relevante","categorias_t70_ref","url"
 ]
+
+UMBRAL_DEFECTO = 60  # umbral de alto impacto (0–100)
+
+# Palabras de alto impacto para rescate rápido (sin dep. de modelo)
+PALABRAS_ALTO_IMPACTO_DEFAULT = [
+    "mortal","muertes","fallecidos","tragedia","desastre","emergencia","crisis",
+    "huracán","tormenta","tornado","inundación","terremoto","incendio","evacuación",
+    "tiroteo","ataque","explosión","guerra","conflicto","terrorismo",
+    "récord","histórico","masivo","colapso","apagón","quiebra","pánico",
+]
+
+# Lexicón emocional básico (ponderado)
+EMO_LEX = {
+    "miedo":     {"crisis":3,"amenaza":3,"pánico":3,"temor":2,"colapso":3,"alarma":3,"emergencia":3,"evacuación":3,"huracán":3,"tormenta":3,"tornado":3,"inundación":3,"terremoto":3,"incendio":3,"apagón":2},
+    "tristeza":  {"tragedia":3,"pérdida":2,"luto":2,"derrota":2,"accidente":2,"fallecidos":3,"muertes":3,"víctimas":3,"desaparición":2},
+    "ira":       {"golpe":2,"ataque":3,"violencia":3,"furia":2,"rabia":2,"corrupción":3,"abuso":3,"indignación":3,"fraude":3,"escándalo":3},
+    "esperanza": {"récord":2,"histórico":2,"avance":2,"renace":2,"mejora":2,"ayuda":2,"rescate":3,"solidaridad":2,"reconstrucción":2},
+    "euforia":   {"éxito":2,"victoria":2,"celebra":2,"triunfo":2,"récord":2,"histórico":2,"campeón":2},
+    "shock":     {"explosión":3,"derrumbe":3,"catastrófico":3,"devastador":3,"colapso":3},
+}
+
+# Categorías amplias (regex) — multi-etiqueta
+CATEGORY_PATTERNS = {
+    "desastre_natural":  r"\b(huracán|tormenta|tornado|inundaci[oó]n|terremoto|sismo|incendio forestal|ola de calor|nevada|granizo)\b",
+    "crisis_publica":    r"\b(emergencia|evacuaci[oó]n|escasez|apag[oó]n|brotes?|epidemia|pandemia)\b",
+    "conflicto_violencia": r"\b(guerra|conflicto|ataque|tiroteo|terrorismo|disturbios|mot[ií]n|bomba|explosi[oó]n)\b",
+    "muertes_tragedias": r"\b(muert[eo]s?|fallecid[oa]s?|víctimas?|tragedia|luto|funeral|masacre)\b",
+    "economia_mercados": r"\b(crisis|inflaci[oó]n|recesi[oó]n|quiebra|default|ca[ií]da|colapso|r[eé]cord|hist[oó]rico)\b",
+    "politica_justicia": r"\b(esc[aá]ndalo|corrupci[oó]n|fraude|acusaci[oó]n|juicio|arresto|impeachment)\b",
+    "ciencia_tec":       r"\b(ciberataque|brecha de datos|apag[oó]n|fallo t[eé]cnico|IA|inteligencia artificial|hackeo)\b",
+    "cultura_deportes":  r"\b(celebridad|famos[oa]|campe[oó]n|t[ií]tulo|final|ol[ií]mpicos|r[eé]cord)\b",
+}
 
 # ================== Utilidades base ==================
 @st.cache_data(show_spinner=False)
@@ -29,28 +62,76 @@ def _load_news(path: Path) -> pd.DataFrame:
     for c in REQUIRED_COLS:
         if c not in df.columns:
             df[c] = ""
-    # normaliza fecha a YYYY-MM-DD
     if "fecha" in df.columns:
         df["fecha"] = df["fecha"].astype(str).str.slice(0, 10)
     return df[REQUIRED_COLS]
 
 def _save_news(df: pd.DataFrame):
     df.to_csv(NEWS_CSV, index=False, encoding="utf-8")
-    _load_news.clear()   # limpia caché
+    _load_news.clear()
     st.toast("noticias.csv guardado", icon="💾")
 
 def _to_int(x, default=0):
     try: return int(str(x).strip())
     except: return default
 
-def _motivo(row: pd.Series, umbral: int, alto_impacto: list[str]) -> str:
-    texto = f"{row.get('titular','')} {row.get('resumen','')}".lower()
-    impact = any(w in texto for w in alto_impacto)
-    fin = _to_int(row.get("nivel_emocional_final", 0), 0)
-    if fin >= umbral and impact: return f"Incluida: emoción={fin}≥{umbral} + alto impacto"
-    if fin >= umbral:           return f"Incluida: emoción={fin}≥{umbral}"
-    if impact:                  return f"Incluida: alto impacto (emocion={fin}<{umbral})"
+def _nlp_backend(text: str) -> dict | None:
+    """Intento de usar modelo si existe; si no, devuelve None."""
+    try:
+        from transformers import pipeline  # opcional
+        clf = pipeline("sentiment-analysis")
+        out = clf(text[:512])[0]
+        label = str(out.get("label","")).lower()
+        score = float(out.get("score", 0.0))
+        # Normalizamos 0–100
+        if "pos" in label:   return {"emocion": "esperanza", "modelo": int(50 + score*50)}
+        if "neg" in label:   return {"emocion": "miedo",     "modelo": int(50 + score*50)}
+        if "neu" in label:   return {"emocion": "neutral",   "modelo": int(score*50)}
+        return {"emocion": "shock", "modelo": int(40 + score*60)}
+    except Exception:
+        return None
+
+def _lexicon_score(text: str) -> tuple[str,int]:
+    """Retorna (emocion_dominante, score_lexicon 0–100)."""
+    t = text.lower()
+    scores = {emo:0 for emo in EMO_LEX}
+    for emo, bag in EMO_LEX.items():
+        for w, wgt in bag.items():
+            scores[emo] += wgt * len(re.findall(rf"\b{re.escape(w)}\b", t))
+    if sum(scores.values()) == 0:
+        return "neutral", 0
+    emo_dom = max(scores, key=scores.get)
+    # Escala simple a 0–100
+    total = sum(scores.values())
+    scaled = max(10, min(100, 40 + scores[emo_dom]*10)) if total>0 else 0
+    return emo_dom, scaled
+
+def _categorize(text: str) -> list[str]:
+    t = text.lower()
+    cats = []
+    for name, pat in CATEGORY_PATTERNS.items():
+        if re.search(pat, t, flags=re.IGNORECASE):
+            cats.append(name)
+    return cats
+
+def _final_score(lex: int, model: int | None) -> int:
+    if model is None:
+        return lex
+    # mezcla conservadora: 60% modelo, 40% lexicón
+    return int(round(0.6*model + 0.4*lex))
+
+def _motivo_inclusion(fin: int, umbral: int, alto_hit: bool) -> str:
+    if fin >= umbral and alto_hit:
+        return f"Incluida: emoción={fin}≥{umbral} + alto impacto"
+    if fin >= umbral:
+        return f"Incluida: emoción={fin}≥{umbral}"
+    if alto_hit:
+        return f"Incluida: alto impacto (emocion={fin}<{umbral})"
     return f"Excluida: emoción={fin}<{umbral} sin alto impacto"
+
+def _high_impact_hit(text: str, palabras: list[str]) -> bool:
+    t = text.lower()
+    return any(re.search(rf"\b{re.escape(w)}\b", t) for w in palabras)
 
 def _gen_id(prefix="N") -> str:
     today = datetime.utcnow().strftime("%Y-%m-%d")
@@ -59,23 +140,20 @@ def _gen_id(prefix="N") -> str:
     n = sum(df["id_noticia"].astype(str).str.startswith(base)) + 1
     return f"{base}-{n:03d}"
 
-# ============== NewsAPI ==============
+# ================== NewsAPI (opcional) ==================
 def _newsapi_key() -> str | None:
     try:
         return st.secrets["newsapi"]["api_key"]
     except Exception:
         return None
 
-def _newsapi_query_for_lottery(current_lottery: str | None) -> str:
-    # Ajusta consultas por lotería; fallback general en español
-    qmap = {
-        "megamillions": '("mega millions" OR megamillions) OR lotería OR sorteo',
-        "powerball": 'powerball OR lotería OR sorteo',
-        "ny_lotto": '"new york lotto" OR "ny lotto" OR lotería',
-        "california_superlotto": '"superlotto plus" OR "california lottery" OR lotería',
-        "texas_lotto": '"texas lotto" OR "texas lottery" OR lotería',
-    }
-    return qmap.get(current_lottery or "", 'lotería OR sorteo OR jackpot OR "gran premio"')
+def _default_query() -> str:
+    # Consulta amplia por alto impacto emocional (en español)
+    return (
+        "huracán OR tormenta OR tornado OR inundación OR terremoto OR incendio OR evacuación OR emergencia "
+        "OR tiroteo OR ataque OR explosión OR guerra OR conflicto OR terrorismo OR tragedia OR muertos OR fallecidos "
+        "OR crisis OR colapso OR apagón OR quiebra OR récord OR histórico"
+    )
 
 def _fetch_news_newsapi(query: str, page_size: int = 50) -> pd.DataFrame:
     api_key = _newsapi_key()
@@ -109,16 +187,15 @@ def _fetch_news_newsapi(query: str, page_size: int = 50) -> pd.DataFrame:
         st.error(f"NewsAPI falló: {e}")
         return pd.DataFrame()
 
-def _auto_harvest_if_needed(current_lottery: str | None):
-    """Se ejecuta 1 vez por día UTC. Si hay menos de 60 crudas tras filtros, intenta ampliar."""
+def _auto_harvest_if_needed():
+    """Ejecuta 1 vez/día y garantiza volumen mínimo (60) si hay API."""
     today = datetime.utcnow().strftime("%Y-%m-%d")
     last = STAMP.read_text().strip() if STAMP.exists() else ""
     df_current = _load_news(NEWS_CSV)
 
     # Ejecutar una vez al día
-    if last != today:
-        q = _newsapi_query_for_lottery(current_lottery)
-        extra = _fetch_news_newsapi(q, page_size=50)
+    if last != today and _newsapi_key():
+        extra = _fetch_news_newsapi(_default_query(), page_size=50)
         if not extra.empty:
             merged = pd.concat([df_current, extra], ignore_index=True)
             if "url" in merged.columns:
@@ -129,22 +206,19 @@ def _auto_harvest_if_needed(current_lottery: str | None):
         STAMP.write_text(today)
 
     # Garantizar mínimo 60 crudas (intenta ampliar si hay API)
-    if len(df_current) < 60:
-        api_key = _newsapi_key()
-        if api_key:
-            q = _newsapi_query_for_lottery(current_lottery)
-            extra = _fetch_news_newsapi(q, page_size=100)
-            if not extra.empty:
-                merged = pd.concat([df_current, extra], ignore_index=True)
-                if "url" in merged.columns:
-                    merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
-                _save_news(merged)
-                st.toast(f"🔎 Ampliado automáticamente: {len(merged)} filas.", icon="➕")
+    if len(df_current) < 60 and _newsapi_key():
+        extra = _fetch_news_newsapi(_default_query(), page_size=100)
+        if not extra.empty:
+            merged = pd.concat([df_current, extra], ignore_index=True)
+            if "url" in merged.columns:
+                merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+            _save_news(merged)
+            st.toast(f"🔎 Ampliado automáticamente: {len(merged)} filas.", icon="➕")
 
 # ================== UI: Secciones ==================
 def _ui_crudas(df: pd.DataFrame):
     st.subheader("🗞️ Noticias crudas (primarias)")
-    st.caption("Lista sin filtro. Ordenadas por fecha descendente.")
+    st.caption("Lista sin filtro. Ordenadas por fecha descendente. Todo se visualiza dentro de la app.")
     dff = df.sort_values(["fecha", "fuente", "titular"], ascending=[False, True, True]).reset_index(drop=True)
     if dff.empty:
         st.info("No hay noticias crudas para mostrar.")
@@ -152,48 +226,78 @@ def _ui_crudas(df: pd.DataFrame):
     for i in range(min(len(dff), 200)):
         r = dff.iloc[i]
         titulo = (r["titular"] or "—").strip()
-        with st.expander(f"📰 {r['fecha']} · {r['fuente'] or '—'} · {titulo[:90]}"):
+        with st.expander(f"📰 {r['fecha']} · {r['fuente'] or '—'} · {titulo[:100]}"):
             st.write(r["resumen"] or "—")
-            st.caption(f"Sorteo: {r['sorteo'] or '—'} · Etiquetas: `{r['etiquetas']}`")
-            if r.get("url"): st.markdown(f"[🔗 Abrir fuente]({r['url']})")
+            st.caption(f"Etiquetas: `{r['etiquetas']}` · País: {r['pais'] or '—'} · Sorteo: {r['sorteo'] or '—'}")
+            if r.get("url") and r["url"]:
+                st.markdown(f"[🔗 Ver fuente (opcional)]({r['url']})")
     return dff
 
 def _ui_filtradas(df: pd.DataFrame):
     st.subheader("🔥 Noticias filtradas (alto impacto)")
-    colU, colW = st.columns([1, 1])
+    colU, colW, colX = st.columns([1, 1, 1])
     with colU:
-        umbral = st.slider("Umbral emoción final", 0, 100, 60)
+        umbral = st.slider("Umbral emoción final", 0, 100, UMBRAL_DEFECTO)
     with colW:
         alto = st.multiselect(
-            "Palabras de alto impacto",
-            ["récord","fraude","escándalo","crisis","millones","histórico","emergencia","colapso","tragedia"],
-            default=["récord","fraude","escándalo","crisis","millones","histórico"]
+            "Palabras de alto impacto (ajustables)",
+            PALABRAS_ALTO_IMPACTO_DEFAULT,
+            default=PALABRAS_ALTO_IMPACTO_DEFAULT[:10]
         )
+    with colX:
+        st.caption("Las categorías detectadas se muestran por noticia.")
+
     if df.empty:
         st.info("No hay noticias para filtrar.")
         return pd.DataFrame()
-    reasons, mask = [], []
+
+    # Calcular emoción + categorías + motivo
+    enriched = []
     for _, r in df.iterrows():
-        m = _motivo(r, umbral, alto)
-        reasons.append(m); mask.append(m.startswith("Incluida"))
-    dff = df.copy(); dff["__motivo"] = reasons
-    ok = dff[mask].sort_values(["fecha","fuente","titular"], ascending=[False, True, True])
+        text = f"{r.get('titular','')} {r.get('resumen','')}"
+        emo_lex, score_lex = _lexicon_score(text)
+        nlp = _nlp_backend(text)
+        score_model = nlp["modelo"] if nlp else None
+        final = _final_score(score_lex, score_model)
+        cats = _categorize(text)
+        hit = _high_impact_hit(text, alto)
+        motivo = _motivo_inclusion(final, umbral, hit)
+        enriched.append({
+            **r.to_dict(),
+            "emocion_dominante": emo_lex if not (nlp and nlp.get("emocion")) else nlp["emocion"],
+            "nivel_emocional_lexicon": score_lex,
+            "nivel_emocional_modelo": (score_model if score_model is not None else ""),
+            "nivel_emocional_final": final,
+            "categorias_emocionales": ";".join(sorted(set(cats))) if cats else "",
+            "motivo_filtrado": motivo,
+            "es_alto_impacto": motivo.startswith("Incluida"),
+        })
+
+    dff = pd.DataFrame(enriched)
+    ok = dff[dff["es_alto_impacto"] == True].copy()  # noqa: E712
+    ok = ok.sort_values(["fecha","fuente","titular"], ascending=[False, True, True])
     st.caption(f"Seleccionadas: **{len(ok)}** / {len(dff)}")
     if ok.empty:
         st.info("Ninguna supera el criterio actual.")
         return ok
+
     for i in range(min(len(ok), 120)):
         r = ok.iloc[i]
-        titulo = (r["titular"] or "—").strip()
-        with st.expander(f"✅ {r['fecha']} · {r['fuente'] or '—'} · {titulo[:90]}"):
-            st.write(r["resumen"] or "—")
-            st.write(f"**Motivo:** {r['__motivo']}")
-            st.caption(f"Sorteo: {r['sorteo'] or '—'} · Etiquetas: `{r['etiquetas']}`")
-            if r.get("url"): st.markdown(f"[🔗 Abrir fuente]({r['url']})")
+        titulo = (str(r.get("titular","")) or "—").strip()
+        with st.expander(f"✅ {r['fecha']} · {r.get('fuente','—')} · {titulo[:100]}"):
+            st.write(r.get("resumen","") or "—")
+            st.write(f"**Motivo:** {r.get('motivo_filtrado','')}")
+            st.caption(
+                f"Emoción (lex/model/final): {r.get('nivel_emocional_lexicon','')}/"
+                f"{r.get('nivel_emocional_modelo','')}/{r.get('nivel_emocional_final','')}"
+            )
+            st.caption(f"Categorías: `{r.get('categorias_emocionales','') or '—'}`")
+            if r.get("url"):
+                st.markdown(f"[🔗 Ver fuente (opcional)]({r['url']})")
     return ok
 
 def _ui_procesar():
-    st.subheader("⚙️ Procesar / Analizar noticias")
+    st.subheader("⚙️ Procesar / Analizar noticias (in-app)")
     c1, c2 = st.columns(2)
     with c1:
         if st.button("🔤 Abrir Gematría", use_container_width=True):
@@ -201,16 +305,15 @@ def _ui_procesar():
     with c2:
         if st.button("🌀 Abrir Subliminal", use_container_width=True):
             st.session_state["_nav"] = "🌀 Análisis subliminal"; st.rerun()
-    st.caption("Valida primero en Filtradas y luego pasa solo las más fuertes.")
+    st.caption("Sugerencia: pasa a análisis solo las noticias filtradas (alto impacto).")
 
-def _ui_explorador(df: pd.DataFrame, current_lottery: str | None):
-    st.subheader("🔎 Explorador de noticias")
-    st.caption("Busca más noticias. Si no hay NewsAPI, usa la carga manual o subir CSV.")
-    q_default = _newsapi_query_for_lottery(current_lottery)
-    q = st.text_input("Consulta (ej. powerball OR megamillions OR lotería)", q_default)
+def _ui_explorador(df: pd.DataFrame):
+    st.subheader("🔎 Explorador / Ingreso")
+    st.caption("Trae más noticias (NewsAPI) o agrega manualmente. Todo se queda dentro de la app.")
+    q = st.text_input("Consulta (amplia)", _default_query())
     n = st.slider("Cantidad a traer (NewsAPI)", 20, 100, 50, step=10)
-    colB1, colB2 = st.columns(2)
-    with colB1:
+    c1, c2 = st.columns(2)
+    with c1:
         if st.button("🌐 Traer con NewsAPI", use_container_width=True, disabled=_newsapi_key() is None):
             extra = _fetch_news_newsapi(q, page_size=int(n))
             if extra.empty:
@@ -219,10 +322,8 @@ def _ui_explorador(df: pd.DataFrame, current_lottery: str | None):
                 merged = pd.concat([df, extra], ignore_index=True)
                 if "url" in merged.columns:
                     merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
-                _save_news(merged)
-                st.success(f"Agregadas {len(merged) - len(df)} noticias nuevas.")
-                st.rerun()
-    with colB2:
+                _save_news(merged); st.success(f"+{len(merged)-len(df)} noticias nuevas."); st.rerun()
+    with c2:
         st.download_button(
             "⬇️ Descargar noticias actuales (CSV)",
             df.to_csv(index=False).encode("utf-8"),
@@ -235,14 +336,14 @@ def _ui_explorador(df: pd.DataFrame, current_lottery: str | None):
     st.markdown("### ✍️ Ingreso manual (una noticia)")
     with st.form("manual_news"):
         fecha = st.date_input("Fecha (UTC)", value=None)
-        sorteo = st.text_input("Sorteo (ej. MegaMillions)")
-        pais = st.text_input("País", "US")
         fuente = st.text_input("Fuente (ej. Reuters)")
         titular = st.text_input("Titular")
         resumen = st.text_area("Resumen", height=120)
         url = st.text_input("URL (opcional)")
+        sorteo = st.text_input("Sorteo (opcional)", "")
+        pais = st.text_input("País", "US")
         etiquetas = st.text_input("Etiquetas separadas por ;", "manual;ingreso")
-        submitted = st.form_submit_button("➕ Agregar a noticias.csv")
+        submitted = st.form_submit_button("➕ Agregar")
     if submitted:
         if not titular.strip():
             st.error("El titular es obligatorio.")
@@ -251,23 +352,13 @@ def _ui_explorador(df: pd.DataFrame, current_lottery: str | None):
             new_row = {
                 "id_noticia": _gen_id("N"),
                 "fecha": (fecha.isoformat() if fecha else datetime.utcnow().strftime("%Y-%m-%d")),
-                "sorteo": sorteo.strip(),
-                "pais": pais.strip(),
-                "fuente": fuente.strip(),
-                "titular": titular.strip(),
-                "resumen": resumen.strip(),
-                "etiquetas": etiquetas.strip(),
-                "nivel_emocional_diccionario": "",
-                "nivel_emocional_modelo": "",
-                "nivel_emocional_final": "",
-                "noticia_relevante": "",
-                "categorias_t70_ref": "",
-                "url": url.strip(),
+                "sorteo": sorteo.strip(), "pais": pais.strip(), "fuente": fuente.strip(),
+                "titular": titular.strip(), "resumen": resumen.strip(), "etiquetas": etiquetas.strip(),
+                "nivel_emocional_diccionario": "", "nivel_emocional_modelo": "", "nivel_emocional_final": "",
+                "noticia_relevante": "", "categorias_t70_ref": "", "url": url.strip(),
             }
             df2 = pd.concat([df2, pd.DataFrame([new_row])], ignore_index=True)
-            _save_news(df2)
-            st.success("Noticia agregada.")
-            st.rerun()
+            _save_news(df2); st.success("Noticia agregada."); st.rerun()
 
     st.markdown("### ⬆️ Cargar CSV adicional")
     up = st.file_uploader("Subir CSV con mismas columnas de noticias.csv", type=["csv"])
@@ -275,19 +366,16 @@ def _ui_explorador(df: pd.DataFrame, current_lottery: str | None):
         try:
             extra = pd.read_csv(up, dtype=str, encoding="utf-8").fillna("")
             for c in REQUIRED_COLS:
-                if c not in extra.columns:
-                    extra[c] = ""
+                if c not in extra.columns: extra[c] = ""
             merged = pd.concat([df, extra[REQUIRED_COLS]], ignore_index=True)
             if "url" in merged.columns:
                 merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
-            _save_news(merged)
-            st.success(f"Se agregaron {len(merged)-len(df)} filas desde el CSV.")
-            st.rerun()
+            _save_news(merged); st.success(f"Se agregaron {len(merged)-len(df)} filas."); st.rerun()
         except Exception as e:
             st.error(f"No pude leer el CSV subido: {e}")
 
 def _ui_limpiar(df: pd.DataFrame):
-    st.subheader("🧹 Borrar basura / residuos")
+    st.subheader("🧹 Limpiar residuos / duplicados")
     if df.empty:
         st.info("No hay nada para limpiar."); return
     c1, c2, c3 = st.columns(3)
@@ -298,26 +386,21 @@ def _ui_limpiar(df: pd.DataFrame):
     if f_fecha != "(todas)": dff = dff[dff["fecha"] == f_fecha]
     if f_fuente != "(todas)": dff = dff[dff["fuente"] == f_fuente]
     if regex.strip():
-        try:
-            dff = dff[dff["titular"].str.contains(regex, flags=re.IGNORECASE, na=False, regex=True)]
-        except Exception as e:
-            st.warning(f"Regex inválida: {e}")
+        try: dff = dff[dff["titular"].str.contains(regex, flags=re.IGNORECASE, na=False, regex=True)]
+        except Exception as e: st.warning(f"Regex inválida: {e}")
     st.caption(f"Candidatas: {len(dff)}")
     ids = st.multiselect("Selecciona id_noticia a eliminar", options=dff["id_noticia"].tolist())
     colD1, colD2 = st.columns(2)
     with colD1:
         if st.button("🗑️ Eliminar seleccionadas", use_container_width=True, disabled=not ids):
             cleaned = df[~df["id_noticia"].isin(ids)].reset_index(drop=True)
-            _save_news(cleaned)
-            st.success(f"Eliminadas {len(ids)} filas.")
-            st.rerun()
+            _save_news(cleaned); st.success(f"Eliminadas {len(ids)} filas."); st.rerun()
     with colD2:
         st.download_button(
             "⬇️ Descargar copia limpia (CSV)",
             (df[~df["id_noticia"].isin(ids)]).to_csv(index=False).encode("utf-8"),
             file_name=f"noticias_limpio_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}Z.csv",
-            mime="text/csv",
-            use_container_width=True,
+            mime="text/csv", use_container_width=True,
         )
 
 def _ui_archivo(df: pd.DataFrame):
@@ -327,91 +410,23 @@ def _ui_archivo(df: pd.DataFrame):
     c1, c2 = st.columns(2)
     fechas = ["(todas)"] + sorted(df["fecha"].unique())
     sorteos = ["(todos)"] + sorted(df["sorteo"].unique())
-    fs = c1.selectbox("Fecha", options=fechas)
-    ss = c2.selectbox("Sorteo", options=sorteos)
+    fs = c1.selectbox("Fecha", options=fechas); ss = c2.selectbox("Sorteo", options=sorteos)
     dff = df.copy()
     if fs != "(todas)": dff = dff[dff["fecha"] == fs]
     if ss != "(todos)": dff = dff[dff["sorteo"] == ss]
-    st.dataframe(
-        dff.sort_values(["fecha","fuente","titular"], ascending=[False, True, True]),
-        use_container_width=True, hide_index=True
-    )
+    st.dataframe(dff.sort_values(["fecha","fuente","titular"], ascending=[False, True, True]),
+                 use_container_width=True, hide_index=True)
 
 # ================== Vista principal ==================
-def render_noticias(current_lottery: str | None = None):
-    """Render del módulo. current_lottery es opcional (compatibilidad con app.py antiguo)."""
-    # 1) Auto-acopio (si hay API) y mínimo volumen
-    _auto_harvest_if_needed(current_lottery)
+def render_noticias():
+    """Módulo de Noticias (in-app): crudas, filtradas, procesar, explorador, limpiar, archivo."""
+    # 1) Acopio diario y volumen mínimo (si hay NewsAPI)
+    _auto_harvest_if_needed()
 
-    # 2) Cargar df base
+    # 2) Carga base
     df_all = _load_news(NEWS_CSV)
 
-    # 3) Filtros globales
+    # 3) Filtros globales (no dependen de lotería)
     colf1, colf2, colf3 = st.columns([1,1,2])
-    fechas = ["(todas)"] + sorted([f for f in df_all["fecha"].unique() if f])
-    sorteos = ["(todos)"] + sorted([s for s in df_all["sorteo"].unique() if s])
-    fsel = colf1.selectbox("Fecha", options=fechas)
-    ssel = colf2.selectbox("Sorteo", options=sorteos)
-    q = colf3.text_input("Buscar (titular/resumen/etiquetas)")
-
-    base = df_all.copy()
-    if fsel != "(todas)": base = base[base["fecha"] == fsel]
-    if ssel != "(todos)": base = base[base["sorteo"] == ssel]
-    if q.strip():
-        qn = q.lower().strip()
-        base = base[
-            base["titular"].str.lower().str.contains(qn, na=False) |
-            base["resumen"].str.lower().str.contains(qn, na=False) |
-            base["etiquetas"].str.lower().str.contains(qn, na=False)
-        ]
-
-    st.info(f"Noticias tras filtros: **{len(base)}**")
-    st.markdown("---")
-
-    # 4) Botones de sección
-    b1, b2, b3, b4, b5 = st.columns(5)
-    show_crudas = b1.button("🗞️ Crudas (primarias)", type="secondary", use_container_width=True)
-    show_filtradas = b2.button("🔥 Filtradas (impacto)", type="secondary", use_container_width=True)
-    show_proc = b3.button("⚙️ Procesar/Analizar", type="secondary", use_container_width=True)
-    show_expl = b4.button("🔎 Explorador / Ingreso", type="secondary", use_container_width=True)
-    show_clean = b5.button("🧹 Limpiar", type="secondary", use_container_width=True)
-
-    # Sugerencia si hay poco volumen
-    if len(base) < 60 and _newsapi_key():
-        st.warning(f"Menos de 60 noticias crudas ({len(base)}). Usa **Explorador** para ampliar.")
-        show_expl = True
-
-    # 5) Render condicional
-    if show_crudas:
-        _ui_crudas(base); st.markdown("---")
-    if show_filtradas:
-        _ui_filtradas(base); st.markdown("---")
-    if show_proc:
-        _ui_procesar(); st.markdown("---")
-    if show_expl:
-        _ui_explorador(df_all, current_lottery); st.markdown("---")
-    if show_clean:
-        _ui_limpiar(df_all); st.markdown("---")
-
-    # 6) Archivo/historial siempre disponible
-    with st.expander("🗂️ Ver archivo / historial"):
-        _ui_archivo(df_all)
-
-    # 7) Descargas rápidas
-    colD1, colD2 = st.columns(2)
-    with colD1:
-        st.download_button(
-            "⬇️ Descargar vista actual (CSV)",
-            base.to_csv(index=False).encode("utf-8"),
-            file_name=f"noticias_vista_{datetime.utcnow().strftime('%Y%m%d')}.csv",
-            mime="text/csv",
-            use_container_width=True,
-        )
-    with colD2:
-        st.download_button(
-            "⬇️ Descargar noticias.csv completo",
-            _load_news(NEWS_CSV).to_csv(index=False).encode("utf-8"),
-            file_name=f"noticias_completo_{datetime.utcnow().strftime('%Y%m%d')}.csv",
-            mime="text/csv",
-            use_container_width=True,
-                                                       )
+    fechas = ["(todas)"] + 
+    
