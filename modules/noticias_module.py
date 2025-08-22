@@ -468,6 +468,7 @@ def _high_impact_hit(text: str, palabras: list[str]) -> bool:
     t = (text or "").lower()
     return any(w.lower() in t for w in palabras)
 
+# ========= Crudas =========
 def _ui_crudas_v2(df: pd.DataFrame) -> pd.DataFrame:
     st.subheader("🗞️ Noticias crudas (primarias)")
     if df.empty:
@@ -486,7 +487,7 @@ def _ui_crudas_v2(df: pd.DataFrame) -> pd.DataFrame:
             st.success(f"Enviadas {len(ids)} a la cola."); st.rerun()
     with c2:
         if st.button("🗑️ Mover a Papelera", use_container_width=True, disabled=not ids):
-            _move_to_trash(df, ids)
+            cleaned = _move_to_trash(df, ids)
             st.success(f"Movidas {len(ids)} a papelera."); st.rerun()
     with c3:
         st.download_button(
@@ -497,23 +498,15 @@ def _ui_crudas_v2(df: pd.DataFrame) -> pd.DataFrame:
         )
     return df
 
+
+# ========= Filtradas =========
 def _ui_filtradas_v2(df: pd.DataFrame) -> pd.DataFrame:
     st.subheader("🔥 Noticias filtradas (alto impacto)")
     colU, colW = st.columns(2)
     with colU:
         umbral = st.slider("Umbral emoción final", 0, 100, 60)
     with colW:
-        alto = def _ui_filtradas_v2(df: pd.DataFrame) -> pd.DataFrame:
-    st.subheader("🔥 Noticias filtradas (alto impacto)")
-    colU, colW = st.columns(2)
-    with colU:
-        umbral = st.slider("Umbral emoción final", 0, 100, 60)
-    with colW:
-        alto = st.multiselect(
-            "Palabras de alto impacto",
-            PALABRAS_ALTO_IMPACTO_DEFAULT,
-            default=PALABRAS_ALTO_IMPACTO_DEFAULT[:10],
-        )
+        alto = st.multiselect("Palabras de alto impacto", PALABRAS_ALTO_IMPACTO_DEFAULT, default=PALABRAS_ALTO_IMPACTO_DEFAULT[:10])
 
     if df.empty:
         st.info("No hay noticias para filtrar.")
@@ -524,7 +517,7 @@ def _ui_filtradas_v2(df: pd.DataFrame) -> pd.DataFrame:
         text = f"{r.get('titular','')} {r.get('resumen','')}"
         emo_lex, score_lex = _lexicon_score(text)
         nlp = _nlp_backend(text)
-        score_model = nlp["modelo"] if (nlp and nlp.get("modelo") is not None) else None
+        score_model = nlp["modelo"] if nlp else None
         final = _final_score(score_lex, score_model)
         cats = _categorize(text)
         hit = _high_impact_hit(text, alto)
@@ -570,7 +563,7 @@ def _ui_filtradas_v2(df: pd.DataFrame) -> pd.DataFrame:
     with c4:
         if st.button("🗑️ Mover a Papelera", use_container_width=True, disabled=not ids):
             base = _load_news(NEWS_CSV)
-            _move_to_trash(base, ids)
+            cleaned = _move_to_trash(base, ids)
             st.success(f"Movidas {len(ids)} a papelera."); st.rerun()
     return ok
    def _ui_procesar():
