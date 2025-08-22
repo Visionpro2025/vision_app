@@ -68,6 +68,20 @@ with st.sidebar:
             "🌀 Análisis del mensaje subliminal",
             "📚 Biblioteca",
             "🧭 Orquestador de capas",
+            menu = st.sidebar.radio(
+    "Selecciona un módulo",
+    [
+        "🏠 Inicio",
+        "📰 Noticias",
+        "🔡 Gematría",
+        "🌀 Análisis subliminal",
+        "📚 Biblioteca",
+        "🧭 Orquestador",
+        "🧪 Diagnóstico",   # <- añade esta línea
+    ],
+    index=0,
+    label_visibility="collapsed",
+    )
         ],
         index=0,
     )
@@ -195,6 +209,15 @@ elif section == "🧭 Orquestador de capas":
         st.exception(e)
 
 # =========================
+# ========= Diagnóstico =========
+elif menu == "🧪 Diagnóstico":
+    try:
+        from modules.diagnostics import render_diagnostics
+        with st.spinner("Abriendo diagnóstico…"):
+            render_diagnostics()
+    except Exception as e:
+        st.error("No se pudo cargar el **Diagnóstico**.")
+        st.exception(e)
 # Footer
 # =========================
 st.markdown("---")
