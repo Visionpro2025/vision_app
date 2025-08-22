@@ -1,5 +1,6 @@
 streamlit
 pandas
 requests
+feedparser
 python-docx
 pdfplumber
