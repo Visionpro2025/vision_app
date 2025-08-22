@@ -474,6 +474,238 @@ def _ui_crudas_v2(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         st.info("No hay noticias crudas para mostrar.")
         return df
+   # ========= Filtradas =========
+def _ui_filtradas_v2(df: pd.DataFrame) -> pd.DataFrame:
+    st.subheader("🔥 Noticias filtradas (alto impacto)")
+
+    colU, colW = st.columns(2)
+    with colU:
+        umbral = st.slider("Umbral emoción final", 0, 100, 60, key="sl_fil_umbral")
+    with colW:
+        alto = st.multiselect(
+            "Palabras de alto impacto",
+            PALABRAS_ALTO_IMPACTO_DEFAULT,
+            default=PALABRAS_ALTO_IMPACTO_DEFAULT[:10],
+            key="ms_fil_alto",
+        )
+
+    if df.empty:
+        st.info("No hay noticias para filtrar.")
+        return pd.DataFrame()
+
+    enriched = []
+    for _, r in df.iterrows():
+        text = f"{r.get('titular','')} {r.get('resumen','')}"
+        emo_lex, score_lex = _lexicon_score(text)
+        nlp = _nlp_backend(text)
+        score_model = nlp["modelo"] if nlp else None
+        final = _final_score(score_lex, score_model)
+        cats = _categorize(text)
+        hit = _high_impact_hit(text, alto)
+        motivo = (
+            f"Incluida: emoción={final}≥{umbral} + alto impacto" if (final >= umbral and hit) else
+            f"Incluida: emoción={final}≥{umbral}" if (final >= umbral) else
+            f"Incluida: alto impacto (emocion={final}<{umbral})" if hit else
+            f"Excluida: emoción={final}<{umbral} sin alto impacto"
+        )
+        enriched.append({
+            **r.to_dict(),
+            "emocion_dominante": (nlp["emocion"] if (nlp and nlp.get("emocion")) else emo_lex),
+            "nivel_emocional_lexicon": score_lex,
+            "nivel_emocional_modelo": (score_model if score_model is not None else ""),
+            "nivel_emocional_final": final,
+            "categorias_emocionales": ";".join(sorted(set(cats))) if cats else "",
+            "motivo_filtrado": motivo,
+            "es_alto_impacto": motivo.startswith("Incluida"),
+        })
+
+    dff = pd.DataFrame(enriched)
+    ok = dff[dff["es_alto_impacto"] == True].copy()  # noqa: E712
+    ok = ok.sort_values(["fecha","fuente","titular"], ascending=[False, True, True]).reset_index(drop=True)
+    ok = _enumerate_df(ok)
+
+    st.caption(f"Seleccionadas: **{len(ok)}** / {len(dff)}")
+    st.dataframe(
+        ok[["#", "fecha","fuente","titular","nivel_emocional_final","categorias_emocionales","motivo_filtrado","url"]],
+        use_container_width=True,
+        hide_index=True,
+        key="df_filtradas",
+    )
+
+    ids = st.multiselect(
+        "Selecciona id_noticia (filtradas) para acciones",
+        options=ok["id_noticia"].tolist(),
+        key="ms_fil_ids",
+    )
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        if st.button("📤 Enviar a Cola", use_container_width=True, disabled=not ids, key="btn_fil_cola"):
+            _queue_add(ok[ok["id_noticia"].isin(ids)])
+            st.success(f"Enviadas {len(ids)} a la cola.")
+            st.experimental_rerun()
+    with c2:
+        if st.button("🔤 Ir a Gematría", use_container_width=True, disabled=not ids, key="btn_fil_gema"):
+            _queue_add(ok[ok["id_noticia"].isin(ids)])
+            _router_go("gematria")
+    with c3:
+        if st.button("🌀 Ir a Subliminal", use_container_width=True, disabled=not ids, key="btn_fil_sub"):
+            _queue_add(ok[ok["id_noticia"].isin(ids)])
+            _router_go("subliminal")
+    with c4:
+        if st.button("🗑️ Mover a Papelera", use_container_width=True, disabled=not ids, key="btn_fil_trash"):
+            base = _load_news(NEWS_CSV)
+            _move_to_trash(base, ids)
+            st.success(f"Movidas {len(ids)} a papelera.")
+            st.experimental_rerun()
+
+    return ok
+
+
+# ========= Procesar =========
+def _ui_procesar():
+    st.subheader("⚙️ Procesar / Analizar noticias")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("🔤 Abrir Gematría", use_container_width=True, key="btn_proc_gema"):
+            _router_go("gematria")
+    with c2:
+        if st.button("🌀 Abrir Subliminal", use_container_width=True, key="btn_proc_sub"):
+            _router_go("subliminal")
+    with c3:
+        if st.button("📥 Ver cola (pendientes)", use_container_width=True, key="btn_proc_cola"):
+            st.session_state["_show_queue"] = True
+            st.experimental_rerun()
+    if st.session_state.get("_show_queue"):
+        _ui_queue()
+
+
+# ========= Explorador / Ingreso =========
+def _ui_explorador_v2(df: pd.DataFrame):
+    st.subheader("🔎 Explorador / Ingreso")
+    st.caption("Trae más noticias desde varias fuentes o agrega manualmente. Todo se queda en la app.")
+
+    fuente = st.selectbox("Fuente", ["Google News (RSS)", "NewsAPI"], index=0, key="sb_exp_fuente")
+    q = st.text_input("Consulta (amplia)", _default_query(), key="ti_exp_q")
+    n = st.slider("Cantidad a traer por consulta", 20, 100, 60, step=10, key="sl_exp_n")
+    window = st.selectbox("Ventana temporal", ["24h","48h","72h"], index=0, key="sb_exp_window")
+    days = {"24h":1, "48h":2, "72h":3}[window]
+
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("📥 Traer noticias", use_container_width=True, key="btn_exp_traer"):
+            extra = (_fetch_news_rss_google(q, max_items=int(n), days=days)
+                     if fuente == "Google News (RSS)"
+                     else _fetch_news_newsapi(q, page_size=int(n), pages=2))
+            if extra is None or extra.empty:
+                st.warning("No se trajo nada (prueba otra consulta/fuente).")
+            else:
+                merged = pd.concat([df, extra], ignore_index=True)
+                if "url" in merged.columns:
+                    merged = merged.drop_duplicates(subset=["url"]).reset_index(drop=True)
+                _save_news(merged)
+                st.success(f"+{len(merged)-len(df)} noticias nuevas.")
+                st.experimental_rerun()
+    with c2:
+        if st.button("🛰 Traer variedad (multi-consulta)", use_container_width=True, key="btn_exp_var"):
+            added = _fetch_emergent_now(window_days=days, limit_each=100)
+            st.success(f"Variedad agregada: {added}")
+            st.experimental_rerun()
+
+    st.markdown("---")
+    st.markdown("### ✍️ Pegar noticias manuales (una por línea)")
+    raw = st.text_area(
+        "Pega aquí (formato: título | resumen | fuente | url, o 'título — resumen')",
+        height=160,
+        key="ta_exp_paste",
+    )
+
+    colp1, colp2, colp3 = st.columns([1,1,1])
+    with colp1:
+        if st.button("➕ Ingresar a Crudas", use_container_width=True, disabled=not raw.strip(), key="btn_exp_ing_crudas"):
+            rows = _manual_paste_parse(raw)
+            _ingest_manual(rows, destino="crudas")
+            st.experimental_rerun()
+    with colp2:
+        if st.button("📤 Ingresar a Cola (procesar)", use_container_width=True, disabled=not raw.strip(), key="btn_exp_ing_cola"):
+            rows = _manual_paste_parse(raw)
+            _ingest_manual(rows, destino="cola")
+            st.experimental_rerun()
+    with colp3:
+        st.download_button(
+            "⬇️ Descargar noticias actuales (CSV)",
+            df.to_csv(index=False).encode("utf-8"),
+            file_name=f"noticias_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}Z.csv",
+            mime="text/csv",
+            use_container_width=True,
+            key="dl_exp_actuales",
+        )
+
+
+# ========= Utilidad de limpieza =========
+def _clean_news_file():
+    """Asegura columnas y quita duplicados por URL e id."""
+    base = _load_news(NEWS_CSV)
+    if base.empty:
+        st.info("No hay nada que limpiar.")
+        return
+    before = len(base)
+    if "url" in base.columns:
+        base = base.drop_duplicates(subset=["url"], keep="first")
+    base = base.drop_duplicates(subset=["id_noticia"], keep="first")
+    _save_news(base)
+    st.success(f"Limpieza completa. Filas: {before} → {len(base)}")
+
+
+# ========= Render principal =========
+def render_noticias():
+    st.header("📰 Noticias — Filtro emocional PRO")
+
+    # Carga base + “del día” (para progreso)
+    df_all = _load_news(NEWS_CSV)
+    today_str = datetime.utcnow().strftime("%Y-%m-%d")
+    df_today = df_all[df_all["fecha"] == today_str].copy()
+
+    # Barra de herramientas superior
+    _ui_toolbar_global(df_today)
+    st.markdown("---")
+
+    # Subnavegación
+    options = [
+        NAV_LABELS["noticias_crudas"][0],
+        NAV_LABELS["noticias_filtradas"][0],
+        NAV_LABELS["noticias_procesar"][0],
+        NAV_LABELS["noticias_explorar"][0],
+        NAV_LABELS["noticias_papelera"][0],
+        NAV_LABELS["noticias_limpiar"][0],
+    ]
+    current = st.session_state.get(NAV_KEY, options[0])
+    sel = st.radio(
+        "Sección",
+        options,
+        index=options.index(current) if current in options else 0,
+        horizontal=True,
+        label_visibility="collapsed",
+        key="radio_news_section",
+    )
+    st.session_state[NAV_KEY] = sel  # persistir
+
+    # Ramas
+    if sel == NAV_LABELS["noticias_crudas"][0]:
+        _ui_crudas_v2(df_all)
+    elif sel == NAV_LABELS["noticias_filtradas"][0]:
+        _ui_filtradas_v2(df_all)
+    elif sel == NAV_LABELS["noticias_procesar"][0]:
+        _ui_procesar()
+    elif sel == NAV_LABELS["noticias_explorar"][0]:
+        _ui_explorador_v2(df_all)
+    elif sel == NAV_LABELS["noticias_papelera"][0]:
+        _ui_papelera()
+    elif sel == NAV_LABELS["noticias_limpiar"][0]:
+        _clean_news_file()
+
+    # Pie
+    st.caption(f"📁 Archivo base: `{NEWS_CSV.name}` · Carpeta de trabajo: `{RUNS_NEWS}`")
     dff = df.sort_values(["fecha", "fuente", "titular"], ascending=[False, True, True]).reset_index(drop=True)
     dff = _enumerate_df(dff)
     st.caption(f"Total crudas visibles: **{len(dff)}**")
