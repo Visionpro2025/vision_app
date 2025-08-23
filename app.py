@@ -1,3 +1,19 @@
+# app.py (al inicio)
+import streamlit as st, traceback
+
+def _safe_run(fn):
+    try:
+        fn()
+    except Exception:
+        st.error("❌ Error en app.py — revisa detalle abajo.")
+        st.code(traceback.format_exc())
+
+def main():
+    # tu lógica actual (sidebar, imports de modules, etc.)
+    pass
+
+if __name__ == "__main__":
+    _safe_run(main)
 import traceback, streamlit as st
 
 def _safe_run(fn):
