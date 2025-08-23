@@ -1,3 +1,19 @@
+import traceback, streamlit as st
+
+def _safe_run(fn):
+    try:
+        fn()
+    except Exception:
+        st.error("❌ Error en app.py — revisa logs abajo.")
+        st.code(traceback.format_exc())
+
+def main():
+    # ← aquí va tu lógica actual de la app general
+    # import y render de módulos, sidebar, etc.
+    pass
+
+if __name__ == "__main__":
+    _safe_run(main)
 # app.py — Edición Pro UI (corregido y depurado)
 from __future__ import annotations
 
