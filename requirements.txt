@@ -1,5 +1,5 @@
 streamlit==1.35.0
-pandas==2.0.3
+pandas==2.1.4
 requests
 feedparser
 python-docx
