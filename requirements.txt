@@ -4,3 +4,4 @@ requests
 feedparser
 python-docx
 pdfplumber
+scikit-learn==1.5.1
