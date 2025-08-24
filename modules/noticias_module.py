@@ -527,31 +527,48 @@ def render_noticias():
         show_cols = [c for c in cols if c in df_show.columns]
         st.dataframe(df_show[show_cols], use_container_width=True, height=520)
 
-    # --- Acciones por fila (mini-acciones) ---
-    st.markdown("#### Acciones por fila")
-    with st.expander("Herramientas por noticia", expanded=False):
-        for r in df_sel.head(20).itertuples():  # limita a 20 para evitar UI pesada
-            c1, c2, c3, c4, c5 = st.columns([0.32, 0.14, 0.14, 0.14, 0.26])
-            with c1:
-                st.markdown(f"**{r.titular}**  \n`{r.fuente}`  \n{r.url}")
-            with c2:
-                if st.button("📋 Copiar", key=f"cpy_{r.id_noticia}"):
-                    st.code(f"{r.titular}\n{r.url}\n{r.resumen}")
-            with c3:
-                if st.button("🗑️ Papelera", key=f"del_{r.id_noticia}"):
-                    _append_trash(pd.DataFrame([df_sel.iloc[r.Index]]), reason="manual_row")
-                    st.toast("Movido a Papelera.", icon="🗑️")
-            with c4:
-                if st.button("🔡 Gem", key=f"gem_{r.id_noticia}"):
-                    _export_buffer(pd.DataFrame([df_sel.iloc[r.Index]]), "GEM")
-                    st.toast("Enviado a GEMATRÍA.", icon="✅")
-            with c5:
-                if st.button("📊 T70", key=f"t70_{r.id_noticia}"):
-                    row = df_sel.iloc[r.Index:r.Index+1].copy()
-                    if "categorias_t70_ref" in row.columns:
-                        row["T70_map"] = row["categorias_t70_ref"].map(_map_news_to_t70)
-                    _export_buffer(row, "T70")
-                    st.toast("Exportado a T70.", icon="✅")
+   # --- Mini menú contextual superior (selección múltiple de noticias) ---
+st.markdown("#### Acciones sobre selección")
+
+sel_ids = st.multiselect("Selecciona ID(s) de noticias", df_sel["id_noticia"].tolist())
+
+if sel_ids:
+    bar1, bar2, bar3, bar4, bar5 = st.columns(5)
+
+    with bar1:
+        if st.button("📋 Copiar seleccionadas"):
+            subset = df_sel[df_sel["id_noticia"].isin(sel_ids)]
+            payload = "\n\n".join([f"• {r.titular}\n{r.url}" for _, r in subset.iterrows()])
+            st.code(payload)
+
+    with bar2:
+        if st.button("🗑️ Cortar a Papelera"):
+            to_trash = df_sel[df_sel["id_noticia"].isin(sel_ids)]
+            _append_trash(to_trash, reason="manual_batch")
+            # Quita de la vista actual
+            df_sel = df_sel[~df_sel["id_noticia"].isin(sel_ids)]
+
+    with bar3:
+        if st.button("🔡 → Gematría"):
+            subset = df_sel[df_sel["id_noticia"].isin(sel_ids)]
+            p = _export_buffer(subset, "GEM")
+            st.toast(f"Batch a GEMATRÍA: {p.name if p else 'sin archivo'}")
+
+    with bar4:
+        if st.button("🌀 → Subliminal"):
+            subset = df_sel[df_sel["id_noticia"].isin(sel_ids)]
+            p = _export_buffer(subset, "SUB")
+            st.toast(f"Batch a SUBLIMINAL: {p.name if p else 'sin archivo'}")
+
+    with bar5:
+        if st.button("📊 → T70"):
+            subset = df_sel[df_sel["id_noticia"].isin(sel_ids)]
+            if "categorias_t70_ref" in subset.columns:
+                subset["T70_map"] = subset["categorias_t70_ref"].map(T70_map).fillna("")
+            p = _export_buffer(subset, "T70")
+            st.toast(f"Batch a T70: {p.name if p else 'sin archivo'}")
+
+    st.session_state["news_selected_df"] = df_sel 
 
     # --- Acopio manual ---
     st.markdown("### ➕ Agregar noticia manual")
