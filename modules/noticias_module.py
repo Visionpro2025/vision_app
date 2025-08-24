@@ -510,5 +510,57 @@ def render_noticias():
             payload = "\n\n".join([f"• {r.titular}\n{r.url}\n{r.resumen}" for r in subset.itertuples()])
             st.code(payload)
 
-    with b2:
-        if st.button("🗑️ Cortar a Papelera", ke
+   with b2:
+        if st.button("🗑️ Cortar a Papelera", key="to_trash_btn"):
+            to_trash = df_sel[df_sel["id_noticia"].isin(sel_ids)]
+            if not to_trash.empty:
+                _append_trash(to_trash, reason="manual_batch")
+                # No alteramos df_sel aquí para mantener estable el layout
+                st.toast(f"Enviadas a papelera: {len(to_trash)}", icon="🗑️")
+
+    with b3:
+        if st.button("🔡 → GEMATRÍA", key="to_gem_btn"):
+            subset = df_sel[df_sel["id_noticia"].isin(sel_ids)]
+            p = _export_buffer(subset, "GEM") if not subset.empty else None
+            st.toast(f"Batch a GEMATRÍA: {p.name if p else 'sin datos'}", icon="✅")
+
+    with b4:
+        if st.button("🌀 → SUBLIMINAL", key="to_sub_btn"):
+            subset = df_sel[df_sel["id_noticia"].isin(sel_ids)]
+            p = _export_buffer(subset, "SUB") if not subset.empty else None
+            st.toast(f"Batch a SUBLIMINAL: {p.name if p else 'sin datos'}", icon="✅")
+
+    with b5:
+        if st.button("📊 → T70", key="to_t70_btn"):
+            subset = df_sel[df_sel["id_noticia"].isin(sel_ids)].copy()
+            if not subset.empty and "categorias_t70_ref" in subset.columns:
+                subset["T70_map"] = subset["categorias_t70_ref"].map(_map_news_to_t70)
+            p = _export_buffer(subset, "T70") if not subset.empty else None
+            st.toast(f"Batch a T70: {p.name if p else 'sin datos'}", icon="✅")
+
+    # ---------- Tablas (estructura estable) ----------
+    st.markdown("###### Selección actual (ordenada por score y fecha)")
+    st.dataframe(
+        df_sel[[
+            c for c in ["id_noticia","fecha_dt","fuente","titular","_score_es"]
+            if c in df_sel.columns
+        ]],
+        use_container_width=True,
+        hide_index=True
+    )
+
+    st.markdown("###### Log de fuentes")
+    log_df = pd.DataFrame(logs.get("sources", []))
+    if not log_df.empty:
+        st.dataframe(log_df, use_container_width=True, hide_index=True)
+    else:
+        st.caption("Sin logs de fuentes.")
+
+    # ---------- Papelera (vista opcional y estable) ----------
+    if st.session_state.get("__show_trash_mode__", False):
+        st.markdown("#### Papelera")
+        trash_df = _load_trash()
+        if trash_df.empty:
+            st.info("Papelera vacía por ahora.")
+        else:
+            st.dataframe(trash_df, use_container_width=True, hide_index=True) 
