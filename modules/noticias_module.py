@@ -495,7 +495,132 @@ def render_noticias():
                 subset = df_sel[df_sel["id_noticia"].isin(sel_ids)]
                 p = _export_buffer(subset, "SUB")
                 st.toast(f"Batch a SUBLIMINAL: {p.name if p else 'sin datos'}", icon="✅")
-        with bar5:
+       with bar5:
             if st.button("📊 → T70"):
-                subset = df_sel[df_sel["id_noticia"].
+                subset = df_sel[df_sel["id_noticia"].isin(sel_ids)].copy()
+                if "categorias_t70_ref" in subset.columns:
+                    subset["T70_map"] = subset["categorias_t70_ref"].map(_map_news_to_t70)
+                p = _export_buffer(subset, "T70")
+                st.toast(f"Batch a T70: {p.name if p else 'sin datos'}", icon="✅")
+
+    st.session_state["news_selected_df"] = df_sel
+
+    # --- Tabla principal (seleccionadas) ---
+    st.markdown("### Resultado de acopio · Selección Emoción Social")
+    if df_sel.empty:
+        st.info("No se encontraron noticias relevantes en esta ventana. Prueba reacopiar más tarde.")
+    else:
+        if "categorias_t70_ref" in df_sel.columns:
+            df_show = df_sel.copy()
+            df_show["T70_map"] = df_show["categorias_t70_ref"].map(_map_news_to_t70)
+        else:
+            df_show = df_sel.copy()
+            df_show["T70_map"] = [[] for _ in range(len(df_show))]
+
+        df_show["fecha_utc"] = df_show["fecha_dt"].dt.strftime("%Y-%m-%d %H:%M:%SZ")
+        try:
+            df_show["fecha_local"] = df_show["fecha_dt"].dt.tz_convert(None).dt.strftime("%Y-%m-%d %H:%M")
+        except Exception:
+            df_show["fecha_local"] = df_show["fecha_utc"]
+
+        cols = ["id_noticia","fecha_local","fuente","titular","url","_score_es","T70_map","resumen","categorias_t70_ref"]
+        show_cols = [c for c in cols if c in df_show.columns]
+        st.dataframe(df_show[show_cols], use_container_width=True, height=520)
+
+    # --- Acciones por fila (mini-acciones) ---
+    st.markdown("#### Acciones por fila")
+    with st.expander("Herramientas por noticia", expanded=False):
+        for r in df_sel.head(20).itertuples():  # limita a 20 para evitar UI pesada
+            c1, c2, c3, c4, c5 = st.columns([0.32, 0.14, 0.14, 0.14, 0.26])
+            with c1:
+                st.markdown(f"**{r.titular}**  \n`{r.fuente}`  \n{r.url}")
+            with c2:
+                if st.button("📋 Copiar", key=f"cpy_{r.id_noticia}"):
+                    st.code(f"{r.titular}\n{r.url}\n{r.resumen}")
+            with c3:
+                if st.button("🗑️ Papelera", key=f"del_{r.id_noticia}"):
+                    _append_trash(pd.DataFrame([df_sel.iloc[r.Index]]), reason="manual_row")
+                    st.toast("Movido a Papelera.", icon="🗑️")
+            with c4:
+                if st.button("🔡 Gem", key=f"gem_{r.id_noticia}"):
+                    _export_buffer(pd.DataFrame([df_sel.iloc[r.Index]]), "GEM")
+                    st.toast("Enviado a GEMATRÍA.", icon="✅")
+            with c5:
+                if st.button("📊 T70", key=f"t70_{r.id_noticia}"):
+                    row = df_sel.iloc[r.Index:r.Index+1].copy()
+                    if "categorias_t70_ref" in row.columns:
+                        row["T70_map"] = row["categorias_t70_ref"].map(_map_news_to_t70)
+                    _export_buffer(row, "T70")
+                    st.toast("Exportado a T70.", icon="✅")
+
+    # --- Acopio manual ---
+    st.markdown("### ➕ Agregar noticia manual")
+    with st.form("manual_add"):
+        mc1, mc2 = st.columns([0.6, 0.4])
+        with mc1:
+            man_tit = st.text_input("Titular")
+            man_res = st.text_area("Resumen", height=100)
+        with mc2:
+            man_fecha = st.text_input("Fecha (UTC, ej: 2025-08-24 13:00:00)")
+            man_url = st.text_input("URL")
+            man_fuente = st.text_input("Fuente (dominio, ej: example.com)")
+            man_cat = st.text_input("Categorías T70 ref (separadas por ; )", value="")
+        submitted = st.form_submit_button("Agregar al acopio bruto")
+        if submitted:
+            try:
+                ts = pd.to_datetime(man_fecha, utc=True, errors="coerce")
+            except Exception:
+                ts = None
+            if not ts or not man_fuente:
+                st.error("Fecha válida (UTC) y Fuente (dominio) son obligatorias.")
+            else:
+                row = {
+                    "id_noticia": _hash((man_tit or "") + (man_url or "")),
+                    "fecha_dt": ts,
+                    "fuente": man_fuente.strip().lower(),
+                    "titular": (man_tit or "").strip(),
+                    "resumen": (man_res or "").strip(),
+                    "url": (man_url or "").strip(),
+                    "categorias_t70_ref": (man_cat or "").strip(),
+                    "pais": "US",
+                }
+                df_add = pd.DataFrame([row])
+                if RAW_LAST.exists():
+                    prev = pd.read_csv(RAW_LAST, dtype=str, encoding="utf-8")
+                    df_add2 = df_add.copy()
+                    df_add2["fecha_dt"] = df_add2["fecha_dt"].dt.strftime("%Y-%m-%d %H:%M:%SZ")
+                    prev = pd.concat([prev, df_add2], ignore_index=True)
+                    _save_csv(prev, RAW_LAST)
+                else:
+                    df_add2 = df_add.copy()
+                    df_add2["fecha_dt"] = df_add2["fecha_dt"].dt.strftime("%Y-%m-%d %H:%M:%SZ")
+                    _save_csv(df_add2, RAW_LAST)
+                st.success("Agregada al acopio bruto (snapshot). Reacopia para re-procesar.")
+
+    # --- Papelera (modal simple) ---
+    if st.session_state.get("show_trash"):
+        st.markdown("### 🗑️ Papelera")
+        trash = _load_trash()
+        if trash.empty:
+            st.info("Papelera vacía.")
+        else:
+            st.dataframe(trash, use_container_width=True, height=380)
+            tsel = st.multiselect("Seleccionar IDs a restaurar",
+                                  options=trash["id_noticia"].tolist(), key="trash_sel")
+            bt1, bt2 = st.columns(2)
+            with bt1:
+                if st.button("♻️ Restaurar (solo quita de papelera)"):
+                    rest = trash[~trash["id_noticia"].isin(tsel)] if tsel else trash.iloc[0:0]
+                    _save_csv(rest, TRASH_DIR / "trash.csv")
+                    st.toast("Restaurado (de la papelera).", icon="♻️")
+                    st.rerun()
+            with bt2:
+                if st.button("🧹 Vaciar papelera"):
+                    _save_csv(pd.DataFrame(), TRASH_DIR / "trash.csv")
+                    st.toast("Papelera vaciada.", icon="🧹")
+                    st.rerun()
+
+    # --- Logs de acopio ---
+    with st.expander("🧰 Logs de acopio", expanded=False):
+        st.write(logs) 
     
