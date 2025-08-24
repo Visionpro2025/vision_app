@@ -18,7 +18,9 @@ import requests
 import feedparser
 import pandas as pd
 import streamlit as st
-
+# ---------- Placeholder global para la Papelera ----------
+if "__trash_slot" not in st.session_state:
+    st.session_state["__trash_slot"] = st.empty()
 # =================== Paths base ===================
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / "__RUNS" / "NEWS"
@@ -574,11 +576,15 @@ def render_noticias():
     else:
         st.caption("Sin logs de fuentes.")
 
-    # ---------- Papelera (vista opcional y estable) ----------
-    if st.session_state.get("__show_trash_mode__", False):
-        st.markdown("#### Papelera")
-        trash_df = _load_trash()
-        if trash_df.empty:
-            st.info("Papelera vacía por ahora.")
+   # ---------- Papelera (vista opcional con slot fijo) ----------
+    with st.session_state["__trash_slot"].container():
+        if st.session_state.get("__show_trash_mode__", False):
+            st.markdown("#### Papelera")
+            trash_df = _load_trash()
+            if trash_df.empty:
+                st.info("Papelera vacía por ahora.")
+            else:
+                st.dataframe(trash_df, use_container_width=True, hide_index=True)
         else:
-            st.dataframe(trash_df, use_container_width=True, hide_index=True) 
+            # El contenedor existe siempre, aunque esté vacío
+            st.caption("Papelera oculta.")   
