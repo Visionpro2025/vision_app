@@ -496,12 +496,12 @@ def render_noticias():
                 p = _export_buffer(subset, "SUB")
                 st.toast(f"Batch a SUBLIMINAL: {p.name if p else 'sin datos'}", icon="✅")
        with bar5:
-            if st.button("📊 → T70"):
-                subset = df_sel[df_sel["id_noticia"].isin(sel_ids)].copy()
-                if "categorias_t70_ref" in subset.columns:
-                    subset["T70_map"] = subset["categorias_t70_ref"].map(_map_news_to_t70)
-                p = _export_buffer(subset, "T70")
-                st.toast(f"Batch a T70: {p.name if p else 'sin datos'}", icon="✅")
+    if st.button("📊 → T70"):
+        subset = df_sel[df_sel["id_noticia"].isin(sel_ids)].copy()
+        if "categorias_t70_ref" in subset.columns:
+            subset["T70_map"] = subset["categorias_t70_ref"].map(_map_news_to_t70)
+        p = _export_buffer(subset, "T70")
+        st.toast(f"Batch a T70: {p.name if p else 'sin datos'}", icon="✅")
 
     st.session_state["news_selected_df"] = df_sel
 
