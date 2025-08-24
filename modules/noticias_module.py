@@ -396,14 +396,32 @@ def render_noticias():
             _flag("__force_reacopio__")
             st.stop()  # corta el render para rerun limpio
 
+        st.markdown("#### Descargas")
         cdl, cdr = st.columns(2)
+
+        raw_exists = RAW_LAST.exists()
+        sel_exists = SEL_LAST.exists()
+        raw_bytes = RAW_LAST.read_bytes() if raw_exists else b""
+        sel_bytes = SEL_LAST.read_bytes() if sel_exists else b""
+
         with cdl:
-            if RAW_LAST.exists():
-                st.download_button(
-                    "Acopio bruto",
-                    RAW_LAST.read_bytes(),
-                    file_name="acopio_bruto_ultimo.csv",
-                    use_container_width=True,
+            st.download_button(
+                "Acopio bruto",
+                data=raw_bytes,
+                file_name="acopio_bruto_ultimo.csv",
+                use_container_width=True,
+                key="dl_raw_last",
+                disabled=not raw_exists
+            )
+        with cdr:
+            st.download_button(
+                "Selección ES",
+                data=sel_bytes,
+                file_name="seleccion_es_ultima.csv",
+                use_container_width=True,
+                key="dl_sel_last",
+                disabled=not sel_exists
+            )
                     key="dl_raw_last"
                 )
         with cdr:
