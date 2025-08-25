@@ -1,0 +1,10 @@
+# RSS de medios principales (USA) — puedes añadir más líneas; usa # para comentar
+https://www.reuters.com/rssFeed/usNews
+https://feeds.npr.org/1001/rss.xml
+https://feeds.abcnews.com/abcnews/usheadlines
+https://www.cbsnews.com/latest/rss/us/
+https://www.theguardian.com/us-news/rss
+https://rss.nytimes.com/services/xml/rss/nyt/US.xml
+http://rss.cnn.com/rss/cnn_us.rss
+http://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml
+http://rssfeeds.usatoday.com/usatoday-NewsTopStories
