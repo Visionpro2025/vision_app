@@ -84,26 +84,54 @@ def kpi_card(title: str, value: str, sub: str = ""):
         unsafe_allow_html=True,
     )
 
+# ===== Flags y placeholders globales =====
+def _flag(name: str):
+    st.session_state[name] = True
+
+def _consume_flag(name: str) -> bool:
+    if st.session_state.get(name):
+        st.session_state[name] = False
+        return True
+    return False
+
+# Placeholder estable para el logo en sidebar (evita que aparezca/desaparezca el nodo)
+if "__logo_slot" not in st.session_state:
+    st.session_state["__logo_slot"] = st.empty()
+
 # ====== App ======
 def main():
+    # -- Acciones diferidas antes de crear layout --
+    if _consume_flag("__app_refresh__"):
+        st.cache_data.clear()
+        # Seguimos; el layout se creará limpio en este mismo ciclo
+
     # ---- Sidebar ----
     with st.sidebar:
         lot_keys = list(LOTTERIES.keys())
         default_idx = lot_keys.index(DEFAULT_LOTTERY) if DEFAULT_LOTTERY in lot_keys else 0
         idx = lot_keys.index(st.session_state.get("current_lottery", lot_keys[default_idx]))
-        current_key = st.selectbox("Lotería activa", options=lot_keys, index=idx)
+        current_key = st.selectbox("Lotería activa", options=lot_keys, index=idx, key="sel_lottery")
         st.session_state["current_lottery"] = current_key
         L = LOTTERIES[current_key]
 
-        # Logo
+        # Logo (slot fijo)
+        logo = None
         try:
             logo = L.get("logo")
-            if logo and Path(logo).exists():
-                st.image(str(logo), use_container_width=True)
         except Exception:
-            pass
+            logo = None
 
-        # Meta
+        with st.session_state["__logo_slot"].container():
+            try:
+                if logo and Path(logo).exists():
+                    st.image(str(logo), use_container_width=True)
+                else:
+                    # Mantén el nodo ocupando espacio para no mutar el DOM
+                    st.caption(" ")
+            except Exception:
+                st.caption(" ")
+
+        # Meta (información textual, no cambia estructura)
         try:
             name = L.get("name", current_key)
             days = ", ".join(L.get("days", [])) if isinstance(L.get("days"), list) else L.get("days", "")
@@ -123,6 +151,7 @@ def main():
             ["🏠 Inicio", "📰 Noticias", "🔡 Gematría", "🌀 Análisis subliminal", "📚 Biblioteca", "🧭 Orquestador"],
             index=0,
             label_visibility="collapsed",
+            key="nav_main"
         )
         st.markdown("<hr class='sep'>", unsafe_allow_html=True)
 
@@ -130,18 +159,20 @@ def main():
         st.markdown("#### ⚡ Acciones")
         c1, c2 = st.columns(2)
         with c1:
-            if st.button("↻ Recargar", use_container_width=True):
-                st.cache_data.clear()
-                st.toast("Caché limpiada. Recargando…", icon="♻️")
-                st.rerun()
+            if st.button("↻ Recargar", use_container_width=True, key="btn_refresh"):
+                _flag("__app_refresh__")
+                st.stop()  # Cortamos el render; el consumo del flag se hace al entrar a main()
         with c2:
             t70p = ROOT / "T70.csv"
+            t70_ok = exists(t70p)
+            t70_bytes = t70p.read_bytes() if t70_ok else b""
             st.download_button(
                 "Descargar T70.csv",
-                t70p.read_bytes() if exists(t70p) else b"",
+                t70_bytes,
                 file_name="T70.csv",
-                disabled=not exists(t70p),
+                disabled=not t70_ok,
                 use_container_width=True,
+                key="dl_t70_csv"
             )
 
     # ---- Cabecera ----
@@ -189,15 +220,15 @@ def main():
         st.markdown("<hr class='sep'>", unsafe_allow_html=True)
         st.markdown("### 🚀 Abrir módulos")
         q1, q2, q3, q4, q5 = st.columns(5)
-        if q1.button("📰 Noticias", use_container_width=True):
+        if q1.button("📰 Noticias", use_container_width=True, key="go_news"):
             st.session_state["_nav"] = "📰 Noticias"; st.rerun()
-        if q2.button("🔡 Gematría", use_container_width=True):
+        if q2.button("🔡 Gematría", use_container_width=True, key="go_gem"):
             st.session_state["_nav"] = "🔡 Gematría"; st.rerun()
-        if q3.button("🌀 Subliminal", use_container_width=True):
+        if q3.button("🌀 Subliminal", use_container_width=True, key="go_sub"):
             st.session_state["_nav"] = "🌀 Análisis subliminal"; st.rerun()
-        if q4.button("📚 Biblioteca", use_container_width=True):
+        if q4.button("📚 Biblioteca", use_container_width=True, key="go_lib"):
             st.session_state["_nav"] = "📚 Biblioteca"; st.rerun()
-        if q5.button("🧭 Orquestador", use_container_width=True):
+        if q5.button("🧭 Orquestador", use_container_width=True, key="go_orch"):
             st.session_state["_nav"] = "🧭 Orquestador"; st.rerun()
 
     elif menu == "📰 Noticias" or st.session_state.get("_nav") == "📰 Noticias":
