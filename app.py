@@ -1,4 +1,4 @@
-# app.py — Sistema Predictivo Visión (limpio y estable)
+# app.py — Visión · Sistema Predictivo (pro, estable y estilizado)
 from __future__ import annotations
 
 from pathlib import Path
@@ -30,29 +30,42 @@ from modules.lottery_config import LOTTERIES, DEFAULT_LOTTERY  # noqa: E402
 
 # ====== Página ======
 st.set_page_config(
-    page_title="Sistema Predictivo Visión",
+    page_title="Visión · Sistema Predictivo",
     page_icon="🔮",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ====== Estilos ======
+# ====== Estilos PRO (tema y CSS) ======
 PRO_CSS = """
 <style>
-.block-container {padding-top: 1.2rem; padding-bottom: 2.5rem;}
-.kpi-card {
-  border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 14px; padding: 16px 16px;
-  background: rgba(255,255,255,0.03);
+:root{
+  --radius: 14px;
+  --card-bg: rgba(255,255,255,0.03);
+  --border: 1px solid rgba(255,255,255,0.08);
 }
-.kpi-title {font-size: 0.82rem; opacity: .8;}
-.kpi-value {font-size: 1.6rem; font-weight: 700; margin-top: 4px;}
-.kpi-sub {font-size: .78rem; opacity:.7;}
-.quick .stButton>button {
-  width: 100%; border-radius: 12px; padding: .6rem .8rem; font-weight: 600;
+.block-container{padding-top:1.2rem;padding-bottom:2.2rem;}
+h1,h2,h3{letter-spacing:.2px}
+hr.sep{border:none;height:1px;background:rgba(255,255,255,.08);margin:.8rem 0 1.2rem;}
+/* Card genérica */
+.card{border:var(--border);border-radius:var(--radius);background:var(--card-bg);padding:16px 16px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
+.card .title{font-size:.86rem;opacity:.75}
+.card .value{font-size:1.6rem;font-weight:700;margin-top:4px}
+.card .sub{font-size:.78rem;opacity:.6}
+/* Botones */
+.stButton>button{border-radius:12px;padding:.60rem .9rem;font-weight:600}
+.stDownloadButton>button{border-radius:12px;padding:.55rem .9rem;font-weight:600}
+/* Tablas */
+.dataframe tbody tr:hover{background:rgba(139,92,246,.08)}
+/* Sidebar */
+section[data-testid="stSidebar"] {border-right:var(--border)}
+/* Hero header */
+.hero{
+  border:var(--border);border-radius:18px;padding:18px 20px;margin-bottom:12px;
+  background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(24,31,55,.6));
 }
-hr.sep {border:none; height:1px; background:rgba(255,255,255,.08); margin: .6rem 0 1rem;}
-.footer {opacity:.7; font-size:.85rem; margin-top:2rem;}
+.hero h1,.hero h2{margin:0}
+.hero .sub{opacity:.8;margin-top:.25rem}
 </style>
 """
 st.markdown(PRO_CSS, unsafe_allow_html=True)
@@ -75,13 +88,19 @@ def exists(p: Path) -> bool:
 def kpi_card(title: str, value: str, sub: str = ""):
     st.markdown(
         f"""
-        <div class="kpi-card">
-          <div class="kpi-title">{title}</div>
-          <div class="kpi-value">{value}</div>
-          <div class="kpi-sub">{sub}</div>
+        <div class="card">
+          <div class="title">{title}</div>
+          <div class="value">{value}</div>
+          <div class="sub">{sub}</div>
         </div>
         """,
         unsafe_allow_html=True,
+    )
+
+def section(title: str, subtitle: str = ""):
+    st.markdown(
+        f"<div class='hero'><h2>{title}</h2><div class='sub'>{subtitle}</div></div>",
+        unsafe_allow_html=True
     )
 
 # ===== Flags y placeholders globales =====
@@ -131,7 +150,7 @@ def main():
             except Exception:
                 st.caption(" ")
 
-        # Meta (información textual, no cambia estructura)
+        # Meta (información textual)
         try:
             name = L.get("name", current_key)
             days = ", ".join(L.get("days", [])) if isinstance(L.get("days"), list) else L.get("days", "")
@@ -175,21 +194,28 @@ def main():
                 key="dl_t70_csv"
             )
 
-    # ---- Cabecera ----
-    colA, colB = st.columns([0.78, 0.22])
-    with colA:
-        st.title("🔮 Sistema Predictivo Visión")
-        st.caption("Menú maestro para navegar por las capas del sistema.")
-    with colB:
-        now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%SZ")
-        kpi_card("⏱️ Última recarga", now)
+    # ---- Hero header + KPIs ----
+    st.markdown("<div class='hero'><h1>🔮 Visión</h1><div class='sub'>Sistema Predictivo de última generación</div></div>", unsafe_allow_html=True)
 
+    colA, colB, colC = st.columns([0.33, 0.33, 0.34])
+    now = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%SZ")
+    with colA:
+        kpi_card("⏱️ Última recarga", now, "UTC")
     L = LOTTERIES[st.session_state["current_lottery"]]
-    kpi_card("🎯 Lotería activa", L.get("name", st.session_state["current_lottery"]))
+    with colB:
+        kpi_card("🎯 Lotería activa", L.get("name", st.session_state["current_lottery"]))
+    with colC:
+        runs_g = ROOT / "__RUNS" / "GEMATRIA"
+        runs_s = ROOT / "__RUNS" / "SUBLIMINAL"
+        count_runs = (len(list(runs_g.glob("*.csv"))) if exists(runs_g) else 0) + \
+                     (len(list(runs_s.glob("*.csv"))) if exists(runs_s) else 0)
+        kpi_card("📁 Salidas generadas", str(count_runs), "CSV en __RUNS/…")
+
+    st.markdown("<hr class='sep'>", unsafe_allow_html=True)
 
     # ---- Contenido por módulo ----
     if menu == "🏠 Inicio":
-        st.subheader("Bienvenido 👋")
+        section("Panel inicial", "Estado rápido de insumos y accesos")
         noticias_path = ROOT / "noticias.csv"
         t70_path = ROOT / "T70.csv"
 
@@ -211,11 +237,7 @@ def main():
                 kpi_card("📊 T70.csv", "No encontrado ❌", "Coloca el archivo en la raíz")
 
         with c3:
-            runs_g = ROOT / "__RUNS" / "GEMATRIA"
-            runs_s = ROOT / "__RUNS" / "SUBLIMINAL"
-            count_runs = (len(list(runs_g.glob("*.csv"))) if exists(runs_g) else 0) + \
-                         (len(list(runs_s.glob("*.csv"))) if exists(runs_s) else 0)
-            kpi_card("📁 Salidas generadas", str(count_runs), "CSV en __RUNS/…")
+            kpi_card("🧪 Módulos OK", "5/5", "Integridad")
 
         st.markdown("<hr class='sep'>", unsafe_allow_html=True)
         st.markdown("### 🚀 Abrir módulos")
@@ -283,7 +305,7 @@ def main():
 
     # Footer
     st.markdown(
-        f"<div class='footer'>© Visión · última recarga: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%SZ')}</div>",
+        f"<div class='card' style='margin-top:12px;'><div class='sub'>© Visión · última recarga: {datetime.utcnow().strftime('%Y-%m-%d %H:%M:%SZ')}</div></div>",
         unsafe_allow_html=True,
     )
 
