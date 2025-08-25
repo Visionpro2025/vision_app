@@ -3,10 +3,9 @@
 # - Concurrencia, listas editables (__CONFIG/*.txt), bloqueo de spam/agregadores.
 # - Filtro ESTRICTO: SOLO noticias del "día del protocolo" según hora de Cuba (America/Havana).
 # - Scoring emocional + relevancia + recencia, dedup semántica, límite por fuente.
-# - UI estable con reloj Cuba, métricas, papelera, bitácora y buffers (GEM/SUBLIMINAL/T70).
-# - Depuración: ignorar "mismo día Cuba", ajustar recencia, bloquear dominios al vuelo y persistirlos.
+# - UI: reloj Cuba, KPIs, papelera, bitácora, buffers (GEM/SUBLIMINAL/T70), depuración, export CSV/JSON.
 # - Red: requests con timeouts y reintentos antes de parsear via feedparser.
-# - Extras: exportación JSON, health check, TTL de caché configurable.
+# - Caché: implementación MANUAL con TTL dinámico (sin decoradores).
 
 from __future__ import annotations
 from pathlib import Path
@@ -47,7 +46,7 @@ CFG = {
     "STRICT_SAME_DAY": True,     # SOLO día del protocolo (Cuba)
     "HTTP_TIMEOUT": 8,           # seg. por petición RSS/News
     "HTTP_RETRIES": 3,           # reintentos por URL
-    "CACHE_TTL_SEC": 300,        # TTL por defecto para cache_data
+    "CACHE_TTL_SEC": 300,        # objetivo de TTL (usado por caché manual)
 }
 
 # Bloqueo de agregadores/duplicadores (base)
@@ -177,7 +176,6 @@ def _to_csv_bytes(df: pd.DataFrame) -> bytes:
     return buf.getvalue().encode("utf-8")
 
 def _to_json_bytes(df: pd.DataFrame) -> bytes:
-    # Convertimos fechas a ISO con TZ
     def _ser(o):
         if isinstance(o, pd.Timestamp):
             if o.tzinfo is None:
@@ -209,7 +207,7 @@ def _emo_heuristics(text: str) -> float:
     for k, w in TRIGGERS.items():
         if k in t: score += w
     score += 0.1 * t.count("!")
-    if any(flag in t for flag in ["breaking", "última hora", "urgente"]):
+    if any(flag in t for tflag in ["breaking", "última hora", "urgente"] for flag in [t]):
         score += 0.15
     return min(score, 3.0) / 3.0
 
@@ -256,7 +254,6 @@ def _semantic_dedup(df: pd.DataFrame, thr: float) -> pd.DataFrame:
             if j != i and row[0, j] >= thr:
                 removed.add(j)
     return df.iloc[keep].copy()
-
 # =================== Fetch ===================
 def _parse_rss_bytes(content: bytes, src_url: str) -> list[dict]:
     data = feedparser.parse(content)
@@ -281,7 +278,7 @@ def _fetch_rss(url: str) -> list[dict]:
     for attempt in range(1, CFG["HTTP_RETRIES"]+1):
         try:
             r = requests.get(url, headers=headers, timeout=CFG["HTTP_TIMEOUT"])
-            if r.status_code >= 400:
+            if r.status_code and r.status_code >= 400:
                 continue
             return _parse_rss_bytes(r.content, url)
         except Exception:
@@ -300,7 +297,6 @@ def _fetch_all_sources(strict_same_day: bool | None = None,
         strict_same_day = CFG["STRICT_SAME_DAY"]
     rec_hours = int(recency_hours_override) if recency_hours_override else CFG["RECENCY_HOURS"]
 
-    # Blocklist efectiva: base + __CONFIG + UI
     persisted_block = set(_load_blocked_domains())
     block = set(SPAM_BLOCK_BASE) | persisted_block | set([b.strip().lower() for b in (extra_blocklist or []) if b.strip()])
     logs["blocked_domains_persisted"] = sorted(list(persisted_block))
@@ -359,7 +355,7 @@ def _fetch_all_sources(strict_same_day: bool | None = None,
     logs["blocked_domains_effective"] = sorted(list(block))
     return df, logs
 
-# =================== Scoring ===================
+# =================== Scoring y límite por fuente ===================
 def _score_emocion_social(df: pd.DataFrame) -> pd.DataFrame:
     if df.empty:
         return df
@@ -430,7 +426,6 @@ def _validate_schema(df: pd.DataFrame) -> tuple[bool, list[str]]:
 
 # =================== Health Check ===================
 def _health_check(n_to_test: int = 5) -> pd.DataFrame:
-    # Toma primeras n fuentes RSS + 2 queries (si hay)
     urls = []
     urls.extend(RSS_SOURCES[:max(0, n_to_test-2)])
     if GNEWS_QUERIES:
@@ -458,8 +453,50 @@ def _health_check(n_to_test: int = 5) -> pd.DataFrame:
         dt = round(time.time()-t0, 2)
         rows.append({"source": u, "status": status, "http_code": code, "latency_s": dt, "items": items})
     return pd.DataFrame(rows)
+   # =================== UI principal (con caché manual dinámica) ===================
+def _cache_get() -> dict | None:
+    return st.session_state.get("__news_cache__", None)
 
-# =================== UI principal ===================
+def _cache_set(payload: dict):
+    st.session_state["__news_cache__"] = payload
+
+def _run_pipeline_manual(strict_flag: bool, rec_hours: int, extra_blocklist: list[str], ttl_sec: int
+                         ) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
+    # Clave de caché dependiente de parámetros + día Cuba (para coherencia operativa)
+    cache_key = {
+        "strict": bool(strict_flag),
+        "rec_hours": int(rec_hours),
+        "extra_blocklist": sorted([b.strip().lower() for b in (extra_blocklist or [])]),
+        "day_cu": _today_cuba_date_str(),
+    }
+    now_ts = time.time()
+    cache = _cache_get()
+    if cache and cache.get("key") == cache_key and (now_ts - cache.get("created_ts", 0)) < ttl_sec:
+        return cache["df_raw"], cache["df_sel"], cache["logs"]
+
+    # Ejecutar pipeline
+    df_raw, logs = _fetch_all_sources(
+        strict_same_day=cache_key["strict"],
+        recency_hours_override=cache_key["rec_hours"],
+        extra_blocklist=cache_key["extra_blocklist"],
+    )
+    if df_raw.empty:
+        df_sel = df_raw
+    else:
+        df = _score_emocion_social(df_raw)
+        if CFG["SEMANTIC_ON"]:
+            df = _semantic_dedup(df, CFG["SEMANTIC_THR"])
+        if CFG["SOFT_DEDUP_NORM"]:
+            df = _soft_dedup(df)
+        df = _limit_per_source(df, CFG["MAX_PER_SOURCE"])
+        df_sel = df.sort_values(by=["_score_es", "fecha_dt"], ascending=[False, False]).reset_index(drop=True)
+        _save_csv(df_raw, RAW_LAST)
+        _save_csv(df_sel, SEL_LAST)
+
+    payload = {"key": cache_key, "created_ts": now_ts, "df_raw": df_raw, "df_sel": df_sel, "logs": logs}
+    _cache_set(payload)
+    return df_raw, df_sel, logs
+
 def render_noticias():
     # Reloj de Cuba (siempre visible)
     now_cu = _now_cuba()
@@ -472,7 +509,7 @@ def render_noticias():
     with st.sidebar:
         st.markdown("#### Acciones")
         if st.button("↻ Reacopiar ahora", use_container_width=True, key="btn_reacopiar"):
-            st.cache_data.clear()
+            _cache_set(None)
             st.rerun()
 
         st.markdown("#### Depuración (temporal)")
@@ -480,33 +517,54 @@ def render_noticias():
             "Ignorar 'mismo día Cuba' (solo usa ventana de recencia)",
             value=False,
             help="Úsalo solo para auditar. No cambia el decreto por defecto.",
-            key="toggle_relax_same_day"
+            key="toggle_relax_same_day",
         )
         st.session_state["_relax_same_day"] = bool(relax)
 
         rec_override = st.slider(
-            "Ventana de recencia (horas)", min_value=6, max_value=168,
-            value=CFG["RECENCY_HOURS"], step=6,
+            "Ventana de recencia (horas)",
+            min_value=6,
+            max_value=168,
+            value=CFG["RECENCY_HOURS"],
+            step=6,
             help="Solo depuración. No persiste en CFG.",
-            key="slider_recency_hours"
+            key="slider_recency_hours",
         )
 
-             cache_ttl = st.slider(
-            "TTL de caché (segundos)", min_value=30, max_value=1800,
-            value=CFG["CACHE_TTL_SEC"], step=30,
-            help="Duración de cache_data para el pipeline.",
-            key="slider_cache_ttl"
+        cache_ttl = st.slider(
+            "TTL de caché (segundos)",
+            min_value=30,
+            max_value=1800,
+            value=CFG["CACHE_TTL_SEC"],
+            step=30,
+            help="Tiempo durante el cual se reusa el resultado del pipeline.",
+            key="slider_cache_ttl",
         )
+        # Si cambia el TTL, invalidamos la caché para que tome efecto de inmediato
+        if "prev_cache_ttl" not in st.session_state:
+            st.session_state["prev_cache_ttl"] = cache_ttl
+        if cache_ttl != st.session_state["prev_cache_ttl"]:
+            st.session_state["prev_cache_ttl"] = cache_ttl
+            _cache_set(None)
+            st.toast("Caché reiniciada por cambio de TTL.", icon="♻️")
 
         st.markdown("#### Bloquear dominios (sesión)")
-        blocked = st.text_input("Listado separados por coma", value="", key="blocked_domains_input",
-                                help="Ej: example.com, another.com")
+        blocked = st.text_input(
+            "Listado separados por coma",
+            value="",
+            key="blocked_domains_input",
+            help="Ej: example.com, another.com",
+        )
         extra_block = [x.strip().lower() for x in blocked.split(",") if x.strip()]
 
         st.markdown("#### Bloqueo persistente (__CONFIG/blocked_domains.txt)")
         current_persisted = ", ".join(_load_blocked_domains()) or "(ninguno)"
         st.caption(f"Actual: {current_persisted}")
-        new_persist = st.text_input("Agregar dominios (coma)", value="", key="blocked_domains_persist_add")
+        new_persist = st.text_input(
+            "Agregar dominios (coma)",
+            value="",
+            key="blocked_domains_persist_add",
+        )
         if st.button("💾 Guardar en __CONFIG", use_container_width=True, key="btn_save_blocked"):
             to_save = _load_blocked_domains() + [x.strip().lower() for x in new_persist.split(",") if x.strip()]
             _save_blocked_domains(to_save)
@@ -575,30 +633,12 @@ def render_noticias():
             st.session_state["__show_trash__"] = False
             st.rerun()
 
-    # Acopio cacheado (TTL configurable)
-    @st.cache_data(show_spinner=True, ttl=lambda: st.session_state.get("slider_cache_ttl", CFG["CACHE_TTL_SEC"]))
-    def _run_pipeline(strict_flag: bool, rec_hours: int, extra_blocklist: list[str]) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
-        df_raw, logs = _fetch_all_sources(strict_same_day=strict_flag,
-                                          recency_hours_override=rec_hours,
-                                          extra_blocklist=extra_blocklist)
-        if df_raw.empty:
-            return df_raw, df_raw, logs
-        df = _score_emocion_social(df_raw)
-        if CFG["SEMANTIC_ON"]:
-            df = _semantic_dedup(df, CFG["SEMANTIC_THR"])
-        if CFG["SOFT_DEDUP_NORM"]:
-            df = _soft_dedup(df)
-        df = _limit_per_source(df, CFG["MAX_PER_SOURCE"])
-        df = df.sort_values(by=["_score_es", "fecha_dt"], ascending=[False, False]).reset_index(drop=True)
-        _save_csv(df_raw, RAW_LAST)
-        _save_csv(df, SEL_LAST)
-        return df_raw, df, logs
-
+    # ===== Ejecutar pipeline con caché manual =====
     strict_flag = not st.session_state.get("_relax_same_day", False)
-    df_raw, df_sel, logs = _run_pipeline(strict_flag,
-                                         st.session_state.get("slider_recency_hours", CFG["RECENCY_HOURS"]),
-                                         extra_block)
+    rec_hours = st.session_state.get("slider_recency_hours", CFG["RECENCY_HOURS"])
+    ttl_sec = st.session_state.get("slider_cache_ttl", CFG["CACHE_TTL_SEC"])
 
+    df_raw, df_sel, logs = _run_pipeline_manual(strict_flag, rec_hours, extra_block, ttl_sec)
     st.session_state["news_selected_df"] = df_sel.copy()
 
     if st.session_state.get("_relax_same_day", False):
@@ -676,7 +716,6 @@ def render_noticias():
                              label_visibility="collapsed", key="ms_sel_ids")
     bar1, bar2, bar3 = st.columns(3)
 
-    # Copiar/descargar subset
     with bar1:
         if st.button("📋 Copiar/Ver seleccionadas", key="btn_copy_sel", use_container_width=True):
             subset = df_sel[df_sel["id_noticia"].isin(sel_ids)][["titular", "url", "resumen"]].copy()
@@ -692,7 +731,6 @@ def render_noticias():
                 st.download_button("⬇️ JSON (subset)", data=_to_json_bytes(subset),
                                    file_name=f"noticias_subset_{_ts()}.json", use_container_width=True)
 
-    # Enviar a papelera
     with bar2:
         motivo = st.text_input("Motivo papelera", value="manual", key="trash_reason")
         if st.button("🗑️ Enviar a papelera", key="btn_to_trash", use_container_width=True):
@@ -704,7 +742,6 @@ def render_noticias():
                 st.toast(f"Enviadas {len(subset)} a papelera.", icon="🗑️")
                 st.rerun()
 
-    # Exportar subset a buffers
     with bar3:
         dest = st.selectbox("Exportar a", options=["GEM","SUB","T70"], key="subset_dest")
         if st.button("🚚 Exportar subset", key="btn_export_subset", use_container_width=True):
@@ -717,9 +754,8 @@ def render_noticias():
                 p = _export_buffer(subset, dest)
                 st.toast(f"Exportado a {dest}: {p.name if p else 'sin datos'}", icon="✅")
 
-    # Descargas de selección completa (JSON extra)
+    # Exportación de selección completa (JSON extra)
     if not df_sel.empty:
         st.markdown("#### Exportación de selección completa")
         st.download_button("⬇️ Selección ES (JSON)", data=_to_json_bytes(df_sel),
-                           file_name=f"seleccion_es_{_ts()}.json", use_container_width=True)
-            
+                           file_name=f"seleccion_es_{_ts()}.json", use_container_width=True) 
