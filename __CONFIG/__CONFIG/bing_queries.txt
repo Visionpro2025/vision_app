@@ -1,8 +1,0 @@
-# Bing News — mismas ideas para ampliar cobertura
-protest OR strike OR riot OR looting site:us
-shortage OR blackout OR curfew OR evacuation site:us
-boycott OR layoffs OR outage OR wildfire OR hurricane OR flood site:us
-mass shooting OR unrest OR clashes site:us
-protesta OR huelga OR disturbios OR saqueo site:us
-desabasto OR apagón OR toque de queda OR evacuación site:us
-boicot OR despidos OR tiroteo masivo site:us
