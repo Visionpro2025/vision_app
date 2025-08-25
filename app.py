@@ -1,4 +1,4 @@
-# app.py — Visión · Sistema Predictivo (pro, estable y estilizado)
+# app.py — Visión · Sistema Predictivo (pro, estable y estilizado) — TODO EN UNO
 from __future__ import annotations
 
 from pathlib import Path
@@ -36,7 +36,8 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
-# ====== Estilos PRO (tema y CSS) ======
+# ====== Estilos PRO (compatibles con tu config.toml) ======
+# Tu theme (config.toml) define los colores base. Este CSS añade componentes premium.
 PRO_CSS = """
 <style>
 :root{
@@ -47,25 +48,30 @@ PRO_CSS = """
 .block-container{padding-top:1.2rem;padding-bottom:2.2rem;}
 h1,h2,h3{letter-spacing:.2px}
 hr.sep{border:none;height:1px;background:rgba(255,255,255,.08);margin:.8rem 0 1.2rem;}
-/* Card genérica */
+
+/* Cards */
 .card{border:var(--border);border-radius:var(--radius);background:var(--card-bg);padding:16px 16px;box-shadow:0 10px 30px rgba(0,0,0,.2)}
 .card .title{font-size:.86rem;opacity:.75}
 .card .value{font-size:1.6rem;font-weight:700;margin-top:4px}
 .card .sub{font-size:.78rem;opacity:.6}
-/* Botones */
+
+/* Botones (respetan primaryColor del theme) */
 .stButton>button{border-radius:12px;padding:.60rem .9rem;font-weight:600}
 .stDownloadButton>button{border-radius:12px;padding:.55rem .9rem;font-weight:600}
+
 /* Tablas */
-.dataframe tbody tr:hover{background:rgba(139,92,246,.08)}
+.dataframe tbody tr:hover{background:rgba(108,99,255,.10)} /* usa tu primary #6C63FF con opacidad */
+
 /* Sidebar */
 section[data-testid="stSidebar"] {border-right:var(--border)}
-/* Hero header */
+
+/* Hero header (degradado suave sobre tu background) */
 .hero{
   border:var(--border);border-radius:18px;padding:18px 20px;margin-bottom:12px;
-  background: linear-gradient(135deg, rgba(139,92,246,.15), rgba(24,31,55,.6));
+  background: linear-gradient(135deg, rgba(108,99,255,.18), rgba(27,31,42,.65));
 }
 .hero h1,.hero h2{margin:0}
-.hero .sub{opacity:.8;margin-top:.25rem}
+.hero .sub{opacity:.85;margin-top:.25rem}
 </style>
 """
 st.markdown(PRO_CSS, unsafe_allow_html=True)
@@ -103,7 +109,7 @@ def section(title: str, subtitle: str = ""):
         unsafe_allow_html=True
     )
 
-# ===== Flags y placeholders globales =====
+# ===== Flags y placeholders globales (estabilidad DOM) =====
 def _flag(name: str):
     st.session_state[name] = True
 
@@ -122,7 +128,7 @@ def main():
     # -- Acciones diferidas antes de crear layout --
     if _consume_flag("__app_refresh__"):
         st.cache_data.clear()
-        # Seguimos; el layout se creará limpio en este mismo ciclo
+        # seguimos; el layout se crea limpio en este mismo ciclo
 
     # ---- Sidebar ----
     with st.sidebar:
@@ -145,12 +151,11 @@ def main():
                 if logo and Path(logo).exists():
                     st.image(str(logo), use_container_width=True)
                 else:
-                    # Mantén el nodo ocupando espacio para no mutar el DOM
-                    st.caption(" ")
+                    st.caption(" ")  # mantener el nodo
             except Exception:
                 st.caption(" ")
 
-        # Meta (información textual)
+        # Meta
         try:
             name = L.get("name", current_key)
             days = ", ".join(L.get("days", [])) if isinstance(L.get("days"), list) else L.get("days", "")
@@ -180,7 +185,7 @@ def main():
         with c1:
             if st.button("↻ Recargar", use_container_width=True, key="btn_refresh"):
                 _flag("__app_refresh__")
-                st.stop()  # Cortamos el render; el consumo del flag se hace al entrar a main()
+                st.stop()  # consumo del flag al entrar a main()
         with c2:
             t70p = ROOT / "T70.csv"
             t70_ok = exists(t70p)
@@ -194,7 +199,7 @@ def main():
                 key="dl_t70_csv"
             )
 
-    # ---- Hero header + KPIs ----
+    # ---- Hero + KPIs ----
     st.markdown("<div class='hero'><h1>🔮 Visión</h1><div class='sub'>Sistema Predictivo de última generación</div></div>", unsafe_allow_html=True)
 
     colA, colB, colC = st.columns([0.33, 0.33, 0.34])
