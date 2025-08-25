@@ -1,4 +1,4 @@
-# modules/library.py — Biblioteca con vista previa multi-formato
+# modules/library.py — Biblioteca con vista previa multi-formato (blindado)
 from __future__ import annotations
 from pathlib import Path
 from io import BytesIO
@@ -12,6 +12,14 @@ ROOT = Path(__file__).resolve().parent.parent
 LIB_DIR = ROOT / "__LIBRARY"
 MANIFEST = LIB_DIR / "manifest.csv"
 
+# ============ Placeholders (DOM estable) ============
+if "__lib_status_slot" not in st.session_state:
+    st.session_state["__lib_status_slot"] = st.empty()     # mensajes/estado
+if "__lib_preview_slot" not in st.session_state:
+    st.session_state["__lib_preview_slot"] = st.empty()    # vista previa
+if "__lib_download_slot" not in st.session_state:
+    st.session_state["__lib_download_slot"] = st.empty()   # botón de descarga
+
 # ============ Utilidades ============
 def _exists(p: Path) -> bool:
     try:
@@ -23,38 +31,24 @@ def _exists(p: Path) -> bool:
 def _load_manifest(path: Path) -> pd.DataFrame:
     try:
         df = pd.read_csv(path, dtype=str, encoding="utf-8").fillna("")
-        # Validación básica de columnas
         expected = ["title", "file_id", "type", "description", "tags"]
         missing = [c for c in expected if c not in df.columns]
         if missing:
-            st.error(f"El manifest no tiene columnas requeridas: {missing}")
+            # devolvemos DataFrame con columnas esperadas para no romper UI
             return pd.DataFrame(columns=expected)
         return df
-    except Exception as e:
-        st.error(f"No se pudo leer manifest.csv: {e}")
+    except Exception:
         return pd.DataFrame(columns=["title", "file_id", "type", "description", "tags"])
 
 def _drive_download_url(file_id: str, tipo: str) -> str:
-    """
-    Construye URL de descarga desde Drive:
-    - Archivos subidos normales: uc?export=download
-    - Google Docs/Sheets/Slides: export específicos
-    """
+    """Construye URL de descarga desde Drive según tipo."""
     tipo = (tipo or "").strip().lower()
-
-    # Google Docs
     if tipo in ("gdoc", "google-doc", "google_docs", "google-docs"):
-        # exportar como DOCX
         return f"https://docs.google.com/document/d/{file_id}/export?format=docx"
-    # Google Sheets
     if tipo in ("gsheet", "google-sheet", "google_sheets", "google-sheets"):
-        # exportar como CSV
         return f"https://docs.google.com/spreadsheets/d/{file_id}/export?format=csv"
-    # Google Slides (opcional: export PDF)
     if tipo in ("gslide", "google-slide", "google-slides", "google_slides"):
         return f"https://docs.google.com/presentation/d/{file_id}/export/pdf"
-
-    # Genérico: archivo normal en Drive
     return f"https://drive.google.com/uc?export=download&id={file_id}"
 
 def _download_from_drive(file_id: str, tipo: str) -> BytesIO | None:
@@ -63,11 +57,10 @@ def _download_from_drive(file_id: str, tipo: str) -> BytesIO | None:
         r = requests.get(url, timeout=30)
         r.raise_for_status()
         return BytesIO(r.content)
-    except requests.HTTPError as e:
-        st.error(f"Error HTTP al descargar desde Drive: {e}")
-    except Exception as e:
-        st.error(f"No se pudo descargar el archivo: {e}")
-    return None
+    except requests.HTTPError:
+        return None
+    except Exception:
+        return None
 
 def _b64_pdf(data: bytes) -> str:
     return base64.b64encode(data).decode("utf-8")
@@ -77,7 +70,7 @@ def _render_txt(buf: BytesIO):
     try:
         text = buf.read().decode("utf-8", errors="ignore")
         st.subheader("📄 Vista previa TXT")
-        st.text(text[:10000])  # primeras 10k chars
+        st.text(text[:10000])
     except Exception as e:
         st.error(f"No pude mostrar TXT: {e}")
 
@@ -94,7 +87,6 @@ def _render_docx(buf: BytesIO):
         from docx import Document  # requiere python-docx
         doc = Document(buf)
         st.subheader("📄 Vista previa DOCX")
-        # mostrar primeras ~40 líneas
         lines = [p.text for p in doc.paragraphs if p.text.strip()]
         preview = "\n".join(lines[:40]).strip()
         if preview:
@@ -105,11 +97,6 @@ def _render_docx(buf: BytesIO):
         st.error(f"No pude mostrar DOCX: {e}")
 
 def _render_pdf(buf: BytesIO):
-    """
-    Opción 1 (simple): incrustar el PDF en un iframe (visual).
-    Opción 2 (texto): usar pdfplumber para extraer texto y previsualizar.
-    Aquí usamos el iframe (mejor UX y sin parseo).
-    """
     try:
         data = buf.getvalue()
         b64 = _b64_pdf(data)
@@ -126,74 +113,102 @@ def _render_pdf(buf: BytesIO):
 def render_library():
     st.subheader("📚 Biblioteca de referencia (Drive)")
 
-    if not _exists(LIB_DIR):
-        st.error(f"No existe la carpeta {LIB_DIR}. Crea `__LIBRARY/` en la raíz del repo.")
-        return
+    lib_ok = _exists(LIB_DIR)
+    mani_ok = _exists(MANIFEST)
 
-    if not _exists(MANIFEST):
-        st.warning("No encuentro `__LIBRARY/manifest.csv`.")
-        st.info("Crea un CSV con columnas: title,file_id,type,description,tags")
-        return
+    # Cargamos manifest si existe, sin mutar el layout si falla
+    df = _load_manifest(MANIFEST) if (lib_ok and mani_ok) else pd.DataFrame(columns=["title","file_id","type","description","tags"])
+    has_rows = not df.empty
 
-    df = _load_manifest(MANIFEST)
-    if df.empty:
-        st.warning("El manifest.csv está vacío o mal formado.")
-        return
-
-    # Selector de documento
+    # Selector (siempre visible; se deshabilita si no hay datos)
     cols = st.columns([1, 2])
     with cols[0]:
-        sel_title = st.selectbox("Documento", options=df["title"].tolist())
-    fila = df[df["title"] == sel_title].iloc[0]
-    file_id = fila["file_id"].strip()
-    tipo = (fila["type"] or "").strip().lower()
-
-    # Info
+        options = df["title"].tolist() if has_rows else ["(sin documentos)"]
+        sel_title = st.selectbox("Documento", options=options, index=0, key="lib_doc_sel", disabled=not has_rows)
     with cols[1]:
-        st.markdown(f"**Descripción:** {fila.get('description','')}")
-        st.markdown(f"**Tags:** `{fila.get('tags','')}`")
-        st.caption(f"**Tipo:** `{tipo or 'desconocido'}` · **file_id:** `{file_id[:6]}…`")
-
-    # Acciones
-    c1, c2 = st.columns(2)
-    if c1.button("📂 Abrir / Previsualizar", type="primary", use_container_width=True):
-        buf = _download_from_drive(file_id, tipo)
-        if buf is None:
-            return
-
-        # Descarga directa
-        # Nombre de archivo sugerido por tipo
-        ext = {
-            "txt": "txt",
-            "csv": "csv",
-            "pdf": "pdf",
-            "docx": "docx",
-            "gdoc": "docx",
-            "gsheet": "csv",
-            "gslide": "pdf",
-        }.get(tipo, "bin")
-
-        st.download_button(
-            "⬇️ Descargar",
-            data=buf.getvalue(),
-            file_name=f"{sel_title}.{ext}",
-            mime=None,
-            use_container_width=True,
-        )
-
-        # Render según tipo
-        if tipo in ("txt",):
-            buf.seek(0); _render_txt(buf)
-        elif tipo in ("csv", "gsheet"):
-            buf.seek(0); _render_csv(buf)
-        elif tipo in ("docx", "gdoc"):
-            buf.seek(0); _render_docx(buf)
-        elif tipo in ("pdf", "gslide"):
-            buf.seek(0); _render_pdf(buf)
+        if has_rows:
+            fila = df[df["title"] == sel_title].iloc[0] if sel_title in df["title"].values else df.iloc[0]
+            st.markdown(f"**Descripción:** {fila.get('description','')}")
+            st.markdown(f"**Tags:** `{fila.get('tags','')}`")
+            st.caption(f"**Tipo:** `{(fila.get('type','') or 'desconocido')}` · **file_id:** `{str(fila.get('file_id',''))[:6]}…`")
         else:
-            st.info("Formato no soportado aún para vista previa. El archivo se puede descargar.")
+            st.markdown("**Descripción:** —")
+            st.markdown("**Tags:** —")
+            st.caption("**Tipo:** — · **file_id:** —")
 
-    if c2.button("🔗 Copiar enlace de descarga", use_container_width=True):
-        url = _drive_download_url(file_id, tipo)
-        st.code(url, language="text")
-        st.success("Enlace listo para compartir.")
+    # Mensajes de estado en SLOT fijo
+    with st.session_state["__lib_status_slot"].container():
+        if not lib_ok:
+            st.error(f"No existe la carpeta {LIB_DIR}. Crea `__LIBRARY/` en la raíz del repo.")
+        elif not mani_ok:
+            st.warning("No encuentro `__LIBRARY/manifest.csv`.")
+            st.info("Crea un CSV con columnas: title,file_id,type,description,tags")
+        elif not has_rows:
+            st.warning("El manifest.csv está vacío o mal formado.")
+        else:
+            st.caption("Selecciona un documento y usa las acciones de abajo.")
+
+    # Acciones (siempre visibles; se deshabilitan si no hay datos)
+    c1, c2 = st.columns(2)
+    open_disabled = not has_rows
+    link_disabled = not has_rows
+
+    # Acción: Abrir / Previsualizar
+    if c1.button("📂 Abrir / Previsualizar", type="primary", use_container_width=True, key="lib_open", disabled=open_disabled):
+        # limpiamos slots para render limpio en este mismo ciclo
+        with st.session_state["__lib_download_slot"].container():
+            st.empty()
+        with st.session_state["__lib_preview_slot"].container():
+            st.empty()
+
+        fila = df[df["title"] == sel_title].iloc[0] if has_rows else None
+        if fila is not None:
+            file_id = (fila["file_id"] or "").strip()
+            tipo = (fila["type"] or "").strip().lower()
+            buf = _download_from_drive(file_id, tipo)
+
+            # Botón de descarga SIEMPRE en su slot
+            with st.session_state["__lib_download_slot"].container():
+                ext = {
+                    "txt": "txt", "csv": "csv", "pdf": "pdf", "docx": "docx",
+                    "gdoc": "docx", "gsheet": "csv", "gslide": "pdf",
+                }.get(tipo, "bin")
+                data_bytes = buf.getvalue() if buf is not None else b""
+                st.download_button(
+                    "⬇️ Descargar",
+                    data=data_bytes,
+                    file_name=f"{sel_title}.{ext}",
+                    mime=None,
+                    use_container_width=True,
+                    key="lib_dl_btn",
+                    disabled=(buf is None or len(data_bytes) == 0),
+                )
+
+            # Vista previa en su slot (según tipo)
+            with st.session_state["__lib_preview_slot"].container():
+                if buf is None:
+                    st.error("No se pudo descargar el archivo desde Drive.")
+                else:
+                    buf.seek(0)
+                    if tipo in ("txt",):
+                        _render_txt(buf)
+                    elif tipo in ("csv", "gsheet"):
+                        _render_csv(buf)
+                    elif tipo in ("docx", "gdoc"):
+                        _render_docx(buf)
+                    elif tipo in ("pdf", "gslide"):
+                        _render_pdf(buf)
+                    else:
+                        st.info("Formato no soportado aún para vista previa. El archivo se puede descargar.")
+
+    # Acción: Copiar enlace de descarga
+    if c2.button("🔗 Copiar enlace de descarga", use_container_width=True, key="lib_copy_link", disabled=link_disabled):
+        if has_rows:
+            fila = df[df["title"] == sel_title].iloc[0] if sel_title in df["title"].values else df.iloc[0]
+            file_id = (fila["file_id"] or "").strip()
+            tipo = (fila["type"] or "").strip().lower()
+            url = _drive_download_url(file_id, tipo)
+            # mostramos el enlace siempre en el slot de estado (no creamos nodos nuevos)
+            with st.session_state["__lib_status_slot"].container():
+                st.code(url, language="text")
+                st.success("Enlace listo para compartir.")
