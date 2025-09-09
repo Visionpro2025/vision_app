@@ -1,0 +1,65 @@
+{
+  "name": "Universal",
+  "config": { 
+    "game": "Pick3_FL",
+    "version": "1.0.0",
+    "_lock_hash": "prod-lock-2025-09-08" 
+  },
+  "defaults": {
+    "game": "Pick3_FL",
+    "max_keywords": 6
+  },
+  "steps": [
+    {
+      "name": "step0_cursor_role",
+      "class": "CursorRoleStep",
+      "inputs": {},
+      "timeout_s": 1
+    },
+    { 
+      "name": "step0_validate", 
+      "class": "Step0Validate",
+      "inputs": { 
+        "_required": ["game","label"] 
+      },
+      "timeout_s": 3
+    },
+    {
+      "name": "subliminal",
+      "class": "Step5Subliminal",
+      "inputs": {
+        "prev_draw": [3, 7, 9],
+        "label": "AM",
+        "game": "Pick3_FL"
+      },
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "artifacts",
+      "class": "Step6Artifacts",
+      "inputs": {
+        "poem": "${step.subliminal.poem}",
+        "topics": "${step.subliminal.topics}"
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 10
+    },
+    {
+      "name": "finalize",
+      "class": "StepZFinalize",
+      "inputs": {},
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 5
+    }
+  ]
+}

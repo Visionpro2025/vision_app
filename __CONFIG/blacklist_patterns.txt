@@ -1,0 +1,22 @@
+# Patrones vetados - Secuencias obvias y repetidos absurdos
+# Formato: regex_pattern|descripción
+
+# Secuencias ascendentes/descendentes
+^(\d+)(\s+\d+)*$|secuencia_ascendente_descendente
+(\d+)\s+\1\s+\1\s+\1\s+\1|repetidos_absurdos
+
+# Series obvias
+123456|serie_123456
+012345|serie_012345
+876543|serie_876543
+654321|serie_654321
+
+# Patrones específicos de lotería
+1\s+2\s+3\s+4\s+5|secuencia_1_a_5
+70\s+69\s+68\s+67\s+66|secuencia_70_a_66
+11\s+11\s+11\s+11\s+11|repetido_11
+22\s+22\s+22\s+22\s+22|repetido_22
+33\s+33\s+33\s+33\s+33|repetido_33
+
+# Patrones de números consecutivos
+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)\s+(\d+)|consecutivos_genericos

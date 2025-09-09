@@ -1,0 +1,156 @@
+{
+  "name": "Florida_Quiniela_Pro",
+  "config": { 
+    "game": "Florida_Quiniela",
+    "version": "1.0.0",
+    "_lock_hash": "florida-lock-2025-09-08" 
+  },
+  "defaults": {
+    "game": "Florida_Quiniela",
+    "mode": "FLORIDA_QUINIELA",
+    "max_keywords": 6
+  },
+  "steps": [
+    {
+      "name": "step0_cursor_role",
+      "class": "CursorRoleStep",
+      "inputs": {},
+      "timeout_s": 1
+    },
+    { 
+      "name": "step0_validate", 
+      "class": "Step0Validate",
+      "inputs": { 
+        "_required": ["game", "mode", "p3_mid", "p4_mid", "p3_eve", "p4_eve"] 
+      },
+      "timeout_s": 3
+    },
+    {
+      "name": "subliminal",
+      "class": "Step5Subliminal",
+      "inputs": {
+        "prev_draw": [6, 9, 8],
+        "label": "AM",
+        "game": "Pick3_FL"
+      },
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step2_news_fetch",
+      "class": "YourNewsFetchStep",
+      "inputs": {
+        "query": "florida community social emotional news"
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 20
+    },
+    {
+      "name": "step2b_news_guarded",
+      "class": "NewsGuardedStep",
+      "inputs": {
+        "raw_news_urls": "${step.step2_news_fetch.urls}",
+        "policy_path": "plans/news_policy.yaml"
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step3_news_content_filter",
+      "class": "NewsContentFilterStep",
+      "inputs": {
+        "valid_news_urls": "${step.step2b_news_guarded.valid_news_urls}",
+        "rules_path": "plans/news_content_rules.yaml",
+        "subliminal_topics": "${step.subliminal.topics}",
+        "subliminal_keywords": "${step.subliminal.keywords_used}",
+        "subliminal_families": "${step.subliminal.families_used}",
+        "top_k": 24
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 45
+    },
+    {
+      "name": "step2c_content_verification",
+      "class": "ContentVerificationStep",
+      "inputs": {
+        "selected_articles": "${step.step3_news_content_filter.selected_articles}",
+        "min_legitimate_articles": 10
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step5b_candado_florida",
+      "class": "CandadoFloridaStep",
+      "inputs": {
+        "game": "${step.step0_validate.game}",
+        "mode": "FLORIDA_QUINIELA",
+        "p3_mid": "${step.step0_validate.p3_mid}",
+        "p4_mid": "${step.step0_validate.p4_mid}",
+        "p3_eve": "${step.step0_validate.p3_eve}",
+        "p4_eve": "${step.step0_validate.p4_eve}",
+        "cfg": {
+          "usar_p4_como_corrido_bloque": true,
+          "parles_ordenados": false,
+          "activar_empuje": true,
+          "activar_reversa": true,
+          "equivalencia_cero_100": true,
+          "noticias_equivalentes": "${step.step2c_content_verification.legitimate_articles}"
+        }
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 10
+    },
+    {
+      "name": "artifacts",
+      "class": "Step6Artifacts",
+      "inputs": {
+        "poem": "${step.subliminal.poem}",
+        "topics": "${step.subliminal.topics}",
+        "candado_mid": "${step.step5b_candado_florida.candado_mid}",
+        "candado_eve": "${step.step5b_candado_florida.candado_eve}",
+        "parles_mid": "${step.step5b_candado_florida.parles_mid}",
+        "parles_eve": "${step.step5b_candado_florida.parles_eve}",
+        "news_selected": "${step.step3_news_content_filter.selected_articles}",
+        "news_verified": "${step.step2c_content_verification.legitimate_articles}",
+        "news_verification_report": "${step.step2c_content_verification.verification_report}",
+        "news_metrics": "${step.step3_news_content_filter.metrics}",
+        "news_guidance": "${step.step3_news_content_filter.guidance_used}",
+        "news_evidence_path": "${step.step2b_news_guarded.news_report_path}"
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 10
+    },
+    {
+      "name": "finalize",
+      "class": "StepZFinalize",
+      "inputs": {},
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 5
+    }
+  ]
+}

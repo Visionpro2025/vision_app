@@ -1,0 +1,14 @@
+{
+  "order_id": "pick3-SELFTEST",
+  "description": "Test canary para verificar enforcement de pol\u00edtica",
+  "plan": "plans/pick3-basic.json",
+  "inputs": {
+    "test_mode": true,
+    "validate_policy": true
+  },
+  "expected_outputs": [
+    "policy_enforced",
+    "guardrails_applied",
+    "audit_generated"
+  ]
+}

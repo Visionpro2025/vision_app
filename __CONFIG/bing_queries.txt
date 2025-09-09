@@ -1,8 +1,73 @@
-# Bing News — mismas ideas para ampliar cobertura
-protest OR strike OR riot OR looting site:us
-shortage OR blackout OR curfew OR evacuation site:us
-boycott OR layoffs OR outage OR wildfire OR hurricane OR flood site:us
-mass shooting OR unrest OR clashes site:us
-protesta OR huelga OR disturbios OR saqueo site:us
-desabasto OR apagón OR toque de queda OR evacuación site:us
-boicot OR despidos OR tiroteo masivo site:us
+# Consultas de Bing News para noticias emocionales de USA
+# Formato: una consulta por línea
+# Comentarios empiezan con #
+
+# Protestas y disturbios sociales
+protesta USA
+huelga Estados Unidos
+disturbios sociales USA
+manifestación Estados Unidos
+saqueo USA
+
+# Violencia y seguridad
+tiroteo USA
+violencia Estados Unidos
+homicidio USA
+secuestro Estados Unidos
+asalto USA
+
+# Crisis económica
+inflación USA
+desempleo Estados Unidos
+despidos USA
+recesión Estados Unidos
+crisis económica USA
+
+# Desastres naturales
+huracán USA
+terremoto Estados Unidos
+inundación USA
+incendio Estados Unidos
+tornado USA
+
+# Salud pública
+epidemia USA
+brote Estados Unidos
+hospital USA
+vacuna Estados Unidos
+muerte USA
+
+# Política y corrupción
+corrupción USA
+escándalo Estados Unidos
+fraude USA
+investigación Estados Unidos
+juicio USA
+
+# Tecnología y ciberseguridad
+hackeo USA
+ciberataque Estados Unidos
+datos USA
+privacidad Estados Unidos
+redes sociales USA
+
+# Transporte y accidentes
+accidente USA
+choque Estados Unidos
+avión USA
+tren Estados Unidos
+carretera USA
+
+# Educación y juventud
+estudiantes USA
+universidad Estados Unidos
+escuela USA
+jóvenes Estados Unidos
+adolescentes USA
+
+# Familia y comunidad
+familia USA
+niños Estados Unidos
+mujeres USA
+hombres Estados Unidos
+comunidad USA

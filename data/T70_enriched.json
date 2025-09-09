@@ -1,0 +1,1122 @@
+[
+  {
+    "N": 1,
+    "EQ": 70,
+    "titulo": "Origen / Identidad Digital",
+    "lectura": "Nacimiento de comunidades virtuales",
+    "categoria": "Fundación",
+    "campbell_stage": "Mundo ordinario",
+    "vonfranz_symbol": [
+      "nacimiento digital",
+      "identidad virtual"
+    ],
+    "freud": {
+      "manifest": "creación de identidad",
+      "latent": "miedo a la soledad"
+    }
+  },
+  {
+    "N": 2,
+    "EQ": 69,
+    "titulo": "Dualidad / Polos Conectados",
+    "lectura": "Polarización algorítmica",
+    "categoria": "Contraste",
+    "campbell_stage": "Mundo ordinario",
+    "vonfranz_symbol": [
+      "polarización",
+      "ecos cerrados"
+    ],
+    "freud": {
+      "manifest": "conexión dual",
+      "latent": "conflicto interno"
+    }
+  },
+  {
+    "N": 3,
+    "EQ": 68,
+    "titulo": "Tríada / Sinergia 3.0",
+    "lectura": "Colaboración talento-creatividad-tech",
+    "categoria": "Colaboración",
+    "campbell_stage": "Mundo ordinario",
+    "vonfranz_symbol": [
+      "sinergia",
+      "colaboración"
+    ],
+    "freud": {
+      "manifest": "trabajo en equipo",
+      "latent": "dependencia grupal"
+    }
+  },
+  {
+    "N": 4,
+    "EQ": 67,
+    "titulo": "Estructura Control Algorítmico",
+    "lectura": "Ciudades inteligentes vigilancia datos",
+    "categoria": "Control",
+    "campbell_stage": "Mundo ordinario",
+    "vonfranz_symbol": [
+      "vigilancia",
+      "control"
+    ],
+    "freud": {
+      "manifest": "orden y estructura",
+      "latent": "miedo al caos"
+    }
+  },
+  {
+    "N": 5,
+    "EQ": 66,
+    "titulo": "Cambio / Disrupción Viral",
+    "lectura": "Hashtags y movimientos sociales",
+    "categoria": "Transformación",
+    "campbell_stage": "Mundo ordinario",
+    "vonfranz_symbol": [
+      "oleada colectiva",
+      "fuerza social"
+    ],
+    "freud": {
+      "manifest": "energía de cambio",
+      "latent": "miedo a caos"
+    }
+  },
+  {
+    "N": 6,
+    "EQ": 65,
+    "titulo": "Armonía Comunidad Conectada",
+    "lectura": "Apoyo emocional en apps",
+    "categoria": "Comunidad",
+    "campbell_stage": "Llamado a la aventura",
+    "vonfranz_symbol": [
+      "apoyo emocional",
+      "comunidad"
+    ],
+    "freud": {
+      "manifest": "conexión social",
+      "latent": "necesidad de pertenencia"
+    }
+  },
+  {
+    "N": 7,
+    "EQ": 64,
+    "titulo": "Ritmo Cadencia Ágil",
+    "lectura": "Rituales sprints trabajo",
+    "categoria": "Ritmo",
+    "campbell_stage": "Llamado a la aventura",
+    "vonfranz_symbol": [
+      "rituales",
+      "sprints"
+    ],
+    "freud": {
+      "manifest": "disciplina y orden",
+      "latent": "obsesión por control"
+    }
+  },
+  {
+    "N": 8,
+    "EQ": 63,
+    "titulo": "Escala Asimetría Global",
+    "lectura": "Concentración poder datos",
+    "categoria": "Poder",
+    "campbell_stage": "Llamado a la aventura",
+    "vonfranz_symbol": [
+      "concentración",
+      "poder"
+    ],
+    "freud": {
+      "manifest": "escala global",
+      "latent": "miedo a la desigualdad"
+    }
+  },
+  {
+    "N": 9,
+    "EQ": 62,
+    "titulo": "Cierre Retroaprendizaje",
+    "lectura": "Revisión post evento",
+    "categoria": "Aprendizaje",
+    "campbell_stage": "Llamado a la aventura",
+    "vonfranz_symbol": [
+      "revisión",
+      "aprendizaje"
+    ],
+    "freud": {
+      "manifest": "reflexión y mejora",
+      "latent": "miedo a repetir errores"
+    }
+  },
+  {
+    "N": 10,
+    "EQ": 61,
+    "titulo": "Reglas Código Abierto Global",
+    "lectura": "Estandarización interoperabilidad",
+    "categoria": "Estándares",
+    "campbell_stage": "Llamado a la aventura",
+    "vonfranz_symbol": [
+      "estándares",
+      "interoperabilidad"
+    ],
+    "freud": {
+      "manifest": "colaboración global",
+      "latent": "miedo a la fragmentación"
+    }
+  },
+  {
+    "N": 11,
+    "EQ": 60,
+    "titulo": "Umbral Revolución Tech",
+    "lectura": "Interfaces neuronales transición",
+    "categoria": "Revolución",
+    "campbell_stage": "Rechazo del llamado",
+    "vonfranz_symbol": [
+      "interfaces",
+      "transición"
+    ],
+    "freud": {
+      "manifest": "innovación tecnológica",
+      "latent": "miedo a la obsolescencia"
+    }
+  },
+  {
+    "N": 12,
+    "EQ": 59,
+    "titulo": "Ciclo Anual Memoria Colectiva",
+    "lectura": "Lecciones por temporada",
+    "categoria": "Ciclos",
+    "campbell_stage": "Rechazo del llamado",
+    "vonfranz_symbol": [
+      "ciclos",
+      "memoria"
+    ],
+    "freud": {
+      "manifest": "patrones temporales",
+      "latent": "miedo al olvido"
+    }
+  },
+  {
+    "N": 13,
+    "EQ": 58,
+    "titulo": "Disrupción Desinformación Hiperreal",
+    "lectura": "Deepfakes conspiraciones",
+    "categoria": "Desinformación",
+    "campbell_stage": "Rechazo del llamado",
+    "vonfranz_symbol": [
+      "deepfakes",
+      "conspiraciones"
+    ],
+    "freud": {
+      "manifest": "tecnología avanzada",
+      "latent": "miedo a la manipulación"
+    }
+  },
+  {
+    "N": 14,
+    "EQ": 57,
+    "titulo": "Límite Crisis Climática",
+    "lectura": "Fenómenos extremos acción inmediata",
+    "categoria": "Crisis",
+    "campbell_stage": "Rechazo del llamado",
+    "vonfranz_symbol": [
+      "fenómenos extremos",
+      "acción"
+    ],
+    "freud": {
+      "manifest": "urgencia climática",
+      "latent": "miedo a la extinción"
+    }
+  },
+  {
+    "N": 15,
+    "EQ": 56,
+    "titulo": "Atención Economía del Foco",
+    "lectura": "Microcontenidos déficit atención",
+    "categoria": "Atención",
+    "campbell_stage": "Rechazo del llamado",
+    "vonfranz_symbol": [
+      "microcontenidos",
+      "atención"
+    ],
+    "freud": {
+      "manifest": "contenido accesible",
+      "latent": "miedo a perder relevancia"
+    }
+  },
+  {
+    "N": 16,
+    "EQ": 55,
+    "titulo": "Tipologías Diversidad Crítica",
+    "lectura": "Microcomunidades creativas",
+    "categoria": "Diversidad",
+    "campbell_stage": "Encuentro con el mentor",
+    "vonfranz_symbol": [
+      "microcomunidades",
+      "creatividad"
+    ],
+    "freud": {
+      "manifest": "diversidad cultural",
+      "latent": "miedo a la homogenización"
+    }
+  },
+  {
+    "N": 17,
+    "EQ": 54,
+    "titulo": "Resistencia Activismo en Red",
+    "lectura": "Coaliciones globales derechos",
+    "categoria": "Activismo",
+    "campbell_stage": "Encuentro con el mentor",
+    "vonfranz_symbol": [
+      "coaliciones",
+      "derechos"
+    ],
+    "freud": {
+      "manifest": "lucha por justicia",
+      "latent": "miedo a la opresión"
+    }
+  },
+  {
+    "N": 18,
+    "EQ": 53,
+    "titulo": "Manipulación Narrativa Dirigida",
+    "lectura": "Publicidad conductual segmentación",
+    "categoria": "Manipulación",
+    "campbell_stage": "Encuentro con el mentor",
+    "vonfranz_symbol": [
+      "publicidad",
+      "segmentación"
+    ],
+    "freud": {
+      "manifest": "marketing personalizado",
+      "latent": "miedo a la pérdida de privacidad"
+    }
+  },
+  {
+    "N": 19,
+    "EQ": 52,
+    "titulo": "Iluminación Despertar Colectivo",
+    "lectura": "Educación crítica masiva",
+    "categoria": "Educación",
+    "campbell_stage": "Encuentro con el mentor",
+    "vonfranz_symbol": [
+      "educación",
+      "crítica"
+    ],
+    "freud": {
+      "manifest": "conocimiento compartido",
+      "latent": "miedo a la ignorancia"
+    }
+  },
+  {
+    "N": 20,
+    "EQ": 51,
+    "titulo": "Juicio Rendición Algorítmica",
+    "lectura": "Evaluaciones públicas trazables",
+    "categoria": "Evaluación",
+    "campbell_stage": "Encuentro con el mentor",
+    "vonfranz_symbol": [
+      "evaluaciones",
+      "trazabilidad"
+    ],
+    "freud": {
+      "manifest": "transparencia pública",
+      "latent": "miedo a la injusticia"
+    }
+  },
+  {
+    "N": 21,
+    "EQ": 50,
+    "titulo": "Exilio Movilidad Digital",
+    "lectura": "Identidad documentación en nube",
+    "categoria": "Movilidad",
+    "campbell_stage": "Cruce del umbral",
+    "vonfranz_symbol": [
+      "identidad",
+      "nube"
+    ],
+    "freud": {
+      "manifest": "libertad de movimiento",
+      "latent": "miedo a la pérdida de raíces"
+    }
+  },
+  {
+    "N": 22,
+    "EQ": 49,
+    "titulo": "Constructor Pactos Creativos",
+    "lectura": "Alianzas tecnología contratos",
+    "categoria": "Alianzas",
+    "campbell_stage": "Cruce del umbral",
+    "vonfranz_symbol": [
+      "alianzas",
+      "contratos"
+    ],
+    "freud": {
+      "manifest": "colaboración estratégica",
+      "latent": "miedo a la traición"
+    }
+  },
+  {
+    "N": 23,
+    "EQ": 48,
+    "titulo": "Ansiedad Hipervelocidad",
+    "lectura": "Estrés aceleración cultural",
+    "categoria": "Ansiedad",
+    "campbell_stage": "Cruce del umbral",
+    "vonfranz_symbol": [
+      "estrés",
+      "aceleración"
+    ],
+    "freud": {
+      "manifest": "progreso rápido",
+      "latent": "miedo a quedarse atrás"
+    }
+  },
+  {
+    "N": 24,
+    "EQ": 47,
+    "titulo": "Familia Red Siempre Encendida",
+    "lectura": "Convivencia conectividad permanente",
+    "categoria": "Familia",
+    "campbell_stage": "Cruce del umbral",
+    "vonfranz_symbol": [
+      "convivencia",
+      "conectividad"
+    ],
+    "freud": {
+      "manifest": "conexión familiar",
+      "latent": "miedo a la desconexión"
+    }
+  },
+  {
+    "N": 25,
+    "EQ": 46,
+    "titulo": "Celebración Ocio Consciente",
+    "lectura": "Eventos híbridos inmersivos",
+    "categoria": "Celebración",
+    "campbell_stage": "Cruce del umbral",
+    "vonfranz_symbol": [
+      "eventos",
+      "inmersión"
+    ],
+    "freud": {
+      "manifest": "entretenimiento",
+      "latent": "miedo al aburrimiento"
+    }
+  },
+  {
+    "N": 26,
+    "EQ": 45,
+    "titulo": "Silencio Invisibilidad Social",
+    "lectura": "Marginalidad brecha acceso",
+    "categoria": "Marginalidad",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "marginalidad",
+      "brecha"
+    ],
+    "freud": {
+      "manifest": "diversidad social",
+      "latent": "miedo a la exclusión"
+    }
+  },
+  {
+    "N": 27,
+    "EQ": 44,
+    "titulo": "Alteridad Emprendimiento Local",
+    "lectura": "Startups impacto diversidad",
+    "categoria": "Emprendimiento",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "startups",
+      "diversidad"
+    ],
+    "freud": {
+      "manifest": "innovación local",
+      "latent": "miedo a la globalización"
+    }
+  },
+  {
+    "N": 28,
+    "EQ": 43,
+    "titulo": "Abundancia Desperdicio Digital",
+    "lectura": "Big data no usado",
+    "categoria": "Abundancia",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "big data",
+      "desperdicio"
+    ],
+    "freud": {
+      "manifest": "datos disponibles",
+      "latent": "miedo a la pérdida de información"
+    }
+  },
+  {
+    "N": 29,
+    "EQ": 42,
+    "titulo": "Creación Ciencia Abierta Total",
+    "lectura": "Investigación colaborativa global",
+    "categoria": "Ciencia",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "investigación",
+      "colaboración"
+    ],
+    "freud": {
+      "manifest": "conocimiento compartido",
+      "latent": "miedo a la competencia"
+    }
+  },
+  {
+    "N": 30,
+    "EQ": 41,
+    "titulo": "Soledad Umbral Humano",
+    "lectura": "Desconexión emocional redes",
+    "categoria": "Soledad",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "desconexión",
+      "redes"
+    ],
+    "freud": {
+      "manifest": "independencia digital",
+      "latent": "miedo a la soledad"
+    }
+  },
+  {
+    "N": 31,
+    "EQ": 40,
+    "titulo": "Laberinto Complejidad Extrema",
+    "lectura": "Interdependencia riesgo cascada",
+    "categoria": "Complejidad",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "interdependencia",
+      "riesgo"
+    ],
+    "freud": {
+      "manifest": "sistemas interconectados",
+      "latent": "miedo a la vulnerabilidad"
+    }
+  },
+  {
+    "N": 32,
+    "EQ": 39,
+    "titulo": "Espejo Datos Personales",
+    "lectura": "Autoevaluación métricas vitales",
+    "categoria": "Autoevaluación",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "métricas",
+      "vitales"
+    ],
+    "freud": {
+      "manifest": "conocimiento personal",
+      "latent": "miedo a la verdad"
+    }
+  },
+  {
+    "N": 33,
+    "EQ": 38,
+    "titulo": "Maestro Educación XR",
+    "lectura": "Aprendizaje inmersivo",
+    "categoria": "Educación",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "aprendizaje",
+      "inmersión"
+    ],
+    "freud": {
+      "manifest": "innovación educativa",
+      "latent": "miedo a la obsolescencia"
+    }
+  },
+  {
+    "N": 34,
+    "EQ": 37,
+    "titulo": "Aprendizaje Flujo Logístico",
+    "lectura": "Cadena suministros aula",
+    "categoria": "Logística",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "cadena",
+      "suministros"
+    ],
+    "freud": {
+      "manifest": "eficiencia operativa",
+      "latent": "miedo a la interrupción"
+    }
+  },
+  {
+    "N": 35,
+    "EQ": 36,
+    "titulo": "Confusión Ruido Digital",
+    "lectura": "Infoxicación fake news",
+    "categoria": "Confusión",
+    "campbell_stage": "Pruebas, aliados y enemigos",
+    "vonfranz_symbol": [
+      "infoxicación",
+      "fake news"
+    ],
+    "freud": {
+      "manifest": "sobrecarga informativa",
+      "latent": "miedo a la desinformación"
+    }
+  },
+  {
+    "N": 36,
+    "EQ": 35,
+    "titulo": "Paciencia Microhábito Global",
+    "lectura": "Mejoras por microacciones",
+    "categoria": "Paciencia",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "microacciones",
+      "mejoras"
+    ],
+    "freud": {
+      "manifest": "progreso gradual",
+      "latent": "miedo a la lentitud"
+    }
+  },
+  {
+    "N": 37,
+    "EQ": 34,
+    "titulo": "Alianza Global Innovadores Raros",
+    "lectura": "Minorías disruptivas protegidas",
+    "categoria": "Alianzas",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "minorías",
+      "disruptivas"
+    ],
+    "freud": {
+      "manifest": "protección de innovadores",
+      "latent": "miedo a la exclusión"
+    }
+  },
+  {
+    "N": 38,
+    "EQ": 33,
+    "titulo": "Confrontación Riesgo en Red",
+    "lectura": "Conflictos amplificados",
+    "categoria": "Confrontación",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "conflictos",
+      "amplificación"
+    ],
+    "freud": {
+      "manifest": "resolución de conflictos",
+      "latent": "miedo a la violencia"
+    }
+  },
+  {
+    "N": 39,
+    "EQ": 32,
+    "titulo": "Curación Ciudades Restaurativas",
+    "lectura": "Urbanismo que repara",
+    "categoria": "Curación",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "urbanismo",
+      "reparación"
+    ],
+    "freud": {
+      "manifest": "renovación urbana",
+      "latent": "miedo a la decadencia"
+    }
+  },
+  {
+    "N": 40,
+    "EQ": 31,
+    "titulo": "Travesía Protocolos Cuarentena",
+    "lectura": "Movilidad controlada crisis",
+    "categoria": "Protocolos",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "movilidad",
+      "control"
+    ],
+    "freud": {
+      "manifest": "seguridad sanitaria",
+      "latent": "miedo a la enfermedad"
+    }
+  },
+  {
+    "N": 41,
+    "EQ": 30,
+    "titulo": "Reflejo Historial Vivo",
+    "lectura": "Observación archivada tiempo real",
+    "categoria": "Historial",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "archivo",
+      "tiempo real"
+    ],
+    "freud": {
+      "manifest": "memoria digital",
+      "latent": "miedo al olvido"
+    }
+  },
+  {
+    "N": 42,
+    "EQ": 29,
+    "titulo": "Sombra Subconsciente Colectivo",
+    "lectura": "Tendencias ocultas bigdata",
+    "categoria": "Subconsciente",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "tendencias",
+      "ocultas"
+    ],
+    "freud": {
+      "manifest": "análisis predictivo",
+      "latent": "miedo a la manipulación"
+    }
+  },
+  {
+    "N": 43,
+    "EQ": 28,
+    "titulo": "Ancla Tradición Aumentada",
+    "lectura": "Costumbres con tecnología",
+    "categoria": "Tradición",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "costumbres",
+      "tecnología"
+    ],
+    "freud": {
+      "manifest": "preservación cultural",
+      "latent": "miedo a la pérdida de identidad"
+    }
+  },
+  {
+    "N": 44,
+    "EQ": 27,
+    "titulo": "Despertar Justicia Algorítmica",
+    "lectura": "Auditoría sesgos IA",
+    "categoria": "Justicia",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "auditoría",
+      "sesgos"
+    ],
+    "freud": {
+      "manifest": "equidad algorítmica",
+      "latent": "miedo a la discriminación"
+    }
+  },
+  {
+    "N": 45,
+    "EQ": 26,
+    "titulo": "Puente Mediación Digital",
+    "lectura": "Diálogo intercultural asistido",
+    "categoria": "Mediación",
+    "campbell_stage": "Acercamiento a la caverna profunda",
+    "vonfranz_symbol": [
+      "diálogo",
+      "intercultural"
+    ],
+    "freud": {
+      "manifest": "comprensión mutua",
+      "latent": "miedo a la incomunicación"
+    }
+  },
+  {
+    "N": 46,
+    "EQ": 25,
+    "titulo": "Huella Transición Energética Digital",
+    "lectura": "Optimizar consumo datos energía",
+    "categoria": "Energía",
+    "campbell_stage": "Ordalía / Abismo",
+    "vonfranz_symbol": [
+      "consumo",
+      "energía"
+    ],
+    "freud": {
+      "manifest": "eficiencia energética",
+      "latent": "miedo al agotamiento"
+    }
+  },
+  {
+    "N": 47,
+    "EQ": 24,
+    "titulo": "Horizonte Narrativa Futura",
+    "lectura": "Visión 10 a 30 años",
+    "categoria": "Futuro",
+    "campbell_stage": "Ordalía / Abismo",
+    "vonfranz_symbol": [
+      "visión",
+      "futuro"
+    ],
+    "freud": {
+      "manifest": "planificación estratégica",
+      "latent": "miedo a la incertidumbre"
+    }
+  },
+  {
+    "N": 48,
+    "EQ": 23,
+    "titulo": "Venganza Conflicto Cíclico",
+    "lectura": "Espirales cancelación",
+    "categoria": "Conflicto",
+    "campbell_stage": "Ordalía / Abismo",
+    "vonfranz_symbol": [
+      "espirales",
+      "cancelación"
+    ],
+    "freud": {
+      "manifest": "justicia social",
+      "latent": "miedo a la venganza"
+    }
+  },
+  {
+    "N": 49,
+    "EQ": 22,
+    "titulo": "Semilla Innovación Local",
+    "lectura": "Ideas pequeñas gran impacto",
+    "categoria": "Innovación",
+    "campbell_stage": "Ordalía / Abismo",
+    "vonfranz_symbol": [
+      "ideas",
+      "impacto"
+    ],
+    "freud": {
+      "manifest": "creatividad local",
+      "latent": "miedo a la irrelevancia"
+    }
+  },
+  {
+    "N": 50,
+    "EQ": 21,
+    "titulo": "Fin Poda Estratégica",
+    "lectura": "Simplificación proactiva",
+    "categoria": "Simplificación",
+    "campbell_stage": "Ordalía / Abismo",
+    "vonfranz_symbol": [
+      "simplificación",
+      "proactiva"
+    ],
+    "freud": {
+      "manifest": "eficiencia operativa",
+      "latent": "miedo a la pérdida"
+    }
+  },
+  {
+    "N": 51,
+    "EQ": 20,
+    "titulo": "Transformación Cambio Institucional",
+    "lectura": "Adaptación en tiempo real",
+    "categoria": "Transformación",
+    "campbell_stage": "Recompensa",
+    "vonfranz_symbol": [
+      "adaptación",
+      "tiempo real"
+    ],
+    "freud": {
+      "manifest": "flexibilidad organizacional",
+      "latent": "miedo a la inestabilidad"
+    }
+  },
+  {
+    "N": 52,
+    "EQ": 19,
+    "titulo": "Trampa Bucle Productividad",
+    "lectura": "Burnout crónico",
+    "categoria": "Productividad",
+    "campbell_stage": "Recompensa",
+    "vonfranz_symbol": [
+      "burnout",
+      "crónico"
+    ],
+    "freud": {
+      "manifest": "alta productividad",
+      "latent": "miedo al fracaso"
+    }
+  },
+  {
+    "N": 53,
+    "EQ": 18,
+    "titulo": "Rebelión Educación en Red",
+    "lectura": "Alfabetización crítica digital",
+    "categoria": "Educación",
+    "campbell_stage": "Recompensa",
+    "vonfranz_symbol": [
+      "alfabetización",
+      "crítica"
+    ],
+    "freud": {
+      "manifest": "empoderamiento educativo",
+      "latent": "miedo a la manipulación"
+    }
+  },
+  {
+    "N": 54,
+    "EQ": 17,
+    "titulo": "Fortaleza Cultura del Cuidado",
+    "lectura": "Infraestructuras apoyo mutuo",
+    "categoria": "Cuidado",
+    "campbell_stage": "Recompensa",
+    "vonfranz_symbol": [
+      "infraestructuras",
+      "apoyo"
+    ],
+    "freud": {
+      "manifest": "redes de apoyo",
+      "latent": "miedo a la vulnerabilidad"
+    }
+  },
+  {
+    "N": 55,
+    "EQ": 16,
+    "titulo": "Espejismo Crecimiento Vacío",
+    "lectura": "Métricas superficiales éxito",
+    "categoria": "Crecimiento",
+    "campbell_stage": "Recompensa",
+    "vonfranz_symbol": [
+      "métricas",
+      "superficiales"
+    ],
+    "freud": {
+      "manifest": "indicadores de éxito",
+      "latent": "miedo a la mediocridad"
+    }
+  },
+  {
+    "N": 56,
+    "EQ": 15,
+    "titulo": "Melancolía Mito del Pasado",
+    "lectura": "Nostalgia amplificada",
+    "categoria": "Nostalgia",
+    "campbell_stage": "Camino de regreso",
+    "vonfranz_symbol": [
+      "nostalgia",
+      "amplificada"
+    ],
+    "freud": {
+      "manifest": "memoria colectiva",
+      "latent": "miedo al cambio"
+    }
+  },
+  {
+    "N": 57,
+    "EQ": 14,
+    "titulo": "Conspiración Transparencia Radical",
+    "lectura": "Desconfianza total datos abiertos",
+    "categoria": "Transparencia",
+    "campbell_stage": "Camino de regreso",
+    "vonfranz_symbol": [
+      "datos",
+      "abiertos"
+    ],
+    "freud": {
+      "manifest": "acceso a información",
+      "latent": "miedo a la exposición"
+    }
+  },
+  {
+    "N": 58,
+    "EQ": 13,
+    "titulo": "Promesa Optimismo Escalable",
+    "lectura": "Innovaciones con impacto",
+    "categoria": "Optimismo",
+    "campbell_stage": "Camino de regreso",
+    "vonfranz_symbol": [
+      "innovaciones",
+      "impacto"
+    ],
+    "freud": {
+      "manifest": "esperanza en el futuro",
+      "latent": "miedo a la decepción"
+    }
+  },
+  {
+    "N": 59,
+    "EQ": 12,
+    "titulo": "Conclusión Decisión Basada en Datos",
+    "lectura": "Resoluciones con métricas",
+    "categoria": "Decisión",
+    "campbell_stage": "Camino de regreso",
+    "vonfranz_symbol": [
+      "resoluciones",
+      "métricas"
+    ],
+    "freud": {
+      "manifest": "racionalidad analítica",
+      "latent": "miedo a la intuición"
+    }
+  },
+  {
+    "N": 60,
+    "EQ": 11,
+    "titulo": "Legado Coordinación Intergeneracional",
+    "lectura": "Planificación multigeneración",
+    "categoria": "Legado",
+    "campbell_stage": "Camino de regreso",
+    "vonfranz_symbol": [
+      "planificación",
+      "multigeneración"
+    ],
+    "freud": {
+      "manifest": "continuidad histórica",
+      "latent": "miedo a la discontinuidad"
+    }
+  },
+  {
+    "N": 61,
+    "EQ": 10,
+    "titulo": "Identidad Minorías Motrices",
+    "lectura": "Pequeños colectivos transforman",
+    "categoria": "Identidad",
+    "campbell_stage": "Resurrección",
+    "vonfranz_symbol": [
+      "colectivos",
+      "transformación"
+    ],
+    "freud": {
+      "manifest": "poder de las minorías",
+      "latent": "miedo a la irrelevancia"
+    }
+  },
+  {
+    "N": 62,
+    "EQ": 9,
+    "titulo": "Lucha Seguridad Integral",
+    "lectura": "Protección física cibernética",
+    "categoria": "Seguridad",
+    "campbell_stage": "Resurrección",
+    "vonfranz_symbol": [
+      "protección",
+      "cibernética"
+    ],
+    "freud": {
+      "manifest": "seguridad digital",
+      "latent": "miedo a la vulnerabilidad"
+    }
+  },
+  {
+    "N": 63,
+    "EQ": 8,
+    "titulo": "Olvido Gestión de Memoria",
+    "lectura": "Curaduría narrativa social",
+    "categoria": "Memoria",
+    "campbell_stage": "Resurrección",
+    "vonfranz_symbol": [
+      "curaduría",
+      "narrativa"
+    ],
+    "freud": {
+      "manifest": "preservación cultural",
+      "latent": "miedo al olvido"
+    }
+  },
+  {
+    "N": 64,
+    "EQ": 7,
+    "titulo": "Ilusión Metaverso Escalable",
+    "lectura": "Mundos virtuales masivos",
+    "categoria": "Metaverso",
+    "campbell_stage": "Resurrección",
+    "vonfranz_symbol": [
+      "mundos",
+      "virtuales"
+    ],
+    "freud": {
+      "manifest": "realidad aumentada",
+      "latent": "miedo a la pérdida de realidad"
+    }
+  },
+  {
+    "N": 65,
+    "EQ": 6,
+    "titulo": "Sanación Mentoría Vital",
+    "lectura": "Redes tutelaje",
+    "categoria": "Sanación",
+    "campbell_stage": "Resurrección",
+    "vonfranz_symbol": [
+      "redes",
+      "tutelaje"
+    ],
+    "freud": {
+      "manifest": "aprendizaje continuo",
+      "latent": "miedo a la dependencia"
+    }
+  },
+  {
+    "N": 66,
+    "EQ": 5,
+    "titulo": "Desconexión Blanqueo Social",
+    "lectura": "Nomadismo digital extremo",
+    "categoria": "Desconexión",
+    "campbell_stage": "Regreso con el elixir",
+    "vonfranz_symbol": [
+      "nomadismo",
+      "digital"
+    ],
+    "freud": {
+      "manifest": "libertad de movimiento",
+      "latent": "miedo a la soledad"
+    }
+  },
+  {
+    "N": 67,
+    "EQ": 4,
+    "titulo": "Resiliencia Equilibrio Inestable",
+    "lectura": "Fluctuación post crisis",
+    "categoria": "Resiliencia",
+    "campbell_stage": "Regreso con el elixir",
+    "vonfranz_symbol": [
+      "fluctuación",
+      "crisis"
+    ],
+    "freud": {
+      "manifest": "adaptación al cambio",
+      "latent": "miedo a la inestabilidad"
+    }
+  },
+  {
+    "N": 68,
+    "EQ": 3,
+    "titulo": "Renacimiento Protesta Creativa",
+    "lectura": "Expresión artística catalizador",
+    "categoria": "Renacimiento",
+    "campbell_stage": "Regreso con el elixir",
+    "vonfranz_symbol": [
+      "expresión",
+      "artística"
+    ],
+    "freud": {
+      "manifest": "creatividad social",
+      "latent": "miedo a la represión"
+    }
+  },
+  {
+    "N": 69,
+    "EQ": 2,
+    "titulo": "Fusión Pactos Win Win",
+    "lectura": "Integración estratégica intercultural",
+    "categoria": "Fusión",
+    "campbell_stage": "Regreso con el elixir",
+    "vonfranz_symbol": [
+      "integración",
+      "intercultural"
+    ],
+    "freud": {
+      "manifest": "colaboración global",
+      "latent": "miedo a la pérdida de identidad"
+    }
+  },
+  {
+    "N": 70,
+    "EQ": 1,
+    "titulo": "Círculo Regeneración Total",
+    "lectura": "Retorno esencial tecnología verde",
+    "categoria": "Regeneración",
+    "campbell_stage": "Regreso con el elixir",
+    "vonfranz_symbol": [
+      "retorno",
+      "tecnología verde"
+    ],
+    "freud": {
+      "manifest": "sostenibilidad ambiental",
+      "latent": "miedo a la extinción"
+    }
+  }
+]

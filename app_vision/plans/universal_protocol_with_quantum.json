@@ -1,0 +1,219 @@
+{
+  "config": {
+    "protocol_name": "Universal Protocol with Quantum Analysis",
+    "version": "1.0",
+    "quantum_enabled": true,
+    "quantum_coherence_threshold": 0.7,
+    "quantum_entanglement_strength": 0.8,
+    "quantum_interference_analysis": true
+  },
+  "defaults": {
+    "quantum_temporal_context": 1.0,
+    "quantum_geographic_context": 1.0,
+    "quantum_temporal_phase": 0.0,
+    "quantum_geographic_phase": 0.0
+  },
+  "steps": [
+    {
+      "name": "step1_initialization",
+      "class": "InitializationStep",
+      "description": "PASO 1: Inicialización y Limpieza del Sistema",
+      "inputs": {},
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 10
+    },
+    {
+      "name": "step2_lottery_config",
+      "class": "LotteryConfigStep",
+      "description": "PASO 2: Configuración de Lotería",
+      "inputs": {},
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 10
+    },
+    {
+      "name": "step3_previous_draw_analysis",
+      "class": "PreviousDrawAnalysisStep",
+      "description": "PASO 3: Análisis del Sorteo Anterior (Gematría + Subliminal)",
+      "inputs": {},
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step4_news_collection",
+      "class": "NewsCollectionStep",
+      "description": "PASO 4: Recopilación de Noticias Guiada",
+      "inputs": {
+        "subliminal_guidance": "${step.step3_previous_draw_analysis.subliminal_guidance}"
+      },
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      },
+      "timeout_s": 45
+    },
+    {
+      "name": "step5_table100_attribution",
+      "class": "Table100AttributionStep",
+      "description": "PASO 5: Atribución a Tabla 100 Universal",
+      "inputs": {
+        "news_data": "${step.step4_news_collection.news_data}",
+        "subliminal_guidance": "${step.step3_previous_draw_analysis.subliminal_guidance}"
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step6_sefirotic_analysis",
+      "class": "SefiroticAnalysisStep",
+      "description": "PASO 6: Análisis Sefirotico de Últimos 5 Sorteos",
+      "inputs": {
+        "previous_draws": "${step.step3_previous_draw_analysis.previous_draws}",
+        "table100_data": "${step.step5_table100_attribution.table100_data}"
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step7_quantum_series_generation",
+      "class": "QuantumSeriesGenerationStep",
+      "description": "PASO 7: Generación de Series mediante Análisis Cuántico",
+      "inputs": {
+        "draw_numbers": "${step.step3_previous_draw_analysis.draw_numbers}",
+        "subliminal_guidance": "${step.step3_previous_draw_analysis.subliminal_guidance}",
+        "news_data": "${step.step4_news_collection.news_data}",
+        "table100_data": "${step.step5_table100_attribution.table100_data}",
+        "sefirotic_data": "${step.step6_sefirotic_analysis.sefirotic_data}",
+        "quantum_config": {
+          "temporal_context": "${config.quantum_temporal_context}",
+          "geographic_context": "${config.quantum_geographic_context}",
+          "temporal_phase": "${config.quantum_temporal_phase}",
+          "geographic_phase": "${config.quantum_geographic_phase}",
+          "coherence_threshold": "${config.quantum_coherence_threshold}",
+          "entanglement_strength": "${config.quantum_entanglement_strength}",
+          "interference_analysis": "${config.quantum_interference_analysis}"
+        }
+      },
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      },
+      "timeout_s": 60,
+      "substeps": [
+        {
+          "name": "step7a_quantum_subliminal",
+          "class": "QuantumSubliminalStep",
+          "description": "7.1: Análisis Cuántico Subliminal",
+          "inputs": {
+            "draw_numbers": "${step.step7_quantum_series_generation.draw_numbers}",
+            "temporal_context": "${step.step7_quantum_series_generation.quantum_config.temporal_context}",
+            "geographic_context": "${step.step7_quantum_series_generation.quantum_config.geographic_context}",
+            "temporal_phase": "${step.step7_quantum_series_generation.quantum_config.temporal_phase}",
+            "geographic_phase": "${step.step7_quantum_series_generation.quantum_config.geographic_phase}"
+          }
+        },
+        {
+          "name": "step7b_quantum_candado",
+          "class": "QuantumCandadoStep",
+          "description": "7.2: Generación Cuántica de Candado (Florida Quiniela)",
+          "inputs": {
+            "game": "${step.step2_lottery_config.game}",
+            "mode": "FLORIDA_QUINIELA",
+            "p3_mid": "${step.step2_lottery_config.p3_mid}",
+            "p4_mid": "${step.step2_lottery_config.p4_mid}",
+            "p3_eve": "${step.step2_lottery_config.p3_eve}",
+            "p4_eve": "${step.step2_lottery_config.p4_eve}",
+            "cfg": {
+              "usar_p4_como_corrido_bloque": true,
+              "parles_ordenados": false,
+              "activar_empuje": true,
+              "activar_reversa": true,
+              "equivalencia_cero_100": true,
+              "noticias_equivalentes": "${step.step7a_quantum_subliminal.quantum_topics}"
+            }
+          }
+        },
+        {
+          "name": "step7c_quantum_verification",
+          "class": "QuantumVerificationStep",
+          "description": "7.3: Verificación Cuántica de Contenido",
+          "inputs": {
+            "selected_articles": "${step.step4_news_collection.news_data}",
+            "min_legitimate_articles": 10
+          }
+        },
+        {
+          "name": "step7d_quantum_news",
+          "class": "QuantumNewsStep",
+          "description": "7.4: Análisis Cuántico de Noticias",
+          "inputs": {
+            "valid_news_urls": "${step.step7c_quantum_verification.quantum_legitimate_articles}",
+            "subliminal_topics": "${step.step7a_quantum_subliminal.quantum_topics}",
+            "subliminal_keywords": "${step.step7a_quantum_subliminal.quantum_keywords}",
+            "subliminal_families": "${step.step7a_quantum_subliminal.quantum_families}",
+            "top_k": 24
+          }
+        },
+        {
+          "name": "step7e_quantum_series",
+          "class": "QuantumSeriesStep",
+          "description": "7.5: Generación de Series Cuánticas",
+          "inputs": {
+            "quantum_subliminal": "${step.step7a_quantum_subliminal}",
+            "quantum_candado": "${step.step7b_quantum_candado}",
+            "quantum_verification": "${step.step7c_quantum_verification}",
+            "quantum_news": "${step.step7d_quantum_news}",
+            "sefirotic_data": "${step.step6_sefirotic_analysis.sefirotic_data}",
+            "table100_data": "${step.step5_table100_attribution.table100_data}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "step8_official_document",
+      "class": "OfficialDocumentStep",
+      "description": "PASO 8: Documento Oficial del Protocolo",
+      "inputs": {
+        "quantum_analysis": "${step.step7_quantum_series_generation}",
+        "all_previous_data": "${step.step1_initialization}",
+        "include_quantum_metrics": true
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step9_cleanup_reset",
+      "class": "CleanupResetStep",
+      "description": "PASO 9: Limpieza y Reset de la Aplicación",
+      "inputs": {
+        "quantum_cleanup": true,
+        "reset_quantum_states": true
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 15
+    }
+  ]
+}
+
+
+

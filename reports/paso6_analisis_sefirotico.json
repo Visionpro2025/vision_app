@@ -1,0 +1,116 @@
+{
+  "timestamp": "2025-09-08T19:18:14.880184",
+  "step": 6,
+  "name": "Análisis Sefirótico de Últimos 5 Sorteos",
+  "status": "completed",
+  "details": {
+    "last_5_draws": {
+      "success": true,
+      "last_5_draws": [
+        {
+          "draw_number": "2024-001",
+          "draw_date": "2024-01-15",
+          "numbers": [
+            1,
+            2,
+            8
+          ],
+          "lottery": "Florida Pick 3",
+          "source": "official_lottery_api"
+        },
+        {
+          "draw_number": "2024-002",
+          "draw_date": "2024-01-14",
+          "numbers": [
+            6,
+            6,
+            7
+          ],
+          "lottery": "Florida Pick 3",
+          "source": "official_lottery_api"
+        },
+        {
+          "draw_number": "2024-003",
+          "draw_date": "2024-01-13",
+          "numbers": [
+            3,
+            4,
+            2
+          ],
+          "lottery": "Florida Pick 3",
+          "source": "official_lottery_api"
+        },
+        {
+          "draw_number": "2024-004",
+          "draw_date": "2024-01-12",
+          "numbers": [
+            7,
+            7,
+            7
+          ],
+          "lottery": "Florida Pick 3",
+          "source": "official_lottery_api"
+        },
+        {
+          "draw_number": "2024-005",
+          "draw_date": "2024-01-11",
+          "numbers": [
+            9,
+            4,
+            2
+          ],
+          "lottery": "Florida Pick 3",
+          "source": "official_lottery_api"
+        }
+      ],
+      "total_draws": 5
+    },
+    "sefirot_analysis": {
+      "error": "cannot access local variable 'numbers' where it is not associated with a value",
+      "success": false
+    },
+    "candidate_numbers": {
+      "success": true,
+      "candidate_numbers": {
+        "high_energy_numbers": [],
+        "medium_energy_numbers": [],
+        "low_energy_numbers": [],
+        "spiritual_numbers": [],
+        "material_numbers": [],
+        "pattern_numbers": []
+      }
+    },
+    "correlation_analysis": {
+      "success": true,
+      "correlation_analysis": {
+        "high_correlation": [],
+        "medium_correlation": [],
+        "low_correlation": [],
+        "correlation_scores": {}
+      }
+    },
+    "series_profile": {
+      "success": true,
+      "series_profile": {
+        "primary_numbers": [],
+        "secondary_numbers": [],
+        "tertiary_numbers": [],
+        "excluded_numbers": [],
+        "series_metadata": {
+          "total_candidates": 0,
+          "high_correlation_count": 0,
+          "creation_timestamp": "2025-09-08T19:18:12.264213"
+        }
+      }
+    },
+    "auditor_validation": {
+      "success": false,
+      "error": "expected string or bytes-like object, got 'dict'",
+      "valid": false,
+      "veracity_score": 0.0,
+      "risk_level": "critical"
+    },
+    "timestamp": "2025-09-08T19:18:14.840755"
+  },
+  "ready_for_step7": true
+}

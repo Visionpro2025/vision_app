@@ -1,0 +1,28 @@
+LICENCIA Y ESTADO DE ACCESO
+
+Este documento es parte del corpus de VISIÓN Premium.
+
+ESTADO ACTUAL:
+- Documento de política del Departamento de Defensa
+- Acceso: Solo metadatos y citas breves (máximo 120 palabras)
+- Full-text: No disponible para almacenamiento local
+
+RESTRICCIONES:
+- No se puede almacenar el documento completo
+- Solo se permiten citas breves con referencia
+- Uso limitado a análisis de políticas y referencias
+
+COMPLIANCE:
+- Respeta derechos de autor originales
+- Cumple con políticas de acceso gubernamental
+- Sigue directrices de licencia restricted_meta
+
+Este es un archivo de ejemplo para demostrar el sistema de gestión de documentos con acceso restringido.
+
+Fecha: 2025-08-31
+
+
+
+
+
+

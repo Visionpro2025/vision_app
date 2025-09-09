@@ -1,0 +1,59 @@
+{
+  "name": "Universal Lottery Plan",
+  "defaults": {},
+  "config": { "_lock_hash": "universal-lock-2025-09-08" },
+  "steps": [
+    {
+      "name": "step0_validate",
+      "class": "Step0Validate",
+      "inputs": { "_required": ["game"] },
+      "timeout_s": 3
+    },
+    {
+      "name": "step_router",
+      "class": "StepRouter",
+      "timeout_s": 5
+    },
+    {
+      "name": "step_semejantes",
+      "class": "StepSemejantesGeneric",
+      "inputs": {
+        "game_cfg": "${step.step_router.game_cfg}",
+        "externals": "${step.step_router.externals}",
+        "exclude":   "${step.step_router.exclude}",
+        "anchors":   "${step.step_router.anchors}"
+      },
+      "timeout_s": 8,
+      "retry": { "max": 1, "backoff_ms": 300 }
+    },
+    {
+      "name": "step_subliminal",
+      "class": "StepSubliminalGeneric",
+      "inputs": {
+        "game_cfg": "${step.step_router.game_cfg}",
+        "label":    "${step.step_router.label}",
+        "prev_draw":"${step.step_router.prev_draw}",
+        "candidates":"${step.step_semejantes.candidates}"
+      },
+      "timeout_s": 8
+    },
+    {
+      "name": "step6_artifacts",
+      "class": "Step6Artifacts",
+      "inputs": {
+        "poem": "${step.step_subliminal.poem}",
+        "topics": "${step.step_subliminal.topics}"
+      },
+      "timeout_s": 5
+    },
+    {
+      "name": "stepZ_finalize",
+      "class": "StepZFinalize",
+      "timeout_s": 5
+    }
+  ]
+}
+
+
+
+

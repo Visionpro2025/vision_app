@@ -1,0 +1,150 @@
+{
+  "name": "florida_pick3_universal_protocol",
+  "description": "Protocolo Universal adaptado para Florida Pick 3 → Bolita Cubana",
+  "version": "1.0",
+  "config": {
+    "protocol_type": "universal_adapted",
+    "lottery_type": "florida_pick3",
+    "bolita_format": "cubana",
+    "timezone": "ET",
+    "windows": ["AM", "MID", "EVE"],
+    "follows_universal_steps": true
+  },
+  "steps": [
+    {
+      "name": "step1_system_initialization",
+      "class": "SystemInitializationStep",
+      "inputs": {
+        "cleanup_memory": true,
+        "reset_parameters": true,
+        "prepare_for_lottery": "florida_pick3"
+      },
+      "timeout_s": 10,
+      "description": "PASO 1: Inicialización y Limpieza del Sistema"
+    },
+    {
+      "name": "step2_lottery_configuration",
+      "class": "FloridaLotteryConfigurationStep",
+      "inputs": {
+        "lottery_type": "florida_pick3",
+        "bolita_format": "cubana",
+        "windows": ["AM", "MID", "EVE"],
+        "candado_rule": "deterministic_fixed"
+      },
+      "timeout_s": 15,
+      "description": "PASO 2: Configuración de Lotería Florida Pick 3"
+    },
+    {
+      "name": "step3_previous_draw_analysis",
+      "class": "FloridaPreviousDrawAnalysisStep",
+      "inputs": {
+        "lottery_config": "${step.step2_lottery_configuration.lottery_config}",
+        "apply_gematria": true,
+        "apply_subliminal": true,
+        "create_submessage": true
+      },
+      "timeout_s": 30,
+      "description": "PASO 3: Análisis del Sorteo Anterior (Gematría + Subliminal)"
+    },
+    {
+      "name": "step4_news_collection",
+      "class": "FloridaNewsCollectionStep",
+      "inputs": {
+        "submessage_guide": "${step.step3_previous_draw_analysis.submessage_guide}",
+        "lottery_config": "${step.step2_lottery_configuration.lottery_config}",
+        "sources": ["us_news", "emotional_news", "florida_news"],
+        "filter_emotional": true
+      },
+      "timeout_s": 45,
+      "description": "PASO 4: Recopilación de Noticias Guiada"
+    },
+    {
+      "name": "step5_news_attribution_table100",
+      "class": "FloridaNewsAttributionStep",
+      "inputs": {
+        "news_data": "${step.step4_news_collection.news_data}",
+        "lottery_config": "${step.step2_lottery_configuration.lottery_config}",
+        "table100_path": "data/table100_universal.json",
+        "reduce_over_70": true
+      },
+      "timeout_s": 25,
+      "description": "PASO 5: Atribución de Noticias a Tabla 100"
+    },
+    {
+      "name": "step6_sefirotic_analysis",
+      "class": "FloridaSefiroticAnalysisStep",
+      "inputs": {
+        "lottery_config": "${step.step2_lottery_configuration.lottery_config}",
+        "last_5_draws": true,
+        "apply_sefirotic": true,
+        "generate_candidates": true
+      },
+      "timeout_s": 35,
+      "description": "PASO 6: Análisis Sefirotico de Últimos 5 Sorteos"
+    },
+    {
+      "name": "step7_quantum_series_generation",
+      "class": "FloridaQuantumSeriesStep",
+      "inputs": {
+        "step3_data": "${step.step3_previous_draw_analysis}",
+        "step4_data": "${step.step4_news_collection}",
+        "step5_data": "${step.step5_news_attribution_table100}",
+        "step6_data": "${step.step6_sefirotic_analysis}",
+        "generate_10_series": true,
+        "apply_quantum_analysis": true
+      },
+      "timeout_s": 40,
+      "description": "PASO 7: Generación de Series mediante Análisis Cuántico"
+    },
+    {
+      "name": "step8_official_document",
+      "class": "FloridaOfficialDocumentStep",
+      "inputs": {
+        "final_result": "${step.step7_quantum_series_generation}",
+        "protocol_name": "Florida Pick 3 Universal Protocol",
+        "create_official_document": true,
+        "save_with_timestamp": true
+      },
+      "timeout_s": 20,
+      "description": "PASO 8: Documento Oficial del Protocolo"
+    },
+    {
+      "name": "step9_cleanup_reset",
+      "class": "FloridaCleanupResetStep",
+      "inputs": {
+        "cleanup_memory": true,
+        "reset_parameters": true,
+        "prepare_for_next_draw": true
+      },
+      "timeout_s": 10,
+      "description": "PASO 9: Limpieza y Reset de la Aplicación"
+    }
+  ],
+  "metadata": {
+    "created_by": "VISION PREMIUM",
+    "protocol_type": "universal_adapted",
+    "follows_universal_structure": true,
+    "lottery_type": "florida_pick3",
+    "bolita_format": "cubana",
+    "total_steps": 9,
+    "universal_steps": [
+      "1. Inicialización y Limpieza del Sistema",
+      "2. Configuración de Lotería",
+      "3. Análisis del Sorteo Anterior (Gematría + Subliminal)",
+      "4. Recopilación de Noticias Guiada",
+      "5. Atribución de Noticias a Tabla 100",
+      "6. Análisis Sefirotico de Últimos 5 Sorteos",
+      "7. Generación de Series mediante Análisis Cuántico",
+      "8. Documento Oficial del Protocolo",
+      "9. Limpieza y Reset de la Aplicación"
+    ],
+    "florida_adaptations": {
+      "windows": ["AM", "MID", "EVE"],
+      "candado_rule": "deterministic_fixed",
+      "bolita_format": "cubana",
+      "timezone": "ET"
+    }
+  }
+}
+
+

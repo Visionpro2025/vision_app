@@ -1,0 +1,146 @@
+{
+  "name": "florida_pick3_corregido",
+  "description": "Protocolo Universal Florida Pick 3 - Versión Corregida con Guardrails Estrictos",
+  "version": "1.1",
+  "config": {
+    "protocol_type": "universal_corrected",
+    "lottery_type": "florida_pick3",
+    "bolita_format": "cubana",
+    "timezone": "ET",
+    "windows": ["AM", "MID", "EVE"],
+    "strict_validation": true,
+    "no_simulation": true
+  },
+  "steps": [
+    {
+      "name": "step0_enforce",
+      "class": "EnforceOrchestratorStep",
+      "inputs": {
+        "policy": {
+          "allow_simulation": false,
+          "require_sources": true,
+          "abort_on_empty": true
+        }
+      },
+      "timeout_s": 10,
+      "description": "PASO 0: Enforzar Política de Orquestación"
+    },
+    {
+      "name": "step_block_now",
+      "class": "BlockNowStep",
+      "timeout_s": 5,
+      "description": "PASO 1: Determinar Bloque Actual (AM/MID/EVE)"
+    },
+    {
+      "name": "step1_fetch_real",
+      "class": "FetchFLPick3RealStep",
+      "inputs": {
+        "min_results": 12
+      },
+      "timeout_s": 20,
+      "retry": {
+        "max": 1,
+        "backoff_ms": 800
+      },
+      "description": "PASO 2: Obtener Sorteos Reales de Florida Pick 3"
+    },
+    {
+      "name": "step_build_candado_context",
+      "class": "BuildCandadoContextStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}",
+        "for_block": "${step.step_block_now.block_now}"
+      },
+      "timeout_s": 15,
+      "description": "PASO 3: Construir Contexto de Candados Anteriores"
+    },
+    {
+      "name": "step3_guarded",
+      "class": "SubliminalGuardedStepV2_hardguard",
+      "inputs": {
+        "candado_context": "${step.step_build_candado_context.candado_context}"
+      },
+      "timeout_s": 25,
+      "description": "PASO 4: Análisis Subliminal con Guardrails Estrictos"
+    },
+    {
+      "name": "step4_news_fetch",
+      "class": "NewsFetchEmoUSStep",
+      "inputs": {
+        "guide": "${step.step3_guarded.submessage_guide}",
+        "min_count": 25,
+        "time_window_h": 12
+      },
+      "timeout_s": 30,
+      "description": "PASO 5: Recopilación de Noticias Guiada"
+    },
+    {
+      "name": "step5_news_attribution",
+      "class": "NewsAttributionTable100Step",
+      "inputs": {
+        "news_data": "${step.step4_news_fetch.news_data}",
+        "lottery_config": {
+          "lottery_type": "florida_pick3",
+          "bolita_format": "cubana"
+        },
+        "reduce_over_70": true
+      },
+      "timeout_s": 20,
+      "description": "PASO 6: Atribución de Noticias a Tabla 100"
+    },
+    {
+      "name": "step6_sefirotic_analysis",
+      "class": "FloridaSefiroticAnalysisStep",
+      "inputs": {
+        "lottery_config": {
+          "lottery_type": "florida_pick3",
+          "bolita_format": "cubana"
+        },
+        "last_5_draws": "${step.step1_fetch_real.draws}",
+        "apply_sefirotic": true,
+        "generate_candidates": true
+      },
+      "timeout_s": 35,
+      "description": "PASO 7: Análisis Sefirotico de Últimos 5 Sorteos"
+    },
+    {
+      "name": "step7_quantum_series",
+      "class": "FloridaQuantumSeriesStep",
+      "inputs": {
+        "step3_data": "${step.step3_guarded}",
+        "step4_data": "${step.step4_news_fetch}",
+        "step5_data": "${step.step5_news_attribution}",
+        "step6_data": "${step.step6_sefirotic_analysis}",
+        "generate_10_series": true,
+        "apply_quantum_analysis": true
+      },
+      "timeout_s": 40,
+      "description": "PASO 8: Generación de Series Cuánticas"
+    },
+    {
+      "name": "stepZ_audit_emit",
+      "class": "AuditEmitStep",
+      "inputs": {
+        "final_result": "${step.step7_quantum_series}",
+        "protocol_name": "Florida Pick 3 Universal Protocol Corrected"
+      },
+      "timeout_s": 10,
+      "description": "PASO 9: Auditoría y Emisión de Resultados"
+    }
+  ],
+  "metadata": {
+    "created_by": "VISION PREMIUM",
+    "protocol_type": "universal_corrected",
+    "strict_validation": true,
+    "no_simulation": true,
+    "total_steps": 10,
+    "corrections_applied": [
+      "Guardrails estrictos en PASO 3",
+      "Orden correcto de pasos",
+      "Validación de datos reales",
+      "Trazabilidad completa"
+    ]
+  }
+}
+
+

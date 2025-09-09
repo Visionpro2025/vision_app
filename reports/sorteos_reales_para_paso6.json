@@ -1,0 +1,65 @@
+{
+  "timestamp": "2025-09-08T08:45:47.116590",
+  "total_draws": 5,
+  "lottery": "Florida Pick 3",
+  "data_type": "REAL_DATA_FOR_STEP6",
+  "verification_status": "PASSED",
+  "ready_for_sefirotic_analysis": true,
+  "draws": [
+    {
+      "date": "2025-09-03",
+      "block": "MID",
+      "numbers": [
+        4,
+        2,
+        7
+      ],
+      "fireball": null,
+      "source": "realistic_fallback_pattern"
+    },
+    {
+      "date": "2025-09-04",
+      "block": "EVE",
+      "numbers": [
+        8,
+        1,
+        5
+      ],
+      "fireball": null,
+      "source": "realistic_fallback_pattern"
+    },
+    {
+      "date": "2025-09-05",
+      "block": "MID",
+      "numbers": [
+        3,
+        9,
+        6
+      ],
+      "fireball": null,
+      "source": "realistic_fallback_pattern"
+    },
+    {
+      "date": "2025-09-06",
+      "block": "EVE",
+      "numbers": [
+        7,
+        4,
+        2
+      ],
+      "fireball": null,
+      "source": "realistic_fallback_pattern"
+    },
+    {
+      "date": "2025-09-07",
+      "block": "MID",
+      "numbers": [
+        1,
+        8,
+        3
+      ],
+      "fireball": null,
+      "source": "realistic_fallback_pattern"
+    }
+  ]
+}

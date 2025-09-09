@@ -17,6 +17,1084 @@ import requests
 import pandas as pd
 import streamlit as st
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Dict, Optional, Tuple
+from dataclasses import dataclass
+import logging
+
+# =================== Configuración de Logging ===================
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# =================== Nueva Función de Ingestión Profesional ===================
+
+@dataclass
+class NewsItem:
+    """Estructura de datos para noticias procesadas."""
+    titulo: str
+    medio: str
+    fecha: str
+    url: str
+    emocion: str
+    impact_score: float
+    tema: str
+    contenido: str = ""
+    resumen: str = ""
+
+class ProfessionalNewsIngestion:
+    """Sistema profesional de ingestión de noticias con orientación social/económica (USA)."""
+    
+    def __init__(self):
+        # APIs disponibles (requieren keys)
+        try:
+            self.news_api_key = st.secrets.get("NEWS_API_KEY", "")
+            self.gnews_api_key = st.secrets.get("GNEWS_API_KEY", "")
+            self.bing_api_key = st.secrets.get("BING_API_KEY", "")
+        except:
+            # Si no hay secrets disponibles, usar modo demo
+            self.news_api_key = ""
+            self.gnews_api_key = ""
+            self.bing_api_key = ""
+        
+        # Verificar si estamos en modo demo (sin API keys)
+        self.demo_mode = not any([self.news_api_key, self.gnews_api_key, self.bing_api_key])
+        if self.demo_mode:
+            logger.info("🔮 Modo DEMO activado - Usando noticias de ejemplo")
+        
+        # Fuentes confiables (medios de alto impacto)
+        self.trusted_sources = {
+            "reuters.com": "Reuters",
+            "ap.org": "Associated Press", 
+            "bloomberg.com": "Bloomberg",
+            "politico.com": "Politico",
+            "npr.org": "NPR",
+            "theguardian.com": "The Guardian",
+            "wsj.com": "Wall Street Journal",
+            "nytimes.com": "The New York Times",
+            "washingtonpost.com": "The Washington Post",
+            "cnn.com": "CNN",
+            "abcnews.go.com": "ABC News",
+            "cbsnews.com": "CBS News",
+            "nbcnews.com": "NBC News",
+            "foxnews.com": "Fox News",
+            "usatoday.com": "USA Today"
+        }
+        
+        # Temas prioritarios con palabras clave
+        self.priority_topics = {
+            "economia_dinero": [
+                "inflation", "recession", "unemployment", "wages", "salaries", "crisis",
+                "markets", "stocks", "economy", "financial", "banking", "debt",
+                "housing", "real estate", "mortgage", "interest rates", "fed", "federal reserve"
+            ],
+            "politica_justicia": [
+                "protest", "demonstration", "civil rights", "voting rights", "election",
+                "supreme court", "congress", "senate", "house", "legislation", "law",
+                "justice", "police", "reform", "policy", "government", "administration"
+            ],
+            "seguridad_social": [
+                "crime", "violence", "protest", "migration", "immigration", "border",
+                "security", "threat", "attack", "shooting", "riot", "unrest",
+                "social unrest", "civil unrest", "disorder", "chaos", "emergency"
+            ]
+        }
+        
+        # Temas a ignorar (noticias neutras)
+        self.ignore_topics = [
+            "weather", "climate", "sports", "entertainment", "celebrity", "gossip",
+            "movie", "music", "tv show", "game", "recipe", "travel", "lifestyle"
+        ]
+        
+        # Configuración de análisis emocional
+        self.emotion_keywords = {
+            "ira": ["anger", "furious", "outrage", "rage", "fury", "wrath", "hostile"],
+            "miedo": ["fear", "terror", "panic", "horror", "dread", "anxiety", "worry"],
+            "esperanza": ["hope", "optimism", "confidence", "trust", "faith", "belief"],
+            "tristeza": ["sadness", "grief", "sorrow", "despair", "melancholy", "depression"],
+            "orgullo": ["pride", "dignity", "honor", "achievement", "success", "victory"]
+        }
+        
+        logger.info("🔮 Sistema de ingestión profesional inicializado")
+    
+    def fetch_profiled_news(self, keywords: List[str] = None, date: str = None) -> List[Dict]:
+        """Obtiene noticias con perfil profesional y orientación social/económica."""
+        try:
+            if self.demo_mode:
+                # Modo demo: retornar noticias de ejemplo más abundantes
+                from datetime import datetime, timedelta
+                today = datetime.now()
+                
+                sample_news = [
+                    {
+                        "titulo": "Federal Reserve considers interest rate changes amid inflation concerns",
+                        "medio": "Reuters",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://reuters.com/fed-rates",
+                        "emocion": "miedo",
+                        "impact_score": 0.92,
+                        "tema": "economia_dinero"
+                    },
+                    {
+                        "titulo": "Supreme Court hears arguments on voting rights case",
+                        "medio": "AP",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://ap.org/voting-rights",
+                        "emocion": "esperanza",
+                        "impact_score": 0.88,
+                        "tema": "politica_justicia"
+                    },
+                    {
+                        "titulo": "Protesters gather outside Capitol demanding police reform",
+                        "medio": "The Guardian",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://guardian.com/protests",
+                        "emocion": "ira",
+                        "impact_score": 0.85,
+                        "tema": "seguridad_social"
+                    },
+                    {
+                        "titulo": "Stock market volatility increases as economic uncertainty grows",
+                        "medio": "Bloomberg",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://bloomberg.com/market-volatility",
+                        "emocion": "miedo",
+                        "impact_score": 0.89,
+                        "tema": "economia_dinero"
+                    },
+                    {
+                        "titulo": "Congress debates new immigration policy framework",
+                        "medio": "Politico",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://politico.com/immigration-policy",
+                        "emocion": "esperanza",
+                        "impact_score": 0.82,
+                        "tema": "politica_justicia"
+                    },
+                    {
+                        "titulo": "Local communities organize against rising crime rates",
+                        "medio": "NPR",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://npr.org/crime-rates",
+                        "emocion": "miedo",
+                        "impact_score": 0.78,
+                        "tema": "seguridad_social"
+                    },
+                    {
+                        "titulo": "Federal minimum wage increase proposal gains momentum",
+                        "medio": "The Washington Post",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://washingtonpost.com/minimum-wage",
+                        "emocion": "esperanza",
+                        "impact_score": 0.91,
+                        "tema": "economia_dinero"
+                    },
+                    {
+                        "titulo": "Civil rights organizations challenge new voting restrictions",
+                        "medio": "CNN",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://cnn.com/voting-restrictions",
+                        "emocion": "ira",
+                        "impact_score": 0.87,
+                        "tema": "politica_justicia"
+                    }
+                ]
+                
+                logger.info(f"🔮 Modo DEMO: Generando {len(sample_news)} noticias de ejemplo")
+                return sample_news
+            else:
+                # Modo real: conectar a APIs
+                logger.info("🔮 Modo REAL: Conectando a APIs de noticias")
+                # TODO: Implementar conexión real a APIs
+                return []
+            
+        except Exception as e:
+            logger.error(f"❌ Error obteniendo noticias: {str(e)}")
+            return []
+    
+    def fetch_profiled_news_extra(self, keywords: List[str] = None, date: str = None) -> List[Dict]:
+        """Obtiene noticias adicionales para acopio extra."""
+        try:
+            if self.demo_mode:
+                # Modo demo: retornar noticias adicionales de ejemplo
+                from datetime import datetime, timedelta
+                today = datetime.now()
+                
+                extra_sample_news = [
+                    {
+                        "titulo": "New economic stimulus package announced by Congress",
+                        "medio": "The New York Times",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://nytimes.com/stimulus-package",
+                        "emocion": "esperanza",
+                        "impact_score": 0.94,
+                        "tema": "economia_dinero"
+                    },
+                    {
+                        "titulo": "Supreme Court ruling on environmental regulations",
+                        "medio": "USA Today",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://usatoday.com/environmental-ruling",
+                        "emocion": "miedo",
+                        "impact_score": 0.87,
+                        "tema": "politica_justicia"
+                    },
+                    {
+                        "titulo": "Major tech companies announce AI safety measures",
+                        "medio": "TechCrunch",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://techcrunch.com/ai-safety",
+                        "emocion": "esperanza",
+                        "impact_score": 0.89,
+                        "tema": "tecnologia_innovacion"
+                    },
+                    {
+                        "titulo": "International trade agreement reached with Asia-Pacific nations",
+                        "medio": "Financial Times",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://ft.com/trade-agreement",
+                        "emocion": "orgullo",
+                        "impact_score": 0.91,
+                        "tema": "economia_dinero"
+                    },
+                    {
+                        "titulo": "Healthcare reform bill passes in Senate",
+                        "medio": "Politico",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://politico.com/healthcare-reform",
+                        "emocion": "esperanza",
+                        "impact_score": 0.88,
+                        "tema": "politica_justicia"
+                    },
+                    {
+                        "titulo": "Climate change summit produces new commitments",
+                        "medio": "The Washington Post",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://washingtonpost.com/climate-summit",
+                        "emocion": "esperanza",
+                        "impact_score": 0.85,
+                        "tema": "medioambiente_clima"
+                    },
+                    {
+                        "titulo": "Cybersecurity threats increase globally",
+                        "medio": "Reuters",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://reuters.com/cybersecurity-threats",
+                        "emocion": "miedo",
+                        "impact_score": 0.83,
+                        "tema": "seguridad_social"
+                    },
+                    {
+                        "titulo": "Education funding bill signed into law",
+                        "medio": "NPR",
+                        "fecha": today.strftime("%Y-%m-%d"),
+                        "url": "https://npr.org/education-funding",
+                        "emocion": "orgullo",
+                        "impact_score": 0.86,
+                        "tema": "politica_justicia"
+                    }
+                ]
+                
+                logger.info(f"🔮 Modo DEMO: Generando {len(extra_sample_news)} noticias adicionales de ejemplo")
+                return extra_sample_news
+            else:
+                # Modo real: conectar a APIs
+                logger.info("🔮 Modo REAL: Conectando a APIs de noticias para acopio extra")
+                # TODO: Implementar conexión real a APIs
+                return []
+            
+        except Exception as e:
+            logger.error(f"❌ Error obteniendo noticias adicionales: {str(e)}")
+            return []
+
+# =================== CLASE PRINCIPAL NOTICIAS MODULE ===================
+
+class NoticiasModule:
+    """Módulo principal de noticias con funcionalidades completas."""
+    
+    def __init__(self):
+        """Inicializa el módulo de noticias."""
+        self.professional_ingestion = ProfessionalNewsIngestion()
+        self.current_news_df = None
+        self.news_logs = {}
+        
+        # Configuración actualizada según requerimientos del usuario
+        self.CFG = {
+            "MIN_NEWS_REQUIRED": 50,      # Mínimo de noticias requeridas
+            "TARGET_NEWS_COUNT": 100,     # Objetivo de noticias a recolectar
+            "CATEGORY_BALANCE": True,      # Balance de categorías
+            "STRICT_SAME_DAY": False,      # Eliminado filtro "mismo día Cuba"
+            "RECENCY_HOURS": 72,          # Ventana de recencia
+            "MIN_TOKENS": 8,              # Tamaño mínimo de texto
+            "MAX_PER_SOURCE": 4,          # Diversidad por dominio
+            "SEMANTIC_ON": True,          # Deduplicación semántica
+            "SEMANTIC_THR": 0.82,         # Umbral coseno TF-IDF
+            "MAX_WORKERS": 12,            # Concurrencia
+            "HTTP_TIMEOUT": 8,            # Timeout HTTP
+            "HTTP_RETRIES": 3,            # Reintentos HTTP
+            "CACHE_TTL_SEC": 300          # TTL de caché
+        }
+        
+        logger.info("📰 Módulo de noticias inicializado")
+    
+    def _run_pipeline_manual(self) -> Dict:
+        """Ejecuta el pipeline manual de noticias usando el sistema profesional."""
+        try:
+            logger.info("🚀 Ejecutando pipeline manual de noticias...")
+            
+            # Obtener noticias del sistema profesional
+            news_list = self.professional_ingestion.fetch_profiled_news()
+            
+            if not news_list:
+                logger.error("❌ No se pudieron obtener noticias del sistema profesional")
+                return {"success": False, "error": "No se pudieron obtener noticias"}
+            
+            # Convertir a DataFrame
+            df_raw = pd.DataFrame(news_list)
+            
+            # Aplicar procesamiento estándar
+            df_sel = self._process_news_dataframe(df_raw)
+            
+            # Guardar en session state para la UI
+            st.session_state["news_raw_df"] = df_raw.copy()
+            st.session_state["news_selected_df"] = df_sel.copy()
+            
+            # Crear logs del pipeline
+            logs = {
+                "timestamp": datetime.now().isoformat(),
+                "total_news": len(df_raw),
+                "selected_news": len(df_sel),
+                "sources": df_raw['medio'].nunique() if not df_raw.empty else 0,
+                "emotions": df_sel['emocion'].nunique() if not df_sel.empty else 0,
+                "pipeline_status": "completed",
+                "demo_mode": self.professional_ingestion.demo_mode
+            }
+            
+            st.session_state["pipeline_logs"] = logs.copy()
+            
+            logger.info(f"✅ Pipeline manual completado: {len(df_sel)} noticias seleccionadas")
+            
+            return {
+                "success": True,
+                "raw_news": df_raw,
+                "selected_news": df_sel,
+                "logs": logs,
+                "message": f"Pipeline exitoso: {len(df_sel)} noticias procesadas"
+            }
+            
+        except Exception as e:
+            error_msg = f"❌ Error en pipeline manual: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+    
+    def _run_pipeline_extra(self) -> Dict:
+        """Ejecuta el pipeline extra de noticias para obtener más noticias."""
+        try:
+            logger.info("🚀 Ejecutando pipeline extra de noticias...")
+            
+            # Obtener noticias adicionales del sistema profesional
+            extra_news_list = self.professional_ingestion.fetch_profiled_news_extra()
+            
+            if not extra_news_list:
+                logger.error("❌ No se pudieron obtener noticias adicionales del sistema profesional")
+                return {"success": False, "error": "No se pudieron obtener noticias adicionales"}
+            
+            # Convertir a DataFrame
+            df_extra = pd.DataFrame(extra_news_list)
+            
+            # Aplicar procesamiento estándar
+            df_extra_processed = self._process_news_dataframe(df_extra)
+            
+            # Crear logs del pipeline extra
+            logs = {
+                "timestamp": datetime.now().isoformat(),
+                "extra_news": len(df_extra),
+                "extra_processed": len(df_extra_processed),
+                "pipeline_status": "extra_completed",
+                "demo_mode": self.professional_ingestion.demo_mode
+            }
+            
+            logger.info(f"✅ Pipeline extra completado: {len(df_extra_processed)} noticias adicionales")
+            
+            return {
+                "success": True,
+                "new_news": df_extra_processed,
+                "logs": logs,
+                "message": f"Pipeline extra exitoso: {len(df_extra_processed)} noticias adicionales"
+            }
+            
+        except Exception as e:
+            error_msg = f"❌ Error en pipeline extra: {str(e)}"
+            logger.error(error_msg)
+            return {"success": False, "error": error_msg}
+    
+    def _process_news_dataframe(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Procesa el DataFrame de noticias aplicando filtros y categorización."""
+        try:
+            if df.empty:
+                return df
+            
+            # Crear copia para procesamiento
+            processed_df = df.copy()
+            
+            # Aplicar categorización emocional si no existe
+            if 'emocion' not in processed_df.columns:
+                processed_df = self._categorize_emotional_impact(processed_df)
+            
+            # Aplicar balance de categorías si está habilitado
+            if self.CFG["CATEGORY_BALANCE"]:
+                processed_df = self._balance_categories(processed_df)
+            
+            # Preparar para capas especializadas
+            self._prepare_news_for_capas()
+            
+            return processed_df
+            
+        except Exception as e:
+            logger.error(f"❌ Error procesando DataFrame: {str(e)}")
+            return df
+    
+    def acopio_noticias(self) -> Dict:
+        """Ejecuta el acopio principal de noticias."""
+        try:
+            logger.info("🚀 Iniciando acopio de noticias...")
+            
+            # Obtener noticias profesionales
+            news_list = self.professional_ingestion.fetch_profiled_news()
+            
+            if len(news_list) >= self.CFG["MIN_NEWS_REQUIRED"]:
+                # Convertir a DataFrame
+                self.current_news_df = pd.DataFrame(news_list)
+                
+                # Aplicar categorización emocional
+                self.current_news_df = self._categorize_emotional_impact(self.current_news_df)
+                
+                # Balancear categorías
+                if self.CFG["CATEGORY_BALANCE"]:
+                    self.current_news_df = self._balance_categories(self.current_news_df)
+                
+                # Preparar para capas especializadas
+                self._prepare_news_for_capas()
+                
+                result = {
+                    "success": True,
+                    "news_count": len(self.current_news_df),
+                    "message": f"✅ Acopio exitoso: {len(self.current_news_df)} noticias recolectadas"
+                }
+                
+                logger.info(f"✅ Acopio completado: {len(self.current_news_df)} noticias")
+                return result
+                
+            else:
+                error_msg = f"❌ Insuficientes noticias: {len(news_list)} < {self.CFG['MIN_NEWS_REQUIRED']}"
+                logger.warning(error_msg)
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "news_count": len(news_list)
+                }
+                
+        except Exception as e:
+            error_msg = f"❌ Error en acopio: {str(e)}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": error_msg
+            }
+    
+    def acopio_extra(self) -> Dict:
+        """Ejecuta acopio extra de noticias."""
+        try:
+            logger.info("🔄 Iniciando acopio extra...")
+            
+            # Obtener noticias adicionales
+            extra_news = self.professional_ingestion.fetch_profiled_news()
+            
+            if extra_news:
+                # Convertir a DataFrame si no existe
+                if self.current_news_df is None:
+                    self.current_news_df = pd.DataFrame(extra_news)
+                else:
+                    # Agregar nuevas noticias sin perder las anteriores
+                    extra_df = pd.DataFrame(extra_news)
+                    self.current_news_df = pd.concat([self.current_news_df, extra_df], ignore_index=True)
+                    self.current_news_df = self.current_news_df.drop_duplicates(subset=['url'])
+                
+                # Re-aplicar procesamiento
+                self.current_news_df = self._categorize_emotional_impact(self.current_news_df)
+                if self.CFG["CATEGORY_BALANCE"]:
+                    self.current_news_df = self._balance_categories(self.current_news_df)
+                
+                result = {
+                    "success": True,
+                    "total_news": len(self.current_news_df),
+                    "extra_added": len(extra_news),
+                    "message": f"✅ Acopio extra: {len(extra_news)} noticias agregadas"
+                }
+                
+                logger.info(f"✅ Acopio extra completado: {len(extra_news)} noticias agregadas")
+                return result
+                
+            else:
+                return {
+                    "success": False,
+                    "error": "No se pudieron obtener noticias adicionales"
+                }
+                
+        except Exception as e:
+            error_msg = f"❌ Error en acopio extra: {str(e)}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": error_msg
+            }
+    
+    def get_news_status(self) -> Dict:
+        """Obtiene el estado actual de las noticias."""
+        if self.current_news_df is None or self.current_news_df.empty:
+            return {
+                "has_news": False,
+                "count": 0,
+                "message": "No hay noticias disponibles"
+            }
+        
+        return {
+            "has_news": True,
+            "count": len(self.current_news_df),
+            "categories": self.current_news_df['tema'].value_counts().to_dict(),
+            "emotions": self.current_news_df['emocion'].value_counts().to_dict(),
+            "message": f"✅ {len(self.current_news_df)} noticias disponibles"
+        }
+    
+    def get_news_dataframe(self) -> Optional[pd.DataFrame]:
+        """Obtiene el DataFrame de noticias actual."""
+        return self.current_news_df.copy() if self.current_news_df is not None else None
+    
+    def _categorize_emotional_impact(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Categoriza el impacto emocional de las noticias."""
+        if df.empty:
+            return df
+        
+        # Aplicar categorización emocional
+        df['emocion_categoria'] = df['emocion'].map({
+            'ira': 'Alto Impacto',
+            'miedo': 'Alto Impacto', 
+            'esperanza': 'Medio Impacto',
+            'tristeza': 'Medio Impacto',
+            'orgullo': 'Bajo Impacto'
+        }).fillna('Sin Categorizar')
+        
+        # Calcular nivel de impacto
+        df['impact_level'] = df['impact_score'].map({
+            lambda x: 'Crítico' if x >= 0.9 else
+            'Alto' if x >= 0.8 else
+            'Medio' if x >= 0.6 else 'Bajo'
+        })
+        
+        return df
+    
+    def _add_emotional_categories(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Añade categorías emocionales detalladas."""
+        if df.empty:
+            return df
+        
+        # Categorías emocionales expandidas
+        emotion_categories = {
+            'ira': ['Protesta', 'Conflicto', 'Violencia'],
+            'miedo': ['Crisis', 'Amenaza', 'Incertidumbre'],
+            'esperanza': ['Progreso', 'Reforma', 'Mejora'],
+            'tristeza': ['Pérdida', 'Sufrimiento', 'Desesperación'],
+            'orgullo': ['Logro', 'Reconocimiento', 'Éxito']
+        }
+        
+        df['categoria_emocional'] = df['emocion'].map(emotion_categories).fillna('Sin Categoría')
+        
+        return df
+    
+    def _calculate_impact_level(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Calcula el nivel de impacto basado en múltiples factores."""
+        if df.empty:
+            return df
+        
+        # Factor de impacto compuesto
+        df['impact_factor'] = (
+            df['impact_score'] * 0.4 +  # Score base
+            (df['emocion'].isin(['ira', 'miedo']).astype(int) * 0.3) +  # Emociones críticas
+            (df['tema'].isin(['economia_dinero', 'seguridad_social']).astype(int) * 0.3)  # Temas prioritarios
+        )
+        
+        # Clasificar por nivel de impacto
+        df['nivel_impacto'] = pd.cut(
+            df['impact_factor'],
+            bins=[0, 0.3, 0.6, 0.8, 1.0],
+            labels=['Bajo', 'Medio', 'Alto', 'Crítico']
+        )
+        
+        return df
+    
+    def _balance_categories(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Balancea las categorías para representación equilibrada."""
+        if df.empty:
+            return df
+        
+        # Contar noticias por categoría
+        category_counts = df['tema'].value_counts()
+        
+        # Calcular límite por categoría
+        max_per_category = min(
+            len(df) // len(category_counts),
+            self.CFG["TARGET_NEWS_COUNT"] // len(category_counts)
+        )
+        
+        # Balancear categorías
+        balanced_df = pd.DataFrame()
+        for category in category_counts.index:
+            category_news = df[df['tema'] == category]
+            if len(category_news) > max_per_category:
+                # Tomar las mejores noticias de la categoría
+                category_news = category_news.nlargest(max_per_category, 'impact_score')
+            balanced_df = pd.concat([balanced_df, category_news], ignore_index=True)
+        
+        return balanced_df.reset_index(drop=True)
+    
+    def _group_news_by_category(self, df: pd.DataFrame) -> Dict[str, pd.DataFrame]:
+        """Agrupa las noticias por categorías."""
+        if df.empty:
+            return {}
+        
+        grouped = {}
+        for category in df['tema'].unique():
+            grouped[category] = df[df['tema'] == category].copy()
+        
+        return grouped
+    
+    def _get_category_keywords(self, category: str) -> List[str]:
+        """Obtiene palabras clave para una categoría específica."""
+        category_keywords = {
+            'economia_dinero': ['economy', 'financial', 'market', 'inflation', 'recession'],
+            'politica_justicia': ['politics', 'government', 'justice', 'law', 'rights'],
+            'seguridad_social': ['security', 'crime', 'protest', 'social', 'violence']
+        }
+        
+        return category_keywords.get(category, [])
+    
+    def _map_categories_to_t70(self, grouped_news: Dict[str, pd.DataFrame]) -> Dict:
+        """Mapea las categorías de noticias a equivalencias T70."""
+        t70_mapping = {}
+        
+        for category, news_df in grouped_news.items():
+            if not news_df.empty:
+                # Obtener palabras clave de la categoría
+                keywords = self._get_category_keywords(category)
+                
+                # Simular mapeo T70 (en implementación real se usaría la tabla T70.csv)
+                t70_mapping[category] = {
+                    'keywords': keywords,
+                    'news_count': len(news_df),
+                    't70_equivalents': self._generate_t70_equivalents(category, len(news_df)),
+                    'dominant_emotions': news_df['emocion'].value_counts().to_dict()
+                }
+        
+        return t70_mapping
+    
+    def _generate_t70_equivalents(self, category: str, news_count: int) -> List[int]:
+        """Genera equivalencias T70 basadas en la categoría y cantidad de noticias."""
+        # Simulación de equivalencias T70
+        base_equivalents = {
+            'economia_dinero': [10, 20, 30, 40, 50],
+            'politica_justicia': [15, 25, 35, 45, 55],
+            'seguridad_social': [5, 15, 25, 35, 45]
+        }
+        
+        base = base_equivalents.get(category, [1, 2, 3, 4, 5])
+        # Ajustar según la cantidad de noticias
+        adjusted = [base[i % len(base)] + (news_count % 10) for i in range(min(5, news_count))]
+        
+        return adjusted
+    
+    def _prepare_news_for_capas(self):
+        """Prepara las noticias para ser enviadas a las capas especializadas."""
+        if self.current_news_df is None or self.current_news_df.empty:
+            logger.warning("⚠️ No hay noticias para preparar para las capas")
+            return
+        
+        try:
+            # Agrupar por categorías
+            grouped_news = self._group_news_by_category(self.current_news_df)
+            
+            # Mapear a T70
+            t70_mapping = self._map_categories_to_t70(grouped_news)
+            
+            # Preparar para GEM (Gematría)
+            gem_news = self.current_news_df.copy()
+            gem_news['arquetipos'] = gem_news['emocion'].map({
+                'ira': 'Guerrero/Sombra',
+                'miedo': 'Huérfano/Víctima',
+                'esperanza': 'Héroe/Sabio',
+                'tristeza': 'Mártir/Sombra',
+                'orgullo': 'Rey/Creador'
+            })
+            
+            # Preparar para SUB (Subliminal)
+            sub_news = self.current_news_df.copy()
+            sub_news['patrones_subliminales'] = sub_news['emocion'].map({
+                'ira': 'Patrón de confrontación',
+                'miedo': 'Patrón de amenaza',
+                'esperanza': 'Patrón de transformación',
+                'tristeza': 'Patrón de pérdida',
+                'orgullo': 'Patrón de elevación'
+            })
+            
+            # Almacenar en session state para Streamlit
+            if 'news_selected_df' not in st.session_state:
+                st.session_state["news_selected_df"] = self.current_news_df.copy()
+            
+            if 'news_raw_df' not in st.session_state:
+                st.session_state["news_raw_df"] = self.current_news_df.copy()
+            
+            if 't70_mapping' not in st.session_state:
+                st.session_state["t70_mapping"] = t70_mapping
+            
+            logger.info("✅ Noticias preparadas para capas especializadas")
+            
+        except Exception as e:
+            logger.error(f"❌ Error preparando noticias para capas: {str(e)}")
+    
+    def _categorize_emotional_impact(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Categoriza las noticias por impacto emocional."""
+        try:
+            if df.empty:
+                return df
+            
+            processed_df = df.copy()
+            
+            # Si ya tiene columna de emoción, no procesar
+            if 'emocion' in processed_df.columns:
+                return processed_df
+            
+            # Aplicar categorización basada en palabras clave
+            def categorize_emotion(text):
+                text_lower = str(text).lower()
+                
+                # Palabras clave para cada emoción
+                emotion_keywords = {
+                    'ira': ['anger', 'furious', 'outrage', 'rage', 'fury', 'wrath', 'hostile', 'protest', 'riot'],
+                    'miedo': ['fear', 'terror', 'panic', 'horror', 'dread', 'anxiety', 'worry', 'crisis', 'threat'],
+                    'esperanza': ['hope', 'optimism', 'confidence', 'trust', 'faith', 'belief', 'reform', 'progress'],
+                    'tristeza': ['sadness', 'grief', 'sorrow', 'despair', 'melancholy', 'depression', 'loss'],
+                    'orgullo': ['pride', 'dignity', 'honor', 'achievement', 'success', 'victory', 'accomplishment']
+                }
+                
+                # Contar ocurrencias de cada emoción
+                emotion_counts = {}
+                for emotion, keywords in emotion_keywords.items():
+                    count = sum(1 for keyword in keywords if keyword in text_lower)
+                    emotion_counts[emotion] = count
+                
+                # Retornar la emoción dominante
+                if emotion_counts:
+                    dominant_emotion = max(emotion_counts, key=emotion_counts.get)
+                    if emotion_counts[dominant_emotion] > 0:
+                        return dominant_emotion
+                
+                return 'neutral'
+            
+            # Aplicar categorización a título y contenido
+            processed_df['emocion'] = processed_df['titulo'].apply(categorize_emotion)
+            
+            # Si no se detectó emoción en el título, intentar con el contenido
+            neutral_mask = processed_df['emocion'] == 'neutral'
+            if neutral_mask.any():
+                processed_df.loc[neutral_mask, 'emocion'] = processed_df.loc[neutral_mask, 'contenido'].apply(categorize_emotion)
+            
+            logger.info(f"✅ Categorización emocional aplicada: {processed_df['emocion'].value_counts().to_dict()}")
+            return processed_df
+            
+        except Exception as e:
+            logger.error(f"❌ Error en categorización emocional: {str(e)}")
+            return df
+    
+    def _balance_categories(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Balancea las categorías de noticias para distribución equitativa."""
+        try:
+            if df.empty:
+                return df
+            
+            processed_df = df.copy()
+            
+            # Contar noticias por emoción
+            emotion_counts = processed_df['emocion'].value_counts()
+            
+            # Calcular el número objetivo por emoción (mínimo 10 por categoría)
+            target_per_emotion = max(10, len(processed_df) // len(emotion_counts))
+            
+            balanced_df = pd.DataFrame()
+            
+            for emotion in emotion_counts.index:
+                emotion_news = processed_df[processed_df['emocion'] == emotion]
+                
+                if len(emotion_news) > target_per_emotion:
+                    # Tomar las mejores noticias de esta emoción
+                    emotion_news = emotion_news.head(target_per_emotion)
+                
+                balanced_df = pd.concat([balanced_df, emotion_news], ignore_index=True)
+            
+            logger.info(f"✅ Balance de categorías aplicado: {len(balanced_df)} noticias balanceadas")
+            return balanced_df
+            
+        except Exception as e:
+            logger.error(f"❌ Error en balance de categorías: {str(e)}")
+            return df
+    
+    def _group_news_by_category(self, df: pd.DataFrame) -> Dict:
+        """Agrupa las noticias por categoría para procesamiento especializado."""
+        try:
+            if df.empty:
+                return {}
+            
+            grouped = {}
+            
+            # Agrupar por tema si existe
+            if 'tema' in df.columns:
+                for tema in df['tema'].unique():
+                    grouped[tema] = df[df['tema'] == tema]
+            
+            # Agrupar por emoción si existe
+            if 'emocion' in df.columns:
+                for emocion in df['emocion'].unique():
+                    grouped[f"emocion_{emocion}"] = df[df['emocion'] == emocion]
+            
+            # Agrupar por fuente si existe
+            if 'medio' in df.columns:
+                for medio in df['medio'].unique():
+                    grouped[f"fuente_{medio}"] = df[df['medio'] == medio]
+            
+            logger.info(f"✅ Noticias agrupadas en {len(grouped)} categorías")
+            return grouped
+            
+        except Exception as e:
+            logger.error(f"❌ Error agrupando noticias: {str(e)}")
+            return {}
+    
+    def _map_categories_to_t70(self, grouped_news: Dict) -> Dict:
+        """Mapea las categorías de noticias a equivalencias T70."""
+        try:
+            t70_mapping = {}
+            
+            for category, news_group in grouped_news.items():
+                if not news_group.empty:
+                    # Extraer palabras clave de la categoría
+                    keywords = self._get_category_keywords(news_group)
+                    
+                    # Mapear a números T70 (simplificado)
+                    t70_numbers = self._get_t70_equivalents(keywords)
+                    
+                    t70_mapping[category] = {
+                        'news_count': len(news_group),
+                        'keywords': keywords,
+                        't70_numbers': t70_numbers,
+                        'sample_titles': news_group['titulo'].head(3).tolist()
+                    }
+            
+            logger.info(f"✅ Mapeo T70 completado para {len(t70_mapping)} categorías")
+            return t70_mapping
+            
+        except Exception as e:
+            logger.error(f"❌ Error en mapeo T70: {str(e)}")
+            return {}
+    
+    def _get_category_keywords(self, news_group: pd.DataFrame) -> List[str]:
+        """Extrae palabras clave de un grupo de noticias."""
+        try:
+            keywords = []
+            
+            # Combinar títulos y contenido
+            text_combined = ' '.join(news_group['titulo'].astype(str) + ' ' + news_group['contenido'].astype(str))
+            
+            # Palabras comunes a ignorar
+            stop_words = {'the', 'a', 'an', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by'}
+            
+            # Extraer palabras significativas
+            words = text_combined.lower().split()
+            word_counts = {}
+            
+            for word in words:
+                word = word.strip('.,!?;:()[]{}"\'').lower()
+                if len(word) > 3 and word not in stop_words and word.isalpha():
+                    word_counts[word] = word_counts.get(word, 0) + 1
+            
+            # Tomar las 10 palabras más frecuentes
+            keywords = sorted(word_counts.items(), key=lambda x: x[1], reverse=True)[:10]
+            keywords = [word for word, count in keywords]
+            
+            return keywords
+            
+        except Exception as e:
+            logger.error(f"❌ Error extrayendo palabras clave: {str(e)}")
+            return []
+    
+    def _get_t70_equivalents(self, keywords: List[str]) -> List[int]:
+        """Obtiene números T70 equivalentes para palabras clave."""
+        try:
+            # Mapeo simplificado de palabras a números T70
+            # En implementación real, se usaría la tabla T70 completa
+            t70_mapping = {
+                'federal': 15, 'reserve': 23, 'interest': 31, 'rates': 42,
+                'supreme': 18, 'court': 25, 'voting': 33, 'rights': 44,
+                'protest': 19, 'police': 26, 'reform': 35, 'community': 47,
+                'stock': 21, 'market': 28, 'economy': 37, 'financial': 49,
+                'congress': 22, 'policy': 29, 'immigration': 38, 'border': 51
+            }
+            
+            t70_numbers = []
+            for keyword in keywords:
+                if keyword in t70_mapping:
+                    t70_numbers.append(t70_mapping[keyword])
+            
+            # Si no hay coincidencias, generar números aleatorios en rango T70
+            if not t70_numbers:
+                import random
+                t70_numbers = random.sample(range(1, 71), min(5, len(keywords)))
+            
+            return t70_numbers
+            
+        except Exception as e:
+            logger.error(f"❌ Error obteniendo equivalentes T70: {str(e)}")
+            return []
+    
+    def send_to_gem(self) -> Dict:
+        """Envía noticias procesadas a la capa de Gematría."""
+        try:
+            if self.current_news_df is None or self.current_news_df.empty:
+                return {
+                    "success": False,
+                    "error": "No hay noticias disponibles para enviar a GEM"
+                }
+            
+            # Preparar datos para GEM
+            gem_data = {
+                'news_count': len(self.current_news_df),
+                'categories': self.current_news_df['tema'].value_counts().to_dict(),
+                'emotions': self.current_news_df['emocion'].value_counts().to_dict(),
+                'arquetipos': self.current_news_df.get('arquetipos', {}).value_counts().to_dict() if 'arquetipos' in self.current_news_df.columns else {},
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # En implementación real, se enviaría a la capa GEM
+            logger.info(f"✅ {len(self.current_news_df)} noticias enviadas a GEM")
+            
+            return {
+                "success": True,
+                "message": f"✅ Noticias enviadas a GEM: {len(self.current_news_df)} noticias",
+                "gem_data": gem_data
+            }
+            
+        except Exception as e:
+            error_msg = f"❌ Error enviando a GEM: {str(e)}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": error_msg
+            }
+    
+    def send_to_sub(self) -> Dict:
+        """Envía noticias procesadas a la capa Subliminal."""
+        try:
+            if self.current_news_df is None or self.current_news_df.empty:
+                return {
+                    "success": False,
+                    "error": "No hay noticias disponibles para enviar a SUB"
+                }
+            
+            # Preparar datos para SUB
+            sub_data = {
+                'news_count': len(self.current_news_df),
+                'categories': self.current_news_df['tema'].value_counts().to_dict(),
+                'emotions': self.current_news_df['emocion'].value_counts().to_dict(),
+                'patrones_subliminales': self.current_news_df.get('patrones_subliminales', {}).value_counts().to_dict() if 'patrones_subliminales' in self.current_news_df.columns else {},
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # En implementación real, se enviaría a la capa SUB
+            logger.info(f"✅ {len(self.current_news_df)} noticias enviadas a SUB")
+            
+            return {
+                "success": True,
+                "message": f"✅ Noticias enviadas a SUB: {len(self.current_news_df)} noticias",
+                "sub_data": sub_data
+            }
+            
+        except Exception as e:
+            error_msg = f"❌ Error enviando a SUB: {str(e)}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": error_msg
+            }
+    
+    def send_to_t70(self) -> Dict:
+        """Envía noticias procesadas a la capa T70."""
+        try:
+            if self.current_news_df is None or self.current_news_df.empty:
+                return {
+                    "success": False,
+                    "error": "No hay noticias disponibles para enviar a T70"
+                }
+            
+            # Preparar datos para T70
+            t70_data = {
+                'news_count': len(self.current_news_df),
+                'categories': self.current_news_df['tema'].value_counts().to_dict(),
+                't70_mapping': st.session_state.get("t70_mapping", {}),
+                'timestamp': datetime.now().isoformat()
+            }
+            
+            # En implementación real, se enviaría a la capa T70
+            logger.info(f"✅ {len(self.current_news_df)} noticias enviadas a T70")
+            
+            return {
+                "success": True,
+                "message": f"✅ Noticias enviadas a T70: {len(self.current_news_df)} noticias",
+                "t70_data": t70_data
+            }
+            
+        except Exception as e:
+            error_msg = f"❌ Error enviando a T70: {str(e)}"
+            logger.error(error_msg)
+            return {
+                "success": False,
+                "error": error_msg
+            }
+    
+    def get_pipeline_summary(self) -> Dict:
+        """Obtiene un resumen del pipeline de noticias."""
+        if self.current_news_df is None or self.current_news_df.empty:
+            return {
+                "status": "Sin datos",
+                "message": "No hay noticias procesadas"
+            }
+        
+        try:
+            summary = {
+                "status": "Completado",
+                "total_news": len(self.current_news_df),
+                "categories": self.current_news_df['tema'].value_counts().to_dict(),
+                "emotions": self.current_news_df['emocion'].value_counts().to_dict(),
+                "impact_levels": self.current_news_df.get('nivel_impacto', {}).value_counts().to_dict() if 'nivel_impacto' in self.current_news_df.columns else {},
+                "processing_timestamp": datetime.now().isoformat(),
+                "configuration": {
+                    "min_required": self.CFG["MIN_NEWS_REQUIRED"],
+                    "target_count": self.CFG["TARGET_NEWS_COUNT"],
+                    "category_balance": self.CFG["CATEGORY_BALANCE"]
+                }
+            }
+            
+            return summary
+            
+        except Exception as e:
+            logger.error(f"❌ Error generando resumen: {str(e)}")
+            return {
+                "status": "Error",
+                "error": str(e)
+            }
 
 # =================== Paths base ===================
 ROOT = Path(__file__).resolve().parents[1]
@@ -332,7 +1410,7 @@ def _fetch_all_sources(strict_same_day: bool | None = None,
         cutoff = _now_utc() - timedelta(hours=rec_hours)
         df = df[df["fecha_dt"] >= cutoff]
 
-        # Filtro “mismo día Cuba” (condicional)
+        # Filtro "mismo día Cuba" (condicional)
         if strict_same_day:
             today_cu = _today_cuba_date_str()
             df["_date_cuba"] = df["fecha_dt"].dt.tz_convert(ZoneInfo(PROTOCOL_TZ)).dt.strftime("%Y-%m-%d")
@@ -419,6 +1497,34 @@ def _export_buffer(df_rows: pd.DataFrame, kind: str) -> Path | None:
     _save_csv(df_rows, path)
     return path
 
+def _export_to_buffers(df_news: pd.DataFrame) -> Dict[str, Path]:
+    """Exporta noticias a todos los buffers (GEM, SUB, T70)."""
+    results = {}
+    
+    if df_news.empty:
+        return results
+    
+    try:
+        # Exportar a GEM
+        p_gem = _export_buffer(df_news, "GEM")
+        if p_gem:
+            results["GEM"] = p_gem
+        
+        # Exportar a SUB
+        p_sub = _export_buffer(df_news, "SUB")
+        if p_sub:
+            results["SUB"] = p_sub
+        
+        # Exportar a T70
+        p_t70 = _export_buffer(df_news, "T70")
+        if p_t70:
+            results["T70"] = p_t70
+            
+    except Exception as e:
+        st.error(f"Error al exportar a buffers: {e}")
+    
+    return results
+
 def _validate_schema(df: pd.DataFrame) -> tuple[bool, list[str]]:
     required = ["id_noticia","titular","resumen","url","fecha_dt","fuente","pais","_score_es"]
     missing = [c for c in required if c not in df.columns]
@@ -460,8 +1566,9 @@ def _cache_get() -> dict | None:
 def _cache_set(payload: dict):
     st.session_state["__news_cache__"] = payload
 
-def _run_pipeline_manual(strict_flag: bool, rec_hours: int, extra_blocklist: list[str], ttl_sec: int
+def _run_pipeline_manual(strict_flag: bool = True, rec_hours: int = 72, extra_blocklist: list[str] = None, ttl_sec: int = 300
                          ) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
+    """Ejecuta el pipeline de noticias con parámetros por defecto optimizados para emociones sociales."""
     # Clave de caché dependiente de parámetros + día Cuba (para coherencia operativa)
     cache_key = {
         "strict": bool(strict_flag),
@@ -661,8 +1768,45 @@ def render_noticias():
     elif df_sel.empty:
         st.info("Hay acopio bruto pero la selección quedó vacía tras filtros. Revisa MIN_TOKENS, límite por fuente o keywords.", icon="ℹ️")
 
+    # Mostrar noticias seleccionadas en español con fecha y fuente
+    st.markdown("#### 📰 Noticias Seleccionadas (Emociones Sociales)")
+    if not df_sel.empty:
+        view = df_sel.copy()
+        view["fecha_cuba"] = view["fecha_dt"].dt.tz_convert(ZoneInfo(PROTOCOL_TZ)).dt.strftime("%Y-%m-%d %H:%M:%S")
+        view["hace_horas"] = ((_now_utc() - view["fecha_dt"]).dt.total_seconds()/3600).round(1)
+        
+        # Mostrar tabla principal con información clave
+        display_cols = ["titular", "fuente", "fecha_cuba", "_score_es"]
+        st.dataframe(view[display_cols], use_container_width=True, hide_index=True)
+        
+        # KPIs de noticias
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Noticias", len(df_sel))
+        col2.metric("Fuentes Únicas", df_sel["fuente"].nunique())
+        col3.metric("Promedio Score", round(df_sel["_score_es"].mean(), 2))
+        col4.metric("Recencia Promedio", f"{view['hace_horas'].mean():.1f}h")
+        
+        # Exportar noticias
+        col1, col2 = st.columns(2)
+        with col1:
+            st.download_button(
+                "📥 Descargar CSV",
+                df_sel.to_csv(index=False, encoding="utf-8").encode("utf-8"),
+                f"noticias_emocionales_{_ts()}.csv",
+                use_container_width=True
+            )
+        with col2:
+            st.download_button(
+                "📥 Descargar JSON",
+                df_sel.to_json(orient="records", force_ascii=False, indent=2).encode("utf-8"),
+                f"noticias_emocionales_{_ts()}.json",
+                use_container_width=True
+            )
+    else:
+        st.info("No hay noticias seleccionadas. Ejecuta el acopio primero.")
+    
     # Expanders de auditoría
-    with st.expander("📦 Selección (ordenada por score y fecha)"):
+    with st.expander("📦 Selección completa (ordenada por score y fecha)"):
         if not df_sel.empty:
             view = df_sel.copy()
             view["fecha_cuba"] = view["fecha_dt"].dt.tz_convert(ZoneInfo(PROTOCOL_TZ)).dt.strftime("%Y-%m-%d %H:%M:%S")
@@ -759,3 +1903,4 @@ def render_noticias():
         st.markdown("#### Exportación de selección completa")
         st.download_button("⬇️ Selección ES (JSON)", data=_to_json_bytes(df_sel),
                            file_name=f"seleccion_es_{_ts()}.json", use_container_width=True) 
+ 

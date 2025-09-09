@@ -1,0 +1,110 @@
+{
+  "timestamp": "2025-09-08T19:44:19.633690",
+  "step": 6,
+  "name": "Análisis Sefirótico V2",
+  "version": "2.0",
+  "status": "OK",
+  "analyzed_count": 5,
+  "input_echo": [
+    {
+      "date": "2025-09-03",
+      "block": "MID",
+      "numbers": [
+        4,
+        2,
+        7
+      ],
+      "source": "realistic_fallback_pattern"
+    },
+    {
+      "date": "2025-09-04",
+      "block": "EVE",
+      "numbers": [
+        8,
+        1,
+        5
+      ],
+      "source": "realistic_fallback_pattern"
+    },
+    {
+      "date": "2025-09-05",
+      "block": "MID",
+      "numbers": [
+        3,
+        9,
+        6
+      ],
+      "source": "realistic_fallback_pattern"
+    },
+    {
+      "date": "2025-09-06",
+      "block": "EVE",
+      "numbers": [
+        7,
+        4,
+        2
+      ],
+      "source": "realistic_fallback_pattern"
+    },
+    {
+      "date": "2025-09-07",
+      "block": "MID",
+      "numbers": [
+        1,
+        8,
+        3
+      ],
+      "source": "realistic_fallback_pattern"
+    }
+  ],
+  "digit_scores": {
+    "1": 0.899,
+    "8": 0.911,
+    "3": 1.0,
+    "7": 0.849,
+    "4": 0.828,
+    "2": 0.906,
+    "9": 0.452,
+    "6": 0.493,
+    "5": 0.446
+  },
+  "sefirah_scores": {
+    "Jojmá": 0.899,
+    "Yesod": 0.911,
+    "Jésed": 1.0,
+    "Hod": 0.849,
+    "Guevurá": 0.828,
+    "Biná": 0.906,
+    "Maljut": 0.452,
+    "Nétzaj": 0.493,
+    "Tiféret": 0.446
+  },
+  "patterns": {
+    "pairs": 0,
+    "triples": 0,
+    "runs": 0
+  },
+  "candidates": {
+    "alta": [
+      3,
+      8,
+      2,
+      1,
+      7,
+      4
+    ],
+    "media": [
+      6,
+      9
+    ],
+    "baja": [
+      5
+    ]
+  },
+  "auditor": {
+    "ok": true,
+    "why": "Se generaron bandas de candidatos",
+    "analyzed_count": 5
+  },
+  "ready_for_step7": true
+}

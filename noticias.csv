@@ -1,8 +1,0 @@
-id_noticia,fecha,sorteo,pais,fuente,titular,resumen,etiquetas,nivel_emocional_diccionario,nivel_emocional_modelo,nivel_emocional_final,noticia_relevante,categorias_t70_ref
-N-2025-08-19-001,2025-08-19,MegaMillions,US,Reuters,Ganador récord en Nueva York,Un boleto único acertó todos los números del sorteo.,premio;ganador;NY,82,88,85,True,sociedad;celebridad;economia
-N-2025-08-19-002,2025-08-19,Powerball,US,BBC,Ventas masivas baten récord nacional,El incremento en ventas de Powerball rompe récords en todo Estados Unidos.,ventas;powerball;record,65,70,68,True,economia;mercados;masivo
-N-2025-08-19-003,2025-08-19,MegaMillions,US,AP,Ganador récord de 1.5 billones en MegaMillions,Un jugador en EE.UU. obtiene el premio más alto en la historia de MegaMillions.,premio;record;billones,78,82,80,True,sociedad;premios;record
-N-2025-08-19-004,2025-08-19,Powerball,US,CNN,Celebridad compra boletos masivos de Powerball,Un actor de Hollywood adquiere cientos de boletos generando gran atención mediática.,celebridad;hollywood;atencion,60,65,63,True,celebridad;medios;atencion
-N-2025-08-19-005,2025-08-19,MegaMillions,US,NYTimes,Polémica por supuesto fraude en sorteos,Investigación abierta sobre irregularidades detectadas en loterías estatales.,politica;fraude;investigacion,75,80,78,True,politica;confianza;fraude
-N-2025-08-19-006,2025-08-19,MegaMillions,US,Forbes,Crisis financiera impacta las loterías,Expertos advierten que la caída de los mercados influye en la venta de boletos.,economia;mercado;crisis,70,76,73,True,economia;mercados;incertidumbre
-N-2025-08-19-007,2025-08-19,Powerball,US,Blog local,Pequeño ajuste en sorteos locales sin gran impacto,Sin repercusión nacional ni interés masivo en ventas.,ajuste;sorteo;local,18,22,20,False,local;operativo

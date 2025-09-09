@@ -1,0 +1,42 @@
+# ============================================
+# 📌 POLÍTICA DE DOMINIOS PERMITIDOS
+# Whitelist de fuentes confiables para noticias
+# ============================================
+
+allowed_domains:
+  # Fuentes generales confiables
+  - apnews.com
+  - reuters.com
+  - bbc.com
+  - nytimes.com
+  - washingtonpost.com
+  - theguardian.com
+  - cnn.com
+  - bloomberg.com
+  - elpais.com
+  - infobae.com
+  
+  # Fuentes cubanas/latinoamericanas
+  - ongcubanews.com
+  - 14ymedio.com
+  - americateve.com
+  - cibercuba.com
+  - martinoticias.com
+  - diariodecuba.com
+  
+  # Sorteos oficiales / resultados (solo para validación, no contenido)
+  - flalottery.com
+  - lotterypost.com
+
+# Configuración temporal
+max_age_days: 7
+min_valid_items: 15
+
+# Configuración de confianza
+confidence_thresholds:
+  date_high: 0.9
+  date_medium: 0.6
+  date_low: 0.3
+
+
+

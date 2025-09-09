@@ -1,0 +1,162 @@
+{
+  "name": "florida-3ventanas-cubano",
+  "description": "Plan Florida con mapeo 3 tiros cubano (AM/MID/EVE) y candados del día anterior",
+  "version": "1.0",
+  "steps": [
+    {
+      "name": "step0_enforce",
+      "class": "EnforceOrchestratorStep",
+      "inputs": {
+        "policy": {
+          "allow_simulation": false,
+          "require_sources": true,
+          "abort_on_empty": true
+        }
+      },
+      "timeout_s": 5,
+      "description": "Sentinela universal que enforce la política global"
+    },
+    {
+      "name": "step1_fetch_real",
+      "class": "FetchFLPick3RealStep",
+      "inputs": {
+        "min_results": 10,
+        "days_back": 7
+      },
+      "timeout_s": 20,
+      "retry": {
+        "max": 1,
+        "backoff_ms": 800
+      },
+      "description": "Obtener sorteos reales de Florida Pick 3/4"
+    },
+    {
+      "name": "step_prev_day_candados",
+      "class": "PrevDayCandadosStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}"
+      },
+      "timeout_s": 15,
+      "description": "Construir 3 candados del día anterior (AM/MID/EVE) según práctica cubana"
+    },
+    {
+      "name": "step_prev_day_export",
+      "class": "PrevDayCandadosExportStep",
+      "inputs": {
+        "prev_day_candados": "${step.step_prev_day_candados.prev_day_candados}"
+      },
+      "timeout_s": 10,
+      "description": "Exportar candados del día anterior en formato UI"
+    },
+    {
+      "name": "step_gematria_per_candado",
+      "class": "GematriaPerCandadoStep",
+      "inputs": {
+        "candados": "${step.step_prev_day_candados.prev_day_candados.candados}"
+      },
+      "timeout_s": 20,
+      "description": "Aplicar gematría + subliminal a cada candado del día anterior"
+    },
+    {
+      "name": "step_fuse_guide",
+      "class": "GuideMessageFuseStep",
+      "inputs": {
+        "per_candado": "${step.step_gematria_per_candado.per_candado}",
+        "for_block": "${step.step1_fetch_real.draws[0].block}",
+        "top_topics": 6,
+        "top_keywords": 10
+      },
+      "timeout_s": 15,
+      "description": "Fusionar mensajes de todos los candados en un Mensaje Guía único"
+    },
+    {
+      "name": "step_last2_other",
+      "class": "Last2OtherBlockStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}",
+        "focus_index": 0
+      },
+      "timeout_s": 10,
+      "description": "Detectar last2 del otro bloque para candado actual"
+    },
+    {
+      "name": "step_bolita_mid",
+      "class": "BolitaFromFloridaStep",
+      "inputs": {
+        "focus": {
+          "date": "${step.step1_fetch_real.draws[0].date}",
+          "block": "${step.step1_fetch_real.draws[0].block}",
+          "pick3": "${step.step1_fetch_real.draws[0].numbers}",
+          "pick4": "${step.step1_fetch_real.draws[0].pick4}"
+        },
+        "other_pick3_last2": "${step.step_last2_other.other_last2}",
+        "force_min_candado": true
+      },
+      "timeout_s": 15,
+      "description": "Generar candado actual con regla fija"
+    },
+    {
+      "name": "step_last5_candados",
+      "class": "BuildLast5CandadosStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}"
+      },
+      "timeout_s": 20,
+      "description": "Construir últimos 5 candados para análisis sefirótico"
+    },
+    {
+      "name": "step6_sefirotico",
+      "class": "SefiroticAnalysisStepV2",
+      "inputs": {
+        "candados": "${step.step_last5_candados.last5_candados}",
+        "analysis_type": "candados_2d"
+      },
+      "timeout_s": 30,
+      "description": "Análisis sefirótico con candados 2D"
+    },
+    {
+      "name": "step_candado_export",
+      "class": "CandadoExportStep",
+      "inputs": {
+        "bolita": "${step.step_bolita_mid.bolita}",
+        "include_parles": true
+      },
+      "timeout_s": 10,
+      "description": "Exportar CANDADO actual en formato final"
+    },
+    {
+      "name": "stepZ_audit",
+      "class": "AuditEmitStep",
+      "inputs": {
+        "summary": {
+          "plan_completed": true,
+          "policy_enforced": true,
+          "prev_day_candados": true,
+          "current_candado": true,
+          "sefirotic_analysis": true,
+          "rule_applied": "3ventanas_cubano_completo"
+        }
+      },
+      "timeout_s": 5,
+      "description": "Auditoría final y emisión de reportes"
+    }
+  ],
+  "metadata": {
+    "created_by": "VISION PREMIUM",
+    "policy_compliant": true,
+    "requires_real_data": true,
+    "forbids_simulation": true,
+    "candado_rule": "3ventanas_cubano",
+    "windows": ["AM", "MID", "EVE"],
+    "mapping": {
+      "AM": "Florida EVE del día anterior",
+      "MID": "Florida MID del mismo día", 
+      "EVE": "Florida EVE del mismo día"
+    },
+    "analysis_type": "candados_2d",
+    "gematria_enabled": true,
+    "subliminal_analysis": true,
+    "guide_message_fusion": true,
+    "total_steps": 12
+  }
+}

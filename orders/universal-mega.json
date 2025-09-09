@@ -1,0 +1,14 @@
+{
+  "run_id": "universal-mega-2025-09-08",
+  "plan": "app_vision/plans/universal.json",
+  "inputs": {
+    "game": "MegaMillions",
+    "externals": [81, 104, 400, 26, 52],
+    "exclude": [13],
+    "anchors": [26,52,65]
+  }
+}
+
+
+
+

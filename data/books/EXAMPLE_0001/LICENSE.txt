@@ -1,0 +1,24 @@
+LICENCIA DE USO INTERNO
+
+Este archivo es parte de la bóveda de libros local del repositorio VISIÓN Premium.
+
+PERMITIDO:
+- Uso interno para desarrollo y pruebas
+- Procesamiento local de contenido
+- Almacenamiento en el repositorio
+
+PROHIBIDO:
+- Distribución pública sin autorización
+- Uso comercial sin licencia
+- Modificación de derechos de autor originales
+
+Este es un archivo de ejemplo para demostración.
+El contenido real debe respetar los derechos de autor correspondientes.
+
+Fecha: 2025-08-31
+
+
+
+
+
+

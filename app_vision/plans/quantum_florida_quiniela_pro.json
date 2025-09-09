@@ -1,0 +1,215 @@
+{
+  "config": {
+    "quantum_enabled": true,
+    "quantum_coherence_threshold": 0.7,
+    "quantum_entanglement_strength": 0.8,
+    "quantum_interference_analysis": true
+  },
+  "defaults": {
+    "quantum_temporal_context": 1.0,
+    "quantum_geographic_context": 1.0,
+    "quantum_temporal_phase": 0.0,
+    "quantum_geographic_phase": 0.0
+  },
+  "steps": [
+    {
+      "name": "step0_cursor_role",
+      "class": "CursorRoleStep",
+      "inputs": {},
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 5
+    },
+    {
+      "name": "step0_validate",
+      "class": "ValidateInputsStep",
+      "inputs": {},
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 10
+    },
+    {
+      "name": "step_quantum_subliminal",
+      "class": "QuantumSubliminalStep",
+      "inputs": {
+        "draw_numbers": "${step.step0_validate.draw_numbers}",
+        "temporal_context": "${config.quantum_temporal_context}",
+        "geographic_context": "${config.quantum_geographic_context}",
+        "temporal_phase": "${config.quantum_temporal_phase}",
+        "geographic_phase": "${config.quantum_geographic_phase}"
+      },
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step2_news_fetch",
+      "class": "NewsFetchStep",
+      "inputs": {
+        "query": "${step.step0_validate.news_query}"
+      },
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step2b_news_guarded",
+      "class": "NewsGuardedStep",
+      "inputs": {
+        "raw_news_urls": "${step.step2_news_fetch.urls}",
+        "policy_path": "plans/news_policy.yaml"
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step3_news_content_filter",
+      "class": "NewsContentFilterStep",
+      "inputs": {
+        "valid_news_urls": "${step.step2b_news_guarded.valid_news_urls}",
+        "rules_path": "plans/news_content_rules.yaml",
+        "subliminal_topics": "${step.step_quantum_subliminal.quantum_topics}",
+        "subliminal_keywords": "${step.step_quantum_subliminal.quantum_keywords}",
+        "subliminal_families": "${step.step_quantum_subliminal.quantum_families}",
+        "top_k": 24
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 45
+    },
+    {
+      "name": "step_quantum_verification",
+      "class": "QuantumVerificationStep",
+      "inputs": {
+        "selected_articles": "${step.step3_news_content_filter.selected_articles}",
+        "min_legitimate_articles": 10
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step_quantum_news",
+      "class": "QuantumNewsStep",
+      "inputs": {
+        "valid_news_urls": "${step.step_quantum_verification.quantum_legitimate_articles}",
+        "subliminal_topics": "${step.step_quantum_subliminal.quantum_topics}",
+        "subliminal_keywords": "${step.step_quantum_subliminal.quantum_keywords}",
+        "subliminal_families": "${step.step_quantum_subliminal.quantum_families}",
+        "top_k": 24
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step_quantum_candado",
+      "class": "QuantumCandadoStep",
+      "inputs": {
+        "game": "${step.step0_validate.game}",
+        "mode": "FLORIDA_QUINIELA",
+        "p3_mid": "${step.step0_validate.p3_mid}",
+        "p4_mid": "${step.step0_validate.p4_mid}",
+        "p3_eve": "${step.step0_validate.p3_eve}",
+        "p4_eve": "${step.step0_validate.p4_eve}",
+        "cfg": {
+          "usar_p4_como_corrido_bloque": true,
+          "parles_ordenados": false,
+          "activar_empuje": true,
+          "activar_reversa": true,
+          "equivalencia_cero_100": true,
+          "noticias_equivalentes": "${step.step_quantum_news.quantum_selected_articles}"
+        }
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 30
+    },
+    {
+      "name": "step6_artifacts",
+      "class": "ArtifactsStep",
+      "inputs": {
+        "quantum_subliminal": {
+          "quantum_topics": "${step.step_quantum_subliminal.quantum_topics}",
+          "quantum_keywords": "${step.step_quantum_subliminal.quantum_keywords}",
+          "quantum_families": "${step.step_quantum_subliminal.quantum_families}",
+          "quantum_meaning": "${step.step_quantum_subliminal.quantum_meaning}",
+          "quantum_coherence": "${step.step_quantum_subliminal.quantum_coherence}",
+          "quantum_entanglement_strength": "${step.step_quantum_subliminal.quantum_entanglement_strength}",
+          "quantum_interference_pattern": "${step.step_quantum_subliminal.quantum_interference_pattern}"
+        },
+        "quantum_candado": {
+          "quantum_candado_mid": "${step.step_quantum_candado.quantum_candado_mid}",
+          "quantum_candado_eve": "${step.step_quantum_candado.quantum_candado_eve}",
+          "quantum_parles_mid": "${step.step_quantum_candado.quantum_parles_mid}",
+          "quantum_parles_eve": "${step.step_quantum_candado.quantum_parles_eve}",
+          "quantum_conjunto_2d_mid": "${step.step_quantum_candado.quantum_conjunto_2d_mid}",
+          "quantum_conjunto_2d_eve": "${step.step_quantum_candado.quantum_conjunto_2d_eve}",
+          "quantum_metadatos": "${step.step_quantum_candado.quantum_metadatos}",
+          "quantum_entanglement_matrix": "${step.step_quantum_candado.quantum_entanglement_matrix}",
+          "quantum_interference_pattern": "${step.step_quantum_candado.quantum_interference_pattern}",
+          "quantum_coherence_scores": "${step.step_quantum_candado.quantum_coherence_scores}"
+        },
+        "quantum_verification": {
+          "quantum_verification_report": "${step.step_quantum_verification.quantum_verification_report}",
+          "quantum_ai_detection": "${step.step_quantum_verification.quantum_ai_detection}",
+          "quantum_fabrication_detection": "${step.step_quantum_verification.quantum_fabrication_detection}",
+          "quantum_temporal_coherence": "${step.step_quantum_verification.quantum_temporal_coherence}",
+          "quantum_entanglement_analysis": "${step.step_quantum_verification.quantum_entanglement_analysis}"
+        },
+        "quantum_news": {
+          "quantum_selected_articles": "${step.step_quantum_news.quantum_selected_articles}",
+          "quantum_ranking_scores": "${step.step_quantum_news.quantum_ranking_scores}",
+          "quantum_relevance_scores": "${step.step_quantum_news.quantum_relevance_scores}",
+          "quantum_semantic_coherence": "${step.step_quantum_news.quantum_semantic_coherence}",
+          "quantum_temporal_evolution": "${step.step_quantum_news.quantum_temporal_evolution}",
+          "quantum_interference_analysis": "${step.step_quantum_news.quantum_interference_analysis}",
+          "quantum_entanglement_network": "${step.step_quantum_news.quantum_entanglement_network}"
+        },
+        "news_selected": "${step.step3_news_content_filter.selected_articles}",
+        "news_verified": "${step.step_quantum_verification.quantum_legitimate_articles}",
+        "news_quantum_analyzed": "${step.step_quantum_news.quantum_selected_articles}",
+        "news_metrics": "${step.step3_news_content_filter.metrics}",
+        "news_guidance": "${step.step3_news_content_filter.guidance_used}",
+        "news_evidence_path": "${step.step2b_news_guarded.news_report_path}"
+      },
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 15
+    },
+    {
+      "name": "stepZ_finalize",
+      "class": "FinalizeStep",
+      "inputs": {},
+      "retry": {
+        "max": 1,
+        "backoff_ms": 500
+      },
+      "timeout_s": 10
+    }
+  ]
+}
+
+
+

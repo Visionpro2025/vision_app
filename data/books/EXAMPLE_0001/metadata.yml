@@ -1,0 +1,20 @@
+id: EXAMPLE_0001
+isbn13: ""
+title: "Ejemplo de Libro"
+authors: ["Autor Ejemplo"]
+year: 2025
+publisher: "N/A"
+language: "es"
+tags: ["demo","plantilla"]
+source: "local"
+source_url: ""
+license: "Permitted for internal demo"
+rights: "OK to store and process locally"
+format: "txt"
+created_at: "2025-08-31T06:09:00Z"
+
+
+
+
+
+

@@ -1,0 +1,128 @@
+{
+  "name": "florida-3ventanas-completo",
+  "description": "Plan Florida con 3 ventanas diarias (AM/MID/EVE) y candados completos",
+  "version": "1.0",
+  "steps": [
+    {
+      "name": "step0_enforce",
+      "class": "EnforceOrchestratorStep",
+      "inputs": {
+        "policy": {
+          "allow_simulation": false,
+          "require_sources": true,
+          "abort_on_empty": true
+        }
+      },
+      "timeout_s": 5,
+      "description": "Sentinela universal que enforce la política global"
+    },
+    {
+      "name": "step1_fetch_real",
+      "class": "FetchFLPick3RealStep",
+      "inputs": {
+        "min_results": 8,
+        "days_back": 7
+      },
+      "timeout_s": 20,
+      "retry": {
+        "max": 1,
+        "backoff_ms": 800
+      },
+      "description": "Obtener sorteos reales de Florida Pick 3/4"
+    },
+    {
+      "name": "step_last2_other",
+      "class": "Last2OtherBlockStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}",
+        "focus_index": 0
+      },
+      "timeout_s": 10,
+      "description": "Detectar last2 del otro bloque"
+    },
+    {
+      "name": "step_prev_candado",
+      "class": "PrevCandadoStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}",
+        "focus_index": 0,
+        "other_last2": "${step.step_last2_other.other_last2}"
+      },
+      "timeout_s": 15,
+      "description": "Construir candado del bloque anterior"
+    },
+    {
+      "name": "step_last5_candados",
+      "class": "BuildLast5CandadosStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}"
+      },
+      "timeout_s": 20,
+      "description": "Construir últimos 5 candados para análisis sefirótico"
+    },
+    {
+      "name": "step6_sefirotico",
+      "class": "SefiroticAnalysisStepV2",
+      "inputs": {
+        "candados": "${step.step_last5_candados.last5_candados}",
+        "analysis_type": "candados_2d"
+      },
+      "timeout_s": 30,
+      "description": "Análisis sefirótico con candados 2D"
+    },
+    {
+      "name": "step_candado_export",
+      "class": "CandadoExportStep",
+      "inputs": {
+        "bolita": {
+          "date": "${step.step_prev_candado.prev_candado.date}",
+          "block": "${step.step_prev_candado.prev_candado.block}",
+          "fijo": {
+            "3d": "NA",
+            "2d": "${step.step_prev_candado.prev_candado.fijo2d}"
+          },
+          "corridos": [
+            "${step.step_prev_candado.prev_candado.corrido2d}",
+            "${step.step_prev_candado.prev_candado.extra2d}"
+          ],
+          "parles": "${step.step_prev_candado.prev_candado.parles}",
+          "candado": "${step.step_prev_candado.prev_candado.trio}",
+          "origen": {
+            "pick3_block": "${step.step_prev_candado.prev_draw.pick3}",
+            "pick4_block": "${step.step_prev_candado.prev_draw.pick4}",
+            "other_pick3_last2": "${step.step_last2_other.other_last2}"
+          }
+        },
+        "include_parles": true
+      },
+      "timeout_s": 10,
+      "description": "Exportar CANDADO en formato final"
+    },
+    {
+      "name": "stepZ_audit",
+      "class": "AuditEmitStep",
+      "inputs": {
+        "summary": {
+          "plan_completed": true,
+          "policy_enforced": true,
+          "candados_generated": true,
+          "sefirotic_analysis": true,
+          "rule_applied": "3ventanas_candados_completos"
+        }
+      },
+      "timeout_s": 5,
+      "description": "Auditoría final y emisión de reportes"
+    }
+  ],
+  "metadata": {
+    "created_by": "VISION PREMIUM",
+    "policy_compliant": true,
+    "requires_real_data": true,
+    "forbids_simulation": true,
+    "candado_rule": "3ventanas_completas",
+    "windows": ["AM", "MID", "EVE"],
+    "analysis_type": "candados_2d"
+  }
+}
+
+

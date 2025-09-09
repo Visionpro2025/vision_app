@@ -1,0 +1,84 @@
+# Vocabulario oficial de tags para el corpus de VISIÓN Premium
+# Versión: 1.0
+# Regla: todo libro/documento debe tener al menos 1 dom:* y 1 src:*
+
+version: 1
+vocab:
+  domain: 
+    - "dom:gematria"
+    - "dom:subliminal"
+    - "dom:psicologia_analitica"
+    - "dom:jung"
+    - "dom:arquetipos"
+    - "dom:simbolismo"
+    - "dom:mitologia"
+  
+  source_type:
+    - "src:foia"
+    - "src:declassified"
+    - "src:whitepaper"
+    - "src:academic"
+    - "src:policy"
+    - "src:manual"
+    - "src:court"
+    - "src:media_report"
+    - "src:dataset"
+  
+  jurisdiction:
+    - "jur:us"
+    - "jur:uk"
+    - "jur:ru"
+    - "jur:eu"
+    - "jur:global"
+  
+  organization:
+    - "org:cia"
+    - "org:nsa"
+    - "org:fbi"
+    - "org:dod"
+    - "org:dhs"
+    - "org:doj"
+    - "org:gchq"
+    - "org:mi5"
+    - "org:mi6"
+    - "org:fsb"
+    - "org:svr"
+    - "org:mod_ru"
+    - "org:nato_stratcom"
+    - "org:who"
+    - "org:apa"
+  
+  usage:
+    - "use:investigacion"
+    - "use:clinico"
+    - "use:experimental"
+    - "use:io_psyops"
+    - "use:formacion"
+    - "use:analitico"
+  
+  language:
+    - "lang:es"
+    - "lang:en"
+    - "lang:ru"
+  
+  license:
+    - "lic:public_domain"
+    - "lic:open_access"
+    - "lic:restricted_meta"
+  
+  format:
+    - "fmt:pdf"
+    - "fmt:epub"
+    - "fmt:txt"
+    - "fmt:html"
+
+policy:
+  require_at_least: ["domain", "source_type"]
+  focus_only: true
+  max_citation_words: 120
+
+
+
+
+
+

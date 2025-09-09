@@ -1,0 +1,44 @@
+app:
+  orchestrator: cursor_only           # Cursor ejecuta, no "opina"
+  allow_simulation: false             # Prohibido simular datos
+  require_sources: true               # Cada output debe tener fuente
+  abort_on_empty: true                # Vacío => error ruidoso
+  timeouts:
+    default_s: 20
+    retries: 1
+
+sources_allowlist:
+  lottery:
+    - flalottery.com
+    - floridalottery.com
+    - official-lottery-sources.com
+  news:
+    - apnews.com
+    - reuters.com
+    - bbc.com
+    - nbcnews.com
+    - nytimes.com
+    - theguardian.com
+    - hud.gov
+    - cnn.com
+    - bloomberg.com
+    - wsj.com
+  official:
+    - gov
+    - edu
+    - mil
+    - org
+
+observability:
+  write_audit_md: true
+  write_json_payloads: true
+  audit_dir: "reports"
+  log_level: "INFO"
+
+enforcement:
+  strict_mode: true
+  validate_sources: true
+  block_simulations: true
+  require_attribution: true
+
+

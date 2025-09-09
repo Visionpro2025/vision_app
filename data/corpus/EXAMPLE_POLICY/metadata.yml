@@ -1,0 +1,28 @@
+id: EXAMPLE_POLICY
+title: "Ejemplo de Documento de Política"
+authors: ["Agencia Ejemplo"]
+year: 2025
+publisher: "Departamento de Defensa"
+language: "en"
+tags: 
+  - "dom:psicologia_analitica"
+  - "dom:subliminal"
+  - "src:policy"
+  - "src:whitepaper"
+  - "jur:us"
+  - "org:dod"
+  - "use:io_psyops"
+  - "use:formacion"
+  - "lang:en"
+  - "fmt:txt"
+  - "lic:restricted_meta"
+source_url: "https://example.gov/policy/example"
+rights: "Solo metadatos y citas breves (<=120 palabras). No se almacena full-text."
+created_at: "2025-08-31T06:13:00Z"
+updated_at: "2025-08-31T06:13:00Z"
+
+
+
+
+
+

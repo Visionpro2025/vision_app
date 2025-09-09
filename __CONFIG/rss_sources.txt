@@ -1,10 +1,33 @@
-# RSS de medios principales (USA) — puedes añadir más líneas; usa # para comentar
+# Fuentes RSS para noticias de USA
+# Formato: una URL por línea
+# Comentarios empiezan con #
+
+# Reuters - Noticias de USA
 https://www.reuters.com/rssFeed/usNews
+
+# NPR - Noticias nacionales
 https://feeds.npr.org/1001/rss.xml
+
+# ABC News - Noticias de USA
 https://feeds.abcnews.com/abcnews/usheadlines
+
+# CBS News - Noticias de USA
 https://www.cbsnews.com/latest/rss/us/
+
+# The Guardian - Noticias de USA
 https://www.theguardian.com/us-news/rss
+
+# New York Times - Noticias de USA
 https://rss.nytimes.com/services/xml/rss/nyt/US.xml
-http://rss.cnn.com/rss/cnn_us.rss
-http://feeds.bbci.co.uk/news/world/us_and_canada/rss.xml
-http://rssfeeds.usatoday.com/usatoday-NewsTopStories
+
+# USA Today - Noticias principales
+https://rss.usatoday.com/usatoday-NewsTopStories
+
+# CNN - Noticias de USA
+https://rss.cnn.com/rss/edition_us.rss
+
+# Fox News - Noticias de USA
+https://feeds.foxnews.com/foxnews/us
+
+# NBC News - Noticias de USA
+https://feeds.nbcnews.com/nbcnews/public/us-news

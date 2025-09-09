@@ -1,0 +1,103 @@
+{
+  "config": {
+    "name": "Protocolo Universal Pick 3 Pro V2",
+    "version": "2.0",
+    "description": "Protocolo mejorado con análisis sefirótico real",
+    "allow_simulation": false
+  },
+  "defaults": {
+    "min_results": 5,
+    "threshold": 0.6,
+    "min_attr": 3
+  },
+  "steps": [
+    {
+      "name": "step1_fetch_real",
+      "class": "FetchFLPick3RealStep",
+      "inputs": {
+        "min_results": 5
+      }
+    },
+    {
+      "name": "step6_sefirotico",
+      "class": "SefiroticAnalysisStepV2",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}"
+      }
+    },
+    {
+      "name": "step3_subliminal",
+      "class": "SubliminalGuardedStepV2",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}",
+        "label": "AM"
+      }
+    },
+    {
+      "name": "step4_news_fetch",
+      "class": "YourNewsFetchStep",
+      "inputs": {
+        "feeds": [
+          "https://feeds.bbci.co.uk/news/rss.xml",
+          "https://rss.cnn.com/rss/edition.rss",
+          "https://www.reuters.com/world/us/rss"
+        ],
+        "max_per_feed": 25,
+        "mode": "emotional",
+        "guidance_terms": "${step.step3_subliminal.analisis_subliminal.topics}"
+      }
+    },
+    {
+      "name": "step4_news_selector25",
+      "class": "NewsSelector25Step",
+      "inputs": {
+        "valid_news": "${step.step4_news_fetch.urls}",
+        "guidance": {
+          "topics": "${step.step3_subliminal.analisis_subliminal.topics}",
+          "keywords": "${step.step3_subliminal.analisis_subliminal.keywords}",
+          "families": "${step.step3_subliminal.submensaje_guia.families}"
+        },
+        "start_threshold": 0.6,
+        "min_keep": 25,
+        "require_body": false
+      }
+    },
+    {
+      "name": "step5_news_attribution",
+      "class": "NewsAttributionTable100Step",
+      "inputs": {
+        "selected_news": "${step.step4_news_selector25.selected_25}",
+        "guidance": {
+          "topics": "${step.step3_subliminal.analisis_subliminal.topics}",
+          "keywords": "${step.step3_subliminal.analisis_subliminal.keywords}",
+          "families": "${step.step3_subliminal.submensaje_guia.families}"
+        },
+        "min_attr": 3,
+        "threshold": 0.6
+      }
+    },
+    {
+      "name": "step7_quantum_series",
+      "class": "QuantumSeriesGenerationStep",
+      "inputs": {
+        "sefirotic_candidates": "${step.step6_sefirotico.candidates}",
+        "table100_numbers": "${step.step5_news_attribution.attribution.global_rank}",
+        "subliminal_guidance": "${step.step3_subliminal.submensaje_guia}"
+      }
+    },
+    {
+      "name": "step8_artifacts",
+      "class": "ArtifactsStepPatch",
+      "inputs": {
+        "news_selected": "${step.step4_news_selector25.selected_25}",
+        "news_metrics": "${step.step4_news_selector25.selector_audit}",
+        "guidance_used": "${step.step3_subliminal.submensaje_guia}",
+        "sefirotic_analysis": "${step.step6_sefirotico}",
+        "quantum_series": "${step.step7_quantum_series}"
+      }
+    }
+  ]
+}
+
+
+

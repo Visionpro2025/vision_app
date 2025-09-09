@@ -1,0 +1,63 @@
+{
+  "timestamp": "2025-09-08T08:34:30.503272",
+  "total_draws": 5,
+  "lottery": "Florida Pick 3",
+  "source": "simulated_realistic_data",
+  "draws": [
+    {
+      "draw_number": "2025-0903",
+      "draw_date": "2025-09-03",
+      "numbers": [
+        6,
+        9,
+        8
+      ],
+      "lottery": "Florida Pick 3",
+      "source": "simulated_realistic_data"
+    },
+    {
+      "draw_number": "2025-0904",
+      "draw_date": "2025-09-04",
+      "numbers": [
+        2,
+        4,
+        7
+      ],
+      "lottery": "Florida Pick 3",
+      "source": "simulated_realistic_data"
+    },
+    {
+      "draw_number": "2025-0905",
+      "draw_date": "2025-09-05",
+      "numbers": [
+        1,
+        5,
+        3
+      ],
+      "lottery": "Florida Pick 3",
+      "source": "simulated_realistic_data"
+    },
+    {
+      "draw_number": "2025-0906",
+      "draw_date": "2025-09-06",
+      "numbers": [
+        0,
+        8,
+        6
+      ],
+      "lottery": "Florida Pick 3",
+      "source": "simulated_realistic_data"
+    },
+    {
+      "draw_number": "2025-0907",
+      "draw_date": "2025-09-07",
+      "numbers": [
+        9,
+        2,
+        4
+      ],
+      "lottery": "Florida Pick 3",
+      "source": "simulated_realistic_data"
+    }
+  ]
+}

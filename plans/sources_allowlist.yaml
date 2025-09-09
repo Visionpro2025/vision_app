@@ -1,0 +1,52 @@
+# plans/sources_allowlist.yaml
+# Lista blanca de fuentes permitidas para datos y noticias
+
+lottery:
+  - flalottery.com
+  - www.flalottery.com
+  - floridalottery.com
+  - www.floridalottery.com
+
+news:
+  - apnews.com
+  - www.apnews.com
+  - reuters.com
+  - www.reuters.com
+  - bbc.com
+  - www.bbc.com
+  - bbc.co.uk
+  - www.bbc.co.uk
+  - nbcnews.com
+  - www.nbcnews.com
+  - nytimes.com
+  - www.nytimes.com
+  - theguardian.com
+  - www.theguardian.com
+  - hud.gov
+  - www.hud.gov
+  - npr.org
+  - www.npr.org
+  - cnn.com
+  - www.cnn.com
+
+# Dominios prohibidos explícitamente
+forbidden:
+  - localhost
+  - 127.0.0.1
+  - test.com
+  - example.com
+  - dummy.com
+  - mock.com
+  - fake.com
+  - simulated.com
+
+# Políticas de validación
+policies:
+  require_https: true
+  max_redirects: 5
+  timeout_seconds: 30
+  user_agent_required: true
+  content_type_validation: true
+
+
+

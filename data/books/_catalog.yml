@@ -1,0 +1,11 @@
+# Catálogo maestro de la Bóveda de Libros
+# Formato: YAML con lista de libros registrados
+# Cada entrada debe tener metadata.yml, csl.json, index.jsonl
+
+books: []
+
+
+
+
+
+

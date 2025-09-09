@@ -1,0 +1,200 @@
+{
+  "name": "florida_pick3_bolita_cubana",
+  "description": "Protocolo completo Florida Pick 3 → Bolita Cubana con análisis gematría y guía de noticias",
+  "version": "1.0",
+  "config": {
+    "lottery_type": "florida_pick3",
+    "bolita_format": "cubana",
+    "timezone": "ET",
+    "windows": ["AM", "MID", "EVE"],
+    "candado_rule": "deterministic_fixed"
+  },
+  "steps": [
+    {
+      "name": "step0_enforce",
+      "class": "EnforceOrchestratorStep",
+      "inputs": {
+        "policy": {
+          "allow_simulation": false,
+          "require_sources": true,
+          "abort_on_empty": true
+        }
+      },
+      "timeout_s": 5,
+      "description": "Sentinela universal que enforce la política global"
+    },
+    {
+      "name": "step_block_now",
+      "class": "BlockNowStep",
+      "inputs": {},
+      "timeout_s": 5,
+      "description": "Detectar bloque actual (AM/MID/EVE) en ET"
+    },
+    {
+      "name": "step1_fetch_florida",
+      "class": "FetchFLPick3RealStep",
+      "inputs": {
+        "min_results": 15,
+        "days_back": 10
+      },
+      "timeout_s": 25,
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      },
+      "description": "Obtener sorteos reales de Florida Pick 3/4"
+    },
+    {
+      "name": "step_build_candado_context",
+      "class": "BuildCandadoContextStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_florida.draws}",
+        "for_block": "${step.step_block_now.block_now}"
+      },
+      "timeout_s": 15,
+      "description": "Construir contexto de candados según horario cubano"
+    },
+    {
+      "name": "step_prev_day_export",
+      "class": "PrevDayCandadosExportStep",
+      "inputs": {
+        "candado_context": "${step.step_build_candado_context.candado_context}",
+        "for_block": "${step.step_block_now.block_now}"
+      },
+      "timeout_s": 10,
+      "description": "Exportar candados del día anterior para UI"
+    },
+    {
+      "name": "step_gematria_per_candado",
+      "class": "GematriaPerCandadoStep",
+      "inputs": {
+        "candados": "${step.step_build_candado_context.candado_context.items}"
+      },
+      "timeout_s": 20,
+      "description": "Aplicar gematría + subliminal a cada candado"
+    },
+    {
+      "name": "step_fuse_guide",
+      "class": "GuideMessageFuseStep",
+      "inputs": {
+        "per_candado": "${step.step_gematria_per_candado.per_candado}",
+        "for_block": "${step.step_block_now.block_now}",
+        "top_topics": 8,
+        "top_keywords": 12
+      },
+      "timeout_s": 15,
+      "description": "Fusionar mensajes en guía única para noticias"
+    },
+    {
+      "name": "step_current_candado",
+      "class": "BolitaFromFloridaStep",
+      "inputs": {
+        "focus": {
+          "date": "${step.step1_fetch_florida.draws[0].date}",
+          "block": "${step.step1_fetch_florida.draws[0].block}",
+          "pick3": "${step.step1_fetch_florida.draws[0].numbers}",
+          "pick4": "${step.step1_fetch_florida.draws[0].pick4}"
+        },
+        "other_pick3_last2": "${step.step_last2_other.other_last2}",
+        "force_min_candado": true
+      },
+      "timeout_s": 15,
+      "description": "Generar candado actual con regla fija"
+    },
+    {
+      "name": "step_last2_other",
+      "class": "Last2OtherBlockStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_florida.draws}",
+        "focus_index": 0
+      },
+      "timeout_s": 10,
+      "description": "Detectar last2 del otro bloque para candado actual"
+    },
+    {
+      "name": "step_candado_export",
+      "class": "CandadoExportStep",
+      "inputs": {
+        "bolita": "${step.step_current_candado.bolita}",
+        "include_parles": true
+      },
+      "timeout_s": 10,
+      "description": "Exportar CANDADO actual en formato final"
+    },
+    {
+      "name": "step_last5_candados",
+      "class": "BuildLast5CandadosStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_florida.draws}"
+      },
+      "timeout_s": 20,
+      "description": "Construir últimos 5 candados para análisis sefirótico"
+    },
+    {
+      "name": "step_sefirotico",
+      "class": "SefiroticAnalysisStepV2",
+      "inputs": {
+        "candados": "${step.step_last5_candados.last5_candados}",
+        "analysis_type": "candados_2d"
+      },
+      "timeout_s": 30,
+      "description": "Análisis sefirótico con candados 2D"
+    },
+    {
+      "name": "step_news_fetch",
+      "class": "NewsFetchEmoUSStep",
+      "inputs": {
+        "guide": "${step.step_fuse_guide.guide}",
+        "min_count": 30,
+        "time_window_h": 24
+      },
+      "timeout_s": 35,
+      "description": "Acopiar noticias emocionales US con guía determinista"
+    },
+    {
+      "name": "stepZ_audit",
+      "class": "AuditEmitStep",
+      "inputs": {
+        "summary": {
+          "plan_completed": true,
+          "policy_enforced": true,
+          "block_detected": "${step.step_block_now.block_now}",
+          "florida_draws_fetched": true,
+          "candados_processed": true,
+          "gematria_applied": true,
+          "guide_fused": true,
+          "current_candado_generated": true,
+          "sefirotic_analysis": true,
+          "news_fetched": true,
+          "rule_applied": "florida_pick3_bolita_cubana"
+        }
+      },
+      "timeout_s": 5,
+      "description": "Auditoría final y emisión de reportes"
+    }
+  ],
+  "metadata": {
+    "created_by": "VISION PREMIUM",
+    "policy_compliant": true,
+    "requires_real_data": true,
+    "forbids_simulation": true,
+    "lottery_type": "florida_pick3",
+    "bolita_format": "cubana",
+    "block_detection": "ET_timezone",
+    "candado_rule": "deterministic_fixed",
+    "windows": ["AM", "MID", "EVE"],
+    "mapping": {
+      "AM": "Florida EVE del día anterior",
+      "MID": "Florida MID del mismo día",
+      "EVE": "Florida EVE del mismo día"
+    },
+    "gematria_enabled": true,
+    "subliminal_analysis": true,
+    "guide_message_fusion": true,
+    "sefirotic_analysis": true,
+    "news_fetch": "emotional_us",
+    "total_steps": 15
+  }
+}
+
+

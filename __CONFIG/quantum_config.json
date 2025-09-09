@@ -1,0 +1,54 @@
+{
+  "quantum_layer": {
+    "enabled": true,
+    "influence_factor": 0.35,
+    "max_combinations": 1000,
+    "entanglement_threshold": 0.75,
+    "superposition_decay": 0.1,
+    "priors": {
+      "day_weight": 0.60,
+      "week_weight": 0.40
+    },
+    "consecutive_rule": {
+      "penalize": true,
+      "force_threshold": 0.75
+    },
+    "backend": {
+      "provider": "dwave",
+      "mode": "hybrid",
+      "num_reads": 1500,
+      "top_k": 200,
+      "timeout_s": 20,
+      "seed": ""
+    },
+    "logging": {
+      "runs_dir": "__RUNS/QUANTUM",
+      "save_hamiltonian": true
+    }
+  },
+  "assembler": {
+    "gematria_weight": 0.4,
+    "subliminal_weight": 0.3,
+    "t70_weight": 0.3,
+    "previous_result_influence": 0.25,
+    "pattern_blocking": {
+      "enabled": true,
+      "strict_mode": true
+    }
+  },
+  "previous_result": {
+    "gematric_message_weight": 0.4,
+    "t70_equivalences_weight": 0.35,
+    "number_frequency_boost": 0.25
+  },
+  "protocols": {
+    "step_by_step": true,
+    "auto_execute": false,
+    "validation_required": true
+  },
+  "offline_mode": {
+    "enabled": true,
+    "cache_ttl_hours": 24,
+    "fallback_to_last": true
+  }
+}

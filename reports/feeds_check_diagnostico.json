@@ -1,0 +1,115 @@
+{
+  "timestamp": "2025-09-08T08:07:43.378640",
+  "total_articles": 15,
+  "feeds_report": [
+    {
+      "feed": "https://feeds.bbci.co.uk/news/rss.xml",
+      "items": 5,
+      "titles": [
+        {
+          "title": "Huge drugs bust reveals battles on cocaine 'superhighway'",
+          "published": "Mon, 08 Sep 2025 05:02:40 GMT",
+          "url": "https://www.bbc.com/news/articles/c5yvplyrrwno?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "title": "Ex-sergeant major admits sexually assaulting soldier who took her own life",
+          "published": "Mon, 08 Sep 2025 04:30:09 GMT",
+          "url": "https://www.bbc.com/news/articles/ckgqzxq0z55o?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "title": "Unions warn government not to water down workers' rights bill",
+          "published": "Sun, 07 Sep 2025 18:20:19 GMT",
+          "url": "https://www.bbc.com/news/articles/cq65l5epl3eo?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "title": "Alcaraz edges Sinner trilogy to win US Open",
+          "published": "Sun, 07 Sep 2025 22:09:49 GMT",
+          "url": "https://www.bbc.com/sport/tennis/articles/c8xrpd5jeveo?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "title": "'He put his hand down my tights': Sexual harassment widespread among barristers, review finds",
+          "published": "Mon, 08 Sep 2025 04:46:41 GMT",
+          "url": "https://www.bbc.com/news/articles/c8xrejzk0edo?at_medium=RSS&at_campaign=rss"
+        }
+      ]
+    },
+    {
+      "feed": "https://rss.cnn.com/rss/edition.rss",
+      "items": 0,
+      "titles": []
+    },
+    {
+      "feed": "https://www.reuters.com/world/us/rss",
+      "items": 0,
+      "titles": []
+    },
+    {
+      "feed": "https://feeds.npr.org/1001/rss.xml",
+      "items": 5,
+      "titles": [
+        {
+          "title": "Australian woman is sentenced to life for poisoning relatives with mushrooms",
+          "published": "Mon, 08 Sep 2025 01:14:43 -0400",
+          "url": "https://www.npr.org/2025/09/08/nx-s1-5533902/australia-erin-patterson-life-sentence-mushroom-murder"
+        },
+        {
+          "title": "Carlos Alcaraz wins his 2nd U.S. Open at match delayed by Trump's attendance",
+          "published": "Sun, 07 Sep 2025 20:37:01 -0400",
+          "url": "https://www.npr.org/2025/09/07/nx-s1-5533207/carlos-alcaraz-trump-us-open-tennis-rolex"
+        },
+        {
+          "title": "More than 90,000 Jeep Grand Cherokees recalled over potential loss of drive power",
+          "published": "Sun, 07 Sep 2025 19:24:34 -0400",
+          "url": "https://www.npr.org/2025/09/07/nx-s1-5533180/jeep-grand-cherokee-recall-plug-in-hybrid"
+        },
+        {
+          "title": "Trump walks back Chicago 'war' threat, but vows to 'clean up' cities",
+          "published": "Sun, 07 Sep 2025 18:41:43 -0400",
+          "url": "https://www.npr.org/2025/09/07/nx-s1-5533191/trump-chicago-threat-baltimore-new-orleans"
+        },
+        {
+          "title": "Postal traffic to US drops more than 80% after trade exemption rule ends, UN agency says",
+          "published": "Sun, 07 Sep 2025 13:54:41 -0400",
+          "url": "https://www.npr.org/2025/09/07/nx-s1-5533121/postal-traffic-to-us-drops-more-than-80-after-trade-exemption-rule-ends-un-agency-says"
+        }
+      ]
+    },
+    {
+      "feed": "https://feeds.bbci.co.uk/news/world/rss.xml",
+      "items": 5,
+      "titles": [
+        {
+          "title": "Palestinian prisoners not being given adequate food, Israel top court says",
+          "published": "Mon, 08 Sep 2025 02:53:54 GMT",
+          "url": "https://www.bbc.com/news/articles/c1mxlk518vko?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "title": "European leaders to visit US to discuss war in Ukraine, Trump says",
+          "published": "Mon, 08 Sep 2025 03:10:08 GMT",
+          "url": "https://www.bbc.com/news/articles/cwyrx205dj2o?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "title": "South Korean worker tells BBC of panic and confusion during Hyundai ICE raid",
+          "published": "Sun, 07 Sep 2025 23:14:55 GMT",
+          "url": "https://www.bbc.com/news/articles/c5yqg0rln74o?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "title": "France is set to vote out another PM. Can anything break its political deadlock?",
+          "published": "Sun, 07 Sep 2025 23:52:21 GMT",
+          "url": "https://www.bbc.com/news/articles/cm2z8xyz68mo?at_medium=RSS&at_campaign=rss"
+        },
+        {
+          "title": "'Suitcase murder' trial begins in New Zealand",
+          "published": "Mon, 08 Sep 2025 05:12:14 GMT",
+          "url": "https://www.bbc.com/news/articles/cn83jjx9pjvo?at_medium=RSS&at_campaign=rss"
+        }
+      ]
+    }
+  ],
+  "diagnostico": {
+    "feeds_funcionando": 3,
+    "feeds_rotos": 0,
+    "feeds_vacios": 2,
+    "problema_identificado": "filtro"
+  }
+}

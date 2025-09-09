@@ -1,0 +1,48 @@
+# Configuración de capacidades del sistema VISIÓN Premium
+# Versión: 1.0
+# Define qué funcionalidades requieren corpus y cuáles no
+
+version: 1
+capabilities:
+  - id: "gematria.core"
+    name: "Análisis Gematría Core"
+    description: "Funcionalidades básicas de gematría que no requieren corpus externo"
+    requires_corpus: false
+    status: "active"
+  
+  - id: "subliminal.analysis"
+    name: "Análisis Subliminal"
+    description: "Análisis de contenido subliminal y operaciones psicológicas"
+    requires_corpus: true
+    status: "active"
+  
+  - id: "jung.arquetipos"
+    name: "Análisis de Arquetipos Jung"
+    description: "Análisis de arquetipos y psicología analítica"
+    requires_corpus: true
+    status: "active"
+  
+  - id: "corpus.search"
+    name: "Búsqueda en Corpus"
+    description: "Búsqueda y filtrado en el corpus de documentos"
+    requires_corpus: true
+    status: "active"
+  
+  - id: "corpus.ingestion"
+    name: "Ingesta de Corpus"
+    description: "Sistema de ingesta automática de documentos"
+    requires_corpus: false
+    status: "active"
+
+rules:
+  evidence_required_for: ["subliminal.analysis", "jung.arquetipos", "corpus.search"]
+  deny_if_no_corpus: true
+  require_license_validation: true
+  max_file_size_mb: 50
+  allowed_formats: ["pdf", "epub", "txt", "html"]
+
+
+
+
+
+

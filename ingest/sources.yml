@@ -1,0 +1,79 @@
+# Configuración de fuentes de ingesta para el corpus de VISIÓN Premium
+# Solo fuentes de acceso público, FOIA, desclasificados y Open Access
+
+version: 1
+last_updated: "2025-08-31T06:16:00Z"
+
+# Fuentes FOIA/Desclasificados
+foia_sources:
+  - name: "FBI Vault"
+    url: "https://vault.fbi.gov/"
+    type: "src:foia"
+    jurisdiction: "jur:us"
+    organization: "org:fbi"
+    keywords: ["subliminal", "psyops", "psychological operations", "mind control"]
+    rate_limit: "1 request per 2 seconds"
+    robots_txt: true
+  
+  - name: "CIA CREST"
+    url: "https://www.cia.gov/readingroom/"
+    type: "src:declassified"
+    jurisdiction: "jur:us"
+    organization: "org:cia"
+    keywords: ["subliminal", "psychological warfare", "behavioral science", "mind control"]
+    rate_limit: "1 request per 3 seconds"
+    robots_txt: true
+  
+  - name: "UK National Archives"
+    url: "https://www.nationalarchives.gov.uk/"
+    type: "src:declassified"
+    jurisdiction: "jur:uk"
+    organization: "org:mi5"
+    keywords: ["psychological operations", "subliminal", "mind control", "behavioral science"]
+    rate_limit: "1 request per 2 seconds"
+    robots_txt: true
+
+# Fuentes Académicas Open Access
+academic_sources:
+  - name: "arXiv"
+    url: "https://arxiv.org/"
+    type: "src:academic"
+    jurisdiction: "jur:global"
+    keywords: ["gematria", "numerology", "archetypes", "Jung", "collective unconscious"]
+    rate_limit: "1 request per 1 second"
+    robots_txt: true
+  
+  - name: "DOAJ"
+    url: "https://doaj.org/"
+    type: "src:academic"
+    jurisdiction: "jur:global"
+    keywords: ["psychology", "analytical psychology", "archetypes", "symbolism", "mythology"]
+    rate_limit: "1 request per 2 seconds"
+    robots_txt: true
+
+# Fuentes de Políticas Públicas
+policy_sources:
+  - name: "US Government Publishing Office"
+    url: "https://www.govinfo.gov/"
+    type: "src:policy"
+    jurisdiction: "jur:us"
+    keywords: ["psychological operations", "behavioral science", "mind control", "subliminal"]
+    rate_limit: "1 request per 2 seconds"
+    robots_txt: true
+
+# Configuración de Ingesta
+ingestion_config:
+  max_file_size_mb: 50
+  allowed_formats: ["pdf", "epub", "txt", "html"]
+  download_full_text: false  # Solo metadatos por defecto
+  require_license_check: true
+  max_citation_length: 120
+  deduplication:
+    by_sha256: true
+    by_title_author_year: true
+
+
+
+
+
+

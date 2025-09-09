@@ -1,0 +1,16 @@
+{
+  "run_id": "universal-pick3-2025-09-08-AM",
+  "plan": "app_vision/plans/universal.json",
+  "inputs": {
+    "game": "Pick3_FL",
+    "prev_draw": [4,7,9],
+    "label": "AM",
+    "externals": [81, 104, 33],
+    "exclude": [],
+    "anchors": [26,52,65]
+  }
+}
+
+
+
+

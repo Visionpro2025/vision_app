@@ -1,0 +1,17 @@
+[
+  {
+    "id": "EXAMPLE_0001",
+    "type": "book",
+    "title": "Ejemplo de Libro",
+    "author": [{"family": "Autor", "given": "Ejemplo"}],
+    "issued": {"date-parts": [[2025]]},
+    "publisher": "N/A",
+    "language": "es"
+  }
+]
+
+
+
+
+
+

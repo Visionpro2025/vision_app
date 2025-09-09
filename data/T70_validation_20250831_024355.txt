@@ -1,0 +1,32 @@
+================================================================================
+REPORTE DE VALIDACIÓN T70
+================================================================================
+Fecha: 2025-08-31 02:43:55
+Archivo CSV: data/T70.csv
+
+DETECCIÓN DE ENCABEZADOS
+----------------------------------------
+Encabezados detectados en CSV:
+  'n' (columna 1)
+  'eq' (columna 2)
+  'titulo' (columna 3)
+  'lectura' (columna 4)
+  'caracteristicas' (columna 5)
+  'sugerencias' (columna 6)
+
+Mapeo de encabezados:
+  N -> 'n'
+  EQ -> 'eq'
+  titulo -> 'titulo'
+  lectura -> 'lectura'
+
+RESULTADOS DE VALIDACIÓN
+----------------------------------------
+Total de filas validadas: 0
+Errores encontrados: 1
+Advertencias: 0
+
+ERRORES (BLOQUEANTES):
+--------------------
+❌ Campos obligatorios faltantes: categoria
+

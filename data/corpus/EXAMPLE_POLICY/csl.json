@@ -1,0 +1,18 @@
+[
+  {
+    "id": "EXAMPLE_POLICY",
+    "type": "report",
+    "title": "Ejemplo de Documento de Política",
+    "author": [{"family": "Agencia", "given": "Ejemplo"}],
+    "issued": {"date-parts": [[2025]]},
+    "publisher": "Departamento de Defensa",
+    "language": "en",
+    "URL": "https://example.gov/policy/example"
+  }
+]
+
+
+
+
+
+

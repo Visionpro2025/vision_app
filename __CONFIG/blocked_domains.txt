@@ -1,0 +1,58 @@
+# Dominios bloqueados para evitar spam y agregadores
+# Formato: un dominio por línea
+# Comentarios empiezan con #
+
+# Agregadores de noticias
+news.google.com
+feedproxy.google.com
+news.yahoo.com
+bing.com
+msn.com
+
+# Redes sociales (no son fuentes de noticias primarias)
+facebook.com
+twitter.com
+instagram.com
+tiktok.com
+youtube.com
+
+# Sitios de entretenimiento
+tmz.com
+eonline.com
+people.com
+usmagazine.com
+
+# Sitios de deportes (fuera del alcance)
+espn.com
+sports.yahoo.com
+bleacherreport.com
+
+# Sitios de tecnología (fuera del alcance)
+techcrunch.com
+engadget.com
+theverge.com
+wired.com
+
+# Sitios de finanzas (fuera del alcance)
+bloomberg.com
+cnbc.com
+marketwatch.com
+seekingalpha.com
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

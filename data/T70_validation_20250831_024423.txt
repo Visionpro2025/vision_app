@@ -1,0 +1,46 @@
+================================================================================
+REPORTE DE VALIDACIÓN T70
+================================================================================
+Fecha: 2025-08-31 02:44:23
+Archivo CSV: data/T70.csv
+
+DETECCIÓN DE ENCABEZADOS
+----------------------------------------
+Encabezados detectados en CSV:
+  'n' (columna 1)
+  'eq' (columna 2)
+  'titulo' (columna 3)
+  'lectura' (columna 4)
+  'caracteristicas' (columna 5)
+  'sugerencias' (columna 6)
+
+Mapeo de encabezados:
+  N -> 'n'
+  EQ -> 'eq'
+  titulo -> 'titulo'
+  lectura -> 'lectura'
+  categoria -> 'caracteristicas'
+
+RESULTADOS DE VALIDACIÓN
+----------------------------------------
+Total de filas validadas: 70
+Errores encontrados: 4
+Advertencias: 0
+
+ERRORES (BLOQUEANTES):
+--------------------
+❌ Fila 5: N='n' no es un entero válido
+❌ Fila 6: N=1 está duplicado
+❌ Fila 7: N=2 está duplicado
+❌ Fila 8: N=3 está duplicado
+
+ESTADÍSTICAS:
+---------------
+Rango de números N: 1 - 70
+Filas con EQ válido: 70
+Filas sin EQ: 0
+Categorías encontradas: 4
+  -: 67 entradas
+  Autoconstrucción narrativa: 1 entradas
+  Ecos cerrados: 1 entradas
+  Trabajo remoto: 1 entradas

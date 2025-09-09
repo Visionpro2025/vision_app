@@ -1,0 +1,85 @@
+{
+  "name": "template-with-enforcement",
+  "description": "Plantilla de plan que incluye enforcement de política global",
+  "version": "1.0",
+  "steps": [
+    {
+      "name": "step0_enforce",
+      "class": "EnforceOrchestratorStep",
+      "inputs": {
+        "policy": {
+          "allow_simulation": false,
+          "require_sources": true,
+          "abort_on_empty": true
+        }
+      },
+      "timeout_s": 5,
+      "description": "Sentinela universal que enforce la política global"
+    },
+    {
+      "name": "step1_fetch_real",
+      "class": "FetchFLPick3RealStep",
+      "inputs": {
+        "min_results": 2,
+        "days_back": 7
+      },
+      "timeout_s": 20,
+      "description": "Obtener sorteos reales de Florida"
+    },
+    {
+      "name": "step_last2_other_selector",
+      "class": "Last2OtherBlockStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}",
+        "current_block": "MID"
+      },
+      "timeout_s": 10,
+      "description": "Detectar automáticamente el otro bloque y extraer last2"
+    },
+    {
+      "name": "step_bolita_mid",
+      "class": "BolitaFromFloridaStep",
+      "inputs": {
+        "focus": {
+          "date": "${step.step1_fetch_real.draws[0].date}",
+          "block": "${step.step1_fetch_real.draws[0].block}",
+          "pick3": "${step.step1_fetch_real.draws[0].numbers}",
+          "pick4": "${step.step1_fetch_real.draws[0].pick4}"
+        },
+        "other_pick3_last2": "${step.step_last2_other_selector.last2}",
+        "force_min_candado": true
+      },
+      "timeout_s": 15,
+      "description": "Generar bolita con regla fija de CANDADO"
+    },
+    {
+      "name": "step_candado_export",
+      "class": "CandadoExportStep",
+      "inputs": {
+        "bolita": "${step.step_bolita_mid.bolita}",
+        "include_parles": true
+      },
+      "timeout_s": 10,
+      "description": "Exportar CANDADO en formato final"
+    },
+    {
+      "name": "stepZ_audit",
+      "class": "AuditEmitStep",
+      "inputs": {
+        "summary": {
+          "plan_completed": true,
+          "policy_enforced": true,
+          "sources_validated": true
+        }
+      },
+      "timeout_s": 5,
+      "description": "Auditoría final y emisión de reportes"
+    }
+  ],
+  "metadata": {
+    "created_by": "VISION PREMIUM",
+    "policy_compliant": true,
+    "requires_real_data": true,
+    "forbids_simulation": true
+  }
+}

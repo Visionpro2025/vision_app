@@ -1,0 +1,38 @@
+{
+  "name": "pick3-basic-test",
+  "description": "Plan b\u00e1sico para canary de salud",
+  "steps": [
+    {
+      "name": "step0_enforce",
+      "class": "EnforceOrchestratorStep",
+      "inputs": {
+        "policy": {
+          "allow_simulation": false,
+          "require_sources": true,
+          "abort_on_empty": true
+        }
+      },
+      "timeout_s": 5
+    },
+    {
+      "name": "step1_test",
+      "class": "TestStep",
+      "inputs": {
+        "test_data": "real_data_only",
+        "source": "https://flalottery.com"
+      },
+      "timeout_s": 10
+    },
+    {
+      "name": "stepZ_audit",
+      "class": "AuditEmitStep",
+      "inputs": {
+        "summary": {
+          "test_completed": true,
+          "policy_enforced": true
+        }
+      },
+      "timeout_s": 5
+    }
+  ]
+}

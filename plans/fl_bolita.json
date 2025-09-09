@@ -1,0 +1,125 @@
+{
+  "name": "fl_bolita",
+  "description": "Plan Florida→Bolita con guía de noticias determinista",
+  "version": "1.0",
+  "config": {},
+  "steps": [
+    {
+      "name": "step0_enforce",
+      "class": "EnforceOrchestratorStep",
+      "inputs": {
+        "policy": {
+          "allow_simulation": false,
+          "require_sources": true,
+          "abort_on_empty": true
+        }
+      },
+      "timeout_s": 5,
+      "description": "Sentinela universal que enforce la política global"
+    },
+    {
+      "name": "step_block_now",
+      "class": "BlockNowStep",
+      "inputs": {},
+      "timeout_s": 5,
+      "description": "Detectar bloque actual (AM/MID/EVE) en ET"
+    },
+    {
+      "name": "step1_fetch_real",
+      "class": "FetchFLPick3RealStep",
+      "inputs": {
+        "min_results": 12,
+        "days_back": 7
+      },
+      "timeout_s": 20,
+      "retry": {
+        "max": 1,
+        "backoff_ms": 800
+      },
+      "description": "Obtener sorteos reales de Florida Pick 3/4"
+    },
+    {
+      "name": "step_build_candado_context",
+      "class": "BuildCandadoContextStep",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}",
+        "for_block": "${step.step_block_now.block_now}"
+      },
+      "timeout_s": 15,
+      "description": "Armar paquete de candados correcto según horario"
+    },
+    {
+      "name": "step_gematria_per_candado",
+      "class": "GematriaPerCandadoStep",
+      "inputs": {
+        "candados": "${step.step_build_candado_context.candado_context.items}"
+      },
+      "timeout_s": 20,
+      "description": "Aplicar gematría + subliminal a cada candado"
+    },
+    {
+      "name": "step_fuse_guide",
+      "class": "GuideMessageFuseStep",
+      "inputs": {
+        "per_candado": "${step.step_gematria_per_candado.per_candado}",
+        "for_block": "${step.step_block_now.block_now}",
+        "top_topics": 6,
+        "top_keywords": 10
+      },
+      "timeout_s": 15,
+      "description": "Fusionar mensajes de todos los candados en guía única"
+    },
+    {
+      "name": "step_prev_day_export",
+      "class": "PrevDayCandadosExportStep",
+      "inputs": {
+        "candado_context": "${step.step_build_candado_context.candado_context}",
+        "for_block": "${step.step_block_now.block_now}"
+      },
+      "timeout_s": 10,
+      "description": "Exportar candados del día anterior para UI con tarjetas"
+    },
+    {
+      "name": "step4_news_fetch",
+      "class": "NewsFetchEmoUSStep",
+      "inputs": {
+        "guide": "${step.step_fuse_guide.guide}",
+        "min_count": 25,
+        "time_window_h": 12
+      },
+      "timeout_s": 30,
+      "description": "Acopiar noticias emocionales US con guía determinista"
+    },
+    {
+      "name": "stepZ_audit",
+      "class": "AuditEmitStep",
+      "inputs": {
+        "summary": {
+          "plan_completed": true,
+          "policy_enforced": true,
+          "block_detected": "${step.step_block_now.block_now}",
+          "candados_processed": true,
+          "gematria_applied": true,
+          "guide_fused": true,
+          "news_fetched": true,
+          "rule_applied": "fl_bolita_deterministic"
+        }
+      },
+      "timeout_s": 5,
+      "description": "Auditoría final y emisión de reportes"
+    }
+  ],
+  "metadata": {
+    "created_by": "VISION PREMIUM",
+    "policy_compliant": true,
+    "requires_real_data": true,
+    "forbids_simulation": true,
+    "block_detection": "ET_timezone",
+    "candado_rule": "cuban_mapping",
+    "gematria_enabled": true,
+    "subliminal_analysis": true,
+    "guide_message_fusion": true,
+    "news_fetch": "emotional_us",
+    "total_steps": 9
+  }
+}

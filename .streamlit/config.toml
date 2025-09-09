@@ -1,12 +1,36 @@
-[theme]
-primaryColor = "#6C63FF"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#1B1F2A"
-textColor = "#F6F6F6"
-font = "sans serif"
-
-[client]
-toolbarMode = "viewer"
+[global]
+# Configuración global de Streamlit
+showWarningOnDirectExecution = false
 
 [server]
-headless = true
+# Configuración del servidor
+port = 8501
+address = "localhost"
+enableCORS = false
+enableXsrfProtection = false
+maxUploadSize = 200
+
+[browser]
+# Configuración del navegador
+gatherUsageStats = false
+serverAddress = "localhost"
+serverPort = 8501
+
+[theme]
+# Tema por defecto
+primaryColor = "#1f77b4"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#262730"
+font = "sans serif"
+
+[logger]
+# Configuración de logs
+level = "info"
+messageFormat = "%(asctime)s %(message)s"
+
+
+
+
+
+

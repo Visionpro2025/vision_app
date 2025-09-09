@@ -1,0 +1,105 @@
+================================================================================
+REPORTE DE VALIDACIÓN T70
+================================================================================
+Fecha: 2025-08-31 02:49:07
+Archivo CSV: data/T70.csv
+
+DETECCIÓN DE ENCABEZADOS
+----------------------------------------
+Encabezados detectados en CSV:
+  'n' (columna 1)
+  'eq' (columna 2)
+  'titulo' (columna 3)
+  'lectura' (columna 4)
+  'categoria' (columna 5)
+  'sugerencias' (columna 6)
+
+Mapeo de encabezados:
+  N -> 'n'
+  EQ -> 'eq'
+  titulo -> 'titulo'
+  lectura -> 'lectura'
+  categoria -> 'categoria'
+
+RESULTADOS DE VALIDACIÓN
+----------------------------------------
+Total de filas validadas: 70
+Errores encontrados: 0
+Advertencias: 0
+
+ESTADÍSTICAS:
+---------------
+Rango de números N: 1 - 70
+Filas con EQ válido: 70
+Filas sin EQ: 0
+Categorías encontradas: 70
+  Abundancia digital: 1 entradas
+  Activismo digital: 1 entradas
+  Alianzas creativas: 1 entradas
+  Alianzas globales: 1 entradas
+  Ansiedad cultural: 1 entradas
+  Aprendizaje y reflexión: 1 entradas
+  Atención y enfoque: 1 entradas
+  Autoconstrucción narrativa: 1 entradas
+  Autoevaluación: 1 entradas
+  Bucle productividad: 1 entradas
+  Ciclos y memoria: 1 entradas
+  Ciencia abierta: 1 entradas
+  Complejidad extrema: 1 entradas
+  Comunidad y apoyo: 1 entradas
+  Conectividad familiar: 1 entradas
+  Conflicto cíclico: 1 entradas
+  Confrontación digital: 1 entradas
+  Confusión digital: 1 entradas
+  Conspiración transparencia: 1 entradas
+  Control y vigilancia: 1 entradas
+  Coordinación intergeneracional: 1 entradas
+  Crecimiento vacío: 1 entradas
+  Crisis climática: 1 entradas
+  Cultura del cuidado: 1 entradas
+  Curación urbana: 1 entradas
+  Decisión basada en datos: 1 entradas
+  Desconexión social: 1 entradas
+  Desinformación: 1 entradas
+  Diversidad cultural: 1 entradas
+  Ecos cerrados: 1 entradas
+  Educación crítica: 1 entradas
+  Educación inmersiva: 1 entradas
+  Emprendimiento local: 1 entradas
+  Estándares globales: 1 entradas
+  Evaluación pública: 1 entradas
+  Fusión estratégica: 1 entradas
+  Gestión de memoria: 1 entradas
+  Historial vivo: 1 entradas
+  Identidad minorías: 1 entradas
+  Innovación local: 1 entradas
+  Invisibilidad social: 1 entradas
+  Justicia algorítmica: 1 entradas
+  Logística educativa: 1 entradas
+  Manipulación: 1 entradas
+  Mediación digital: 1 entradas
+  Melancolía colectiva: 1 entradas
+  Mentoría vital: 1 entradas
+  Metaverso escalable: 1 entradas
+  Movilidad digital: 1 entradas
+  Narrativa futura: 1 entradas
+  Ocio consciente: 1 entradas
+  Optimismo escalable: 1 entradas
+  Paciencia y microhábitos: 1 entradas
+  Poda estratégica: 1 entradas
+  Poder y escala: 1 entradas
+  Protesta creativa: 1 entradas
+  Protocolos de crisis: 1 entradas
+  Rebelión educativa: 1 entradas
+  Regeneración total: 1 entradas
+  Resiliencia y equilibrio: 1 entradas
+  Revolución tecnológica: 1 entradas
+  Ritmo y disciplina: 1 entradas
+  Seguridad integral: 1 entradas
+  Soledad digital: 1 entradas
+  Subconsciente colectivo: 1 entradas
+  Trabajo remoto: 1 entradas
+  Tradición aumentada: 1 entradas
+  Transformación institucional: 1 entradas
+  Transformación social: 1 entradas
+  Transición energética: 1 entradas

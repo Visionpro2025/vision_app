@@ -1,0 +1,13 @@
+# Bibliografía Gematría - Referencias y fuentes
+# Formato: título|autor|año|descripción
+
+The Complete Gematria Dictionary|Lawrence Kushner|1998|Diccionario completo de valores gematricos hebreos
+Gematria: A Preliminary Investigation|John Michell|1983|Investigación fundamental sobre gematria
+The Kabbalah of Numbers|Sepharial|1913|Clásico sobre numerología cabalística
+Gematria and the Tanakh|Rabbi Michael Munk|1983|Gematria en el texto bíblico
+The Book of Numbers|John Conway|1996|Análisis matemático de patrones numéricos
+Gematria: The Sacred Art of Hebrew Numerology|Rabbi Matityahu Glazerson|1994|Arte sagrado de la numerología hebrea
+The Hebrew Letters|Rabbi Yitzchak Ginsburgh|1990|Letras hebreas y sus valores
+Numerology and the Divine Triangle|Faith Javane|1979|Triángulo divino y numerología
+The Secret Language of Numbers|Roy Horan|1992|Lenguaje secreto de los números
+Gematria: The Sacred Art of Hebrew Numerology|Rabbi Matityahu Glazerson|1994|Arte sagrado de la numerología hebrea

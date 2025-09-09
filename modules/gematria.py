@@ -3,6 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 import pandas as pd
 import streamlit as st
+import json
+from typing import Dict, List
 
 ROOT = Path(__file__).resolve().parent.parent
 CORPUS = ROOT / "__CORPUS" / "GEMATRIA"
@@ -94,6 +96,67 @@ def show_gematria():
                     st.warning("El archivo está vacío o no se pudo leer.")
                 else:
                     st.dataframe(df, use_container_width=True, hide_index=True)
+
+def analyze(df_news: pd.DataFrame) -> pd.DataFrame:
+    """Analiza noticias con gematría y retorna DataFrame con resultados."""
+    if df_news.empty:
+        return pd.DataFrame()
+    
+    results = []
+    
+    for _, row in df_news.iterrows():
+        titular = str(row.get("titular", ""))
+        resumen = str(row.get("resumen", ""))
+        fuente = str(row.get("fuente", ""))
+        fecha = str(row.get("fecha", ""))
+        
+        # Análisis básico de gematría (simulado)
+        texto_completo = f"{titular} {resumen}"
+        
+        # Extraer números del texto
+        import re
+        numeros = re.findall(r'\d+', texto_completo)
+        numeros = [int(n) for n in numeros if 1 <= int(n) <= 70]
+        
+        # Calcular valor gemátrico básico (suma de caracteres ASCII)
+        valor_gematrico = sum(ord(c) for c in texto_completo if c.isalpha())
+        
+        # Determinar categoría
+        categoria = "general"
+        if any(palabra in texto_completo.lower() for palabra in ["protesta", "huelga", "disturbios"]):
+            categoria = "protestas_sociales"
+        elif any(palabra in texto_completo.lower() for palabra in ["tiroteo", "violencia", "homicidio"]):
+            categoria = "violencia_seguridad"
+        elif any(palabra in texto_completo.lower() for palabra in ["inflación", "desempleo", "crisis"]):
+            categoria = "crisis_economica"
+        
+        results.append({
+            "id_noticia": row.get("id_noticia", ""),
+            "titular": titular,
+            "fuente": fuente,
+            "fecha": fecha,
+            "numeros_extraidos": ", ".join(map(str, numeros)),
+            "valor_gematrico": valor_gematrico,
+            "categoria": categoria,
+            "longitud_texto": len(texto_completo),
+            "palabras_clave": ", ".join([w for w in texto_completo.split() if len(w) > 5])
+        })
+    
+    return pd.DataFrame(results)
+
+def previous_draw_message() -> Dict:
+    """Retorna mensaje gemátrico del sorteo anterior."""
+    try:
+        # Simular mensaje del sorteo anterior
+        return {
+            "fecha_sorteo": "2025-01-25",
+            "numeros_ganadores": [7, 14, 21, 28, 35],
+            "mensaje_gematrico": "Los números del cambio social se manifiestan en la secuencia de la transformación",
+            "equivalencias_t70": [7, 14, 21, 28, 35],
+            "interpretacion": "Fuerte presencia de números relacionados con protestas y cambios sociales"
+        }
+    except Exception:
+        return {}
 
     # ---------- TAB 2: Detalle por token ----------
     with tab2:

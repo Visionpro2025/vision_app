@@ -1,0 +1,121 @@
+# ============================================
+# 📌 REGLAS DE CONTENIDO - SIN LOTERÍA, SOLO SOCIAL/EMOCIONAL
+# Filtro de contenido alineado con mensaje del sorteo anterior
+# ============================================
+
+# ❌ NUNCA (hard-ban): si aparece, se descarta
+banned_terms:
+  - lotería
+  - lottery
+  - powerball
+  - mega millions
+  - pick 3
+  - pick3
+  - pick 4
+  - pick4
+  - quiniela
+  - bolita
+  - draw
+  - jackpot
+  - bote
+  - premio
+  - ganador
+  - números
+  - sorteos
+  - apuestas
+  - gambling
+  - casino
+  - betting
+
+# ✅ Señales de "sociedad/emoción" (multilenguaje)
+social_emotion_terms:
+  - protesta
+  - manifestación
+  - comunidad
+  - barrio
+  - familia
+  - violencia
+  - crimen
+  - migración
+  - refugio
+  - empleo
+  - desempleo
+  - salario
+  - vivienda
+  - alquiler
+  - salud mental
+  - escuela
+  - educación
+  - iglesia
+  - templo
+  - festividad
+  - duelo
+  - tragedia
+  - solidaridad
+  - voluntariado
+  - ayuda
+  - crisis
+  - inflación
+  - costo de vida
+  - homeless
+  - eviction
+  - community
+  - neighborhood
+  - family
+  - grief
+  - mourning
+  - celebration
+  - rally
+  - strike
+  - union
+  - workers
+  - housing
+  - mental health
+  - school
+  - education
+  - church
+  - temple
+  - festival
+  - solidarity
+  - volunteer
+  - help
+  - crisis
+  - inflation
+  - cost of living
+
+# 🎯 Geocontexto preferido (no obligatorio, pero suma)
+geo_prefer:
+  - florida
+  - miami
+  - orlando
+  - tampa
+  - jacksonville
+  - estados unidos
+  - usa
+  - united states
+  - cuba
+  - cubano
+  - cubana
+  - latino
+  - latina
+  - hispanic
+  - caribe
+  - caribbean
+
+# Configuración de filtrado
+filtering:
+  min_social_score: 1
+  min_guidance_score: 2
+  top_k_articles: 24
+  diversity_buckets:
+    - familia
+    - comunidad
+    - vivienda
+    - empleo
+    - salud
+    - educacion
+    - seguridad
+    - otros
+
+
+

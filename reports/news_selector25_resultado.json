@@ -1,0 +1,306 @@
+{
+  "timestamp": "2025-09-08T08:26:51.953368",
+  "input_news": 180,
+  "selected_news": 25,
+  "selector_audit": {
+    "input_total": 180,
+    "scored_total": 180,
+    "selected": 25,
+    "threshold_chosen": 0.35,
+    "fallback_applied": true,
+    "reasons": [
+      "fallback_used=22"
+    ],
+    "guide_terms_used": [
+      "crisis",
+      "familia",
+      "comunidad",
+      "ayuda",
+      "solidaridad",
+      "refugio",
+      "vivienda",
+      "empleo",
+      "salud",
+      "educación",
+      "seguridad",
+      "inmigración",
+      "corte",
+      "veredicto",
+      "decisión",
+      "propiedad",
+      "hogar",
+      "shelter",
+      "homeless",
+      "housing",
+      "eviction",
+      "court",
+      "ruling",
+      "sentencing",
+      "justicia",
+      "derechos",
+      "local",
+      "barrio",
+      "community",
+      "neighborhood",
+      "housing assistance",
+      "albergue",
+      "rental",
+      "rent",
+      "employment",
+      "wage",
+      "salary",
+      "jobs",
+      "union",
+      "strike",
+      "clinic",
+      "hospital",
+      "health",
+      "mental health",
+      "college",
+      "school",
+      "education",
+      "teachers",
+      "students",
+      "police"
+    ]
+  },
+  "selected_articles": [
+    {
+      "url": "https://www.npr.org/2025/08/27/nx-s1-5508314/after-a-rocky-summer-international-students-arrive-on-u-s-college-campuses",
+      "title": "After a rocky summer, international students arrive on U.S. college campuses",
+      "score": 0.6255,
+      "hits": [
+        "college",
+        "students"
+      ],
+      "bucket": null
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/cj078n8ynrpo?at_medium=RSS&at_campaign=rss",
+      "title": "Demand for second-hand school uniform rises",
+      "score": 0.3582,
+      "hits": [
+        "school"
+      ],
+      "bucket": null
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/c62n2p67q38o?at_medium=RSS&at_campaign=rss",
+      "title": "Third prosecution for mum for son's school absence",
+      "score": 0.3582,
+      "hits": [
+        "school"
+      ],
+      "bucket": null
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/c209qv1d2qyo?at_medium=RSS&at_campaign=rss",
+      "title": "'Parents are playing detective in battle for school bus passes'",
+      "score": 0.3247,
+      "hits": [
+        "school"
+      ],
+      "bucket": null,
+      "reason": "fallback:vivienda"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/c5y21nvd56ko?at_medium=RSS&at_campaign=rss",
+      "title": "I live in a different country from my husband but we're still happily married",
+      "score": 0.0,
+      "hits": [],
+      "bucket": null,
+      "reason": "fallback:vivienda"
+    },
+    {
+      "url": "https://www.npr.org/2025/09/07/nx-s1-5525823/national-grandparent-day-advice",
+      "title": "Are you a grandparent-to-be? Here's some advice from those who came before you",
+      "score": 0.0,
+      "hits": [],
+      "bucket": null,
+      "reason": "fallback:vivienda"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/cpwywkn9pr0o?at_medium=RSS&at_campaign=rss",
+      "title": "Send system hijacked by parents – Reform UK's Tice",
+      "score": 0.0,
+      "hits": [],
+      "bucket": null,
+      "reason": "fallback:vivienda"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/cql26knn4kzo?at_medium=RSS&at_campaign=rss",
+      "title": "How working parents can get 30 hours of free childcare",
+      "score": 0.0,
+      "hits": [],
+      "bucket": null,
+      "reason": "fallback:vivienda"
+    },
+    {
+      "url": "https://www.npr.org/2018/09/29/652988484/u-s-closes-consulate-in-basra-citing-iran-backed-violence",
+      "title": "U.S. Closes Consulate In Basra, Citing Iran-Backed Violence",
+      "score": 0.3395,
+      "hits": [
+        "violence"
+      ],
+      "bucket": null,
+      "reason": "fallback:seguridad"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/c4g7xl4p53ko?at_medium=RSS&at_campaign=rss",
+      "title": "Czech police finally catch up with 'phantom racing car driver'",
+      "score": 0.3128,
+      "hits": [
+        "police"
+      ],
+      "bucket": null,
+      "reason": "fallback:seguridad"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/c62q4l0d171o?at_medium=RSS&at_campaign=rss",
+      "title": "World's largest sports piracy site shut down by police",
+      "score": 0.3128,
+      "hits": [
+        "police"
+      ],
+      "bucket": null,
+      "reason": "fallback:seguridad"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/c8e1zw28766o?at_medium=RSS&at_campaign=rss",
+      "title": "Martha's rule rolled out to all acute hospitals in England after hundreds of lives saved",
+      "score": 0.0,
+      "hits": [],
+      "bucket": null,
+      "reason": "fallback:salud"
+    },
+    {
+      "url": "https://www.npr.org/2025/08/27/nx-s1-5511318/high-school-credit-recovery-programs-help-students-graduate-but-there-are-critics",
+      "title": "High school credit recovery programs help students graduate, but there are critics",
+      "score": 0.5886,
+      "hits": [
+        "school",
+        "students"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/c07vegyyz7go?at_medium=RSS&at_campaign=rss",
+      "title": "Year 12 cancelled at start of school's new term",
+      "score": 0.3395,
+      "hits": [
+        "school"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.npr.org/2025/09/05/nx-s1-5528891/how-the-trump-administration-is-trying-to-reshape-k-12-education",
+      "title": "How the Trump administration is trying to reshape K-12 education",
+      "score": 0.3247,
+      "hits": [
+        "education"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/cx2q189kv7yo?at_medium=RSS&at_campaign=rss",
+      "title": "Are girls being left behind in school? Experts are sounding the alarm",
+      "score": 0.3128,
+      "hits": [
+        "school"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/c5ypm4z19myo?at_medium=RSS&at_campaign=rss",
+      "title": "Meet the three-year-olds helping anxious teens spend more time in school",
+      "score": 0.3028,
+      "hits": [
+        "school"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.npr.org/2025/08/29/nx-s1-5509553/at-a-high-school-in-wichita-friday-night-lights-is-no-longer-about-football",
+      "title": "At a high school in Wichita, Friday night lights is no longer about football",
+      "score": 0.3028,
+      "hits": [
+        "school"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.npr.org/2025/08/27/nx-s1-5498669/trump-college-international-student-visa",
+      "title": "Colleges see significant drop in international students as fall semester begins",
+      "score": 0.3028,
+      "hits": [
+        "students"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.npr.org/2025/09/04/nx-s1-5500262/trump-civil-rights-schools-students",
+      "title": "How the Education Department is using civil rights laws to bring schools to heel",
+      "score": 0.2943,
+      "hits": [
+        "education"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.npr.org/2025/09/01/nx-s1-5495531/more-states-now-ban-cell-phones-in-schools",
+      "title": "More students head back to class without one crucial thing: their phones",
+      "score": 0.2943,
+      "hits": [
+        "students"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.npr.org/2025/08/27/nx-s1-5515759/college-schools-education-new-orleans-katrina",
+      "title": "A 'college for all' push thrived in New Orleans after Katrina. It wasn't for everyone",
+      "score": 0.2943,
+      "hits": [
+        "college"
+      ],
+      "bucket": null,
+      "reason": "fallback:educacion"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/cm2dzlrm0jno?at_medium=RSS&at_campaign=rss",
+      "title": "UK launches £250m defence strategy to boost jobs",
+      "score": 0.3395,
+      "hits": [
+        "jobs"
+      ],
+      "bucket": null,
+      "reason": "fallback:empleo"
+    },
+    {
+      "url": "https://www.npr.org/2025/09/05/nx-s1-5530733/bls-jobs-report-labor-statistics-trump",
+      "title": "You can trust the jobs report, Labor Department workers urge public",
+      "score": 0.3028,
+      "hits": [
+        "jobs"
+      ],
+      "bucket": null,
+      "reason": "fallback:empleo"
+    },
+    {
+      "url": "https://www.bbc.com/news/articles/cq65l5epl3eo?at_medium=RSS&at_campaign=rss",
+      "title": "Unions warn government not to water down workers' rights bill",
+      "score": 0.0,
+      "hits": [],
+      "bucket": null,
+      "reason": "fallback:empleo"
+    }
+  ]
+}

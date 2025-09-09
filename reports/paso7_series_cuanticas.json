@@ -1,0 +1,468 @@
+{
+  "timestamp": "2025-09-08T19:48:44.600704",
+  "step": 7,
+  "name": "Generación de Series Cuánticas",
+  "status": "completed",
+  "quantum_series": [
+    {
+      "id": "QS-001",
+      "numbers": [
+        3,
+        1,
+        8
+      ],
+      "quantum_properties": {
+        "quantum_sum": 12,
+        "quantum_product": 24,
+        "entropy": 1.585,
+        "coherence": -0.556,
+        "variance": 8.667
+      },
+      "energy_level": "alta",
+      "coherence_score": 0.4,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-002",
+      "numbers": [
+        4,
+        7,
+        3
+      ],
+      "quantum_properties": {
+        "quantum_sum": 14,
+        "quantum_product": 84,
+        "entropy": 1.585,
+        "coherence": 0.111,
+        "variance": 2.889
+      },
+      "energy_level": "alta",
+      "coherence_score": 0.4,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-003",
+      "numbers": [
+        3,
+        8,
+        4
+      ],
+      "quantum_properties": {
+        "quantum_sum": 15,
+        "quantum_product": 96,
+        "entropy": 1.585,
+        "coherence": -0.111,
+        "variance": 4.667
+      },
+      "energy_level": "alta",
+      "coherence_score": 0.4,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-004",
+      "numbers": [
+        1,
+        7,
+        4
+      ],
+      "quantum_properties": {
+        "quantum_sum": 12,
+        "quantum_product": 28,
+        "entropy": 1.585,
+        "coherence": -0.333,
+        "variance": 6.0
+      },
+      "energy_level": "alta",
+      "coherence_score": 0.4,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-005",
+      "numbers": [
+        1,
+        7,
+        3
+      ],
+      "quantum_properties": {
+        "quantum_sum": 11,
+        "quantum_product": 21,
+        "entropy": 1.585,
+        "coherence": -0.333,
+        "variance": 6.222
+      },
+      "energy_level": "alta",
+      "coherence_score": 0.4,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-006",
+      "numbers": [
+        2,
+        6,
+        6
+      ],
+      "quantum_properties": {
+        "quantum_sum": 14,
+        "quantum_product": 72,
+        "entropy": 0.918,
+        "coherence": 0.111,
+        "variance": 3.556
+      },
+      "energy_level": "media",
+      "coherence_score": 0.8,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-007",
+      "numbers": [
+        3,
+        6,
+        6
+      ],
+      "quantum_properties": {
+        "quantum_sum": 15,
+        "quantum_product": 108,
+        "entropy": 0.918,
+        "coherence": 0.333,
+        "variance": 2.0
+      },
+      "energy_level": "media",
+      "coherence_score": 0.8,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-008",
+      "numbers": [
+        3,
+        1,
+        6
+      ],
+      "quantum_properties": {
+        "quantum_sum": 10,
+        "quantum_product": 18,
+        "entropy": 1.585,
+        "coherence": -0.111,
+        "variance": 4.222
+      },
+      "energy_level": "alta",
+      "coherence_score": 0.4,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-009",
+      "numbers": [
+        3,
+        2,
+        6
+      ],
+      "quantum_properties": {
+        "quantum_sum": 11,
+        "quantum_product": 36,
+        "entropy": 1.585,
+        "coherence": 0.111,
+        "variance": 2.889
+      },
+      "energy_level": "alta",
+      "coherence_score": 0.4,
+      "generation_method": "quantum_hybrid"
+    },
+    {
+      "id": "QS-010",
+      "numbers": [
+        1,
+        2,
+        6
+      ],
+      "quantum_properties": {
+        "quantum_sum": 9,
+        "quantum_product": 12,
+        "entropy": 1.585,
+        "coherence": -0.111,
+        "variance": 4.667
+      },
+      "energy_level": "alta",
+      "coherence_score": 0.4,
+      "generation_method": "quantum_hybrid"
+    }
+  ],
+  "suggested_configs": [
+    {
+      "name": "Máxima Coherencia",
+      "description": "Series con mayor coherencia cuántica",
+      "series": [
+        {
+          "id": "QS-006",
+          "numbers": [
+            2,
+            6,
+            6
+          ],
+          "quantum_properties": {
+            "quantum_sum": 14,
+            "quantum_product": 72,
+            "entropy": 0.918,
+            "coherence": 0.111,
+            "variance": 3.556
+          },
+          "energy_level": "media",
+          "coherence_score": 0.8,
+          "generation_method": "quantum_hybrid"
+        },
+        {
+          "id": "QS-007",
+          "numbers": [
+            3,
+            6,
+            6
+          ],
+          "quantum_properties": {
+            "quantum_sum": 15,
+            "quantum_product": 108,
+            "entropy": 0.918,
+            "coherence": 0.333,
+            "variance": 2.0
+          },
+          "energy_level": "media",
+          "coherence_score": 0.8,
+          "generation_method": "quantum_hybrid"
+        },
+        {
+          "id": "QS-001",
+          "numbers": [
+            3,
+            1,
+            8
+          ],
+          "quantum_properties": {
+            "quantum_sum": 12,
+            "quantum_product": 24,
+            "entropy": 1.585,
+            "coherence": -0.556,
+            "variance": 8.667
+          },
+          "energy_level": "alta",
+          "coherence_score": 0.4,
+          "generation_method": "quantum_hybrid"
+        }
+      ],
+      "priority": "high"
+    },
+    {
+      "name": "Alta Energía",
+      "description": "Series con mayor nivel de energía",
+      "series": [
+        {
+          "id": "QS-001",
+          "numbers": [
+            3,
+            1,
+            8
+          ],
+          "quantum_properties": {
+            "quantum_sum": 12,
+            "quantum_product": 24,
+            "entropy": 1.585,
+            "coherence": -0.556,
+            "variance": 8.667
+          },
+          "energy_level": "alta",
+          "coherence_score": 0.4,
+          "generation_method": "quantum_hybrid"
+        },
+        {
+          "id": "QS-002",
+          "numbers": [
+            4,
+            7,
+            3
+          ],
+          "quantum_properties": {
+            "quantum_sum": 14,
+            "quantum_product": 84,
+            "entropy": 1.585,
+            "coherence": 0.111,
+            "variance": 2.889
+          },
+          "energy_level": "alta",
+          "coherence_score": 0.4,
+          "generation_method": "quantum_hybrid"
+        },
+        {
+          "id": "QS-003",
+          "numbers": [
+            3,
+            8,
+            4
+          ],
+          "quantum_properties": {
+            "quantum_sum": 15,
+            "quantum_product": 96,
+            "entropy": 1.585,
+            "coherence": -0.111,
+            "variance": 4.667
+          },
+          "energy_level": "alta",
+          "coherence_score": 0.4,
+          "generation_method": "quantum_hybrid"
+        }
+      ],
+      "priority": "high"
+    },
+    {
+      "name": "Equilibrio Cuántico",
+      "description": "Series con equilibrio entre coherencia y energía",
+      "series": [
+        {
+          "id": "QS-006",
+          "numbers": [
+            2,
+            6,
+            6
+          ],
+          "quantum_properties": {
+            "quantum_sum": 14,
+            "quantum_product": 72,
+            "entropy": 0.918,
+            "coherence": 0.111,
+            "variance": 3.556
+          },
+          "energy_level": "media",
+          "coherence_score": 0.8,
+          "generation_method": "quantum_hybrid"
+        },
+        {
+          "id": "QS-007",
+          "numbers": [
+            3,
+            6,
+            6
+          ],
+          "quantum_properties": {
+            "quantum_sum": 15,
+            "quantum_product": 108,
+            "entropy": 0.918,
+            "coherence": 0.333,
+            "variance": 2.0
+          },
+          "energy_level": "media",
+          "coherence_score": 0.8,
+          "generation_method": "quantum_hybrid"
+        }
+      ],
+      "priority": "medium"
+    },
+    {
+      "name": "Diversidad Cuántica",
+      "description": "Series con máxima diversidad",
+      "series": [
+        {
+          "id": "QS-001",
+          "numbers": [
+            3,
+            1,
+            8
+          ],
+          "quantum_properties": {
+            "quantum_sum": 12,
+            "quantum_product": 24,
+            "entropy": 1.585,
+            "coherence": -0.556,
+            "variance": 8.667
+          },
+          "energy_level": "alta",
+          "coherence_score": 0.4,
+          "generation_method": "quantum_hybrid"
+        },
+        {
+          "id": "QS-003",
+          "numbers": [
+            3,
+            8,
+            4
+          ],
+          "quantum_properties": {
+            "quantum_sum": 15,
+            "quantum_product": 96,
+            "entropy": 1.585,
+            "coherence": -0.111,
+            "variance": 4.667
+          },
+          "energy_level": "alta",
+          "coherence_score": 0.4,
+          "generation_method": "quantum_hybrid"
+        },
+        {
+          "id": "QS-005",
+          "numbers": [
+            1,
+            7,
+            3
+          ],
+          "quantum_properties": {
+            "quantum_sum": 11,
+            "quantum_product": 21,
+            "entropy": 1.585,
+            "coherence": -0.333,
+            "variance": 6.222
+          },
+          "energy_level": "alta",
+          "coherence_score": 0.4,
+          "generation_method": "quantum_hybrid"
+        }
+      ],
+      "priority": "medium"
+    }
+  ],
+  "auditor_validation": {
+    "valid": true,
+    "count": 10,
+    "total": 10,
+    "issues": []
+  },
+  "metadata": {
+    "total_series": 10,
+    "sefirotic_candidates_used": {
+      "alta": [
+        3,
+        8,
+        2,
+        1,
+        7,
+        4
+      ],
+      "media": [
+        6,
+        9
+      ],
+      "baja": [
+        5
+      ]
+    },
+    "table100_digits_used": [
+      1,
+      4,
+      6,
+      8,
+      9
+    ],
+    "subliminal_guidance_used": {
+      "topics": [
+        "crisis",
+        "familia",
+        "comunidad"
+      ],
+      "keywords": [
+        "ayuda",
+        "solidaridad",
+        "refugio"
+      ],
+      "families": [
+        "justicia",
+        "derechos",
+        "comunidad"
+      ]
+    },
+    "timestamp": "2025-09-08T19:48:44.504351"
+  },
+  "ready_for_step8": true
+}

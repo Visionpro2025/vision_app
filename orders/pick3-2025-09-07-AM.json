@@ -1,0 +1,13 @@
+{
+  "run_id": "pick3-2025-09-07-AM-001",
+  "plan": "app_vision/plans/pick3_pro.json",
+  "inputs": {
+    "prev_draw": [3, 7, 9],
+    "label": "AM",
+    "game": "Pick3_FL"
+  }
+}
+
+
+
+

@@ -1,0 +1,149 @@
+{
+  "config": {
+    "name": "Protocolo Universal Pick 3 Pro - Hard Orchestrator",
+    "version": "3.0",
+    "description": "Protocolo con orquestador estricto - solo datos reales",
+    "allow_simulation": false,
+    "enforce_contracts": true,
+    "fail_noisy": true
+  },
+  "defaults": {
+    "min_results": 5,
+    "threshold": 0.6,
+    "min_attr": 3,
+    "timeout_s": 20,
+    "retry": {
+      "max": 1,
+      "backoff_ms": 800
+    }
+  },
+  "steps": [
+    {
+      "name": "step0_enforce",
+      "class": "EnforceOrchestratorStep",
+      "inputs": {
+        "allow_simulation": false,
+        "min_results": 5,
+        "timeout_s": 20
+      }
+    },
+    {
+      "name": "step1_fetch_real",
+      "class": "FetchFLPick3RealStep",
+      "inputs": {
+        "min_results": 5
+      },
+      "timeout_s": 20,
+      "retry": {
+        "max": 1,
+        "backoff_ms": 800
+      }
+    },
+    {
+      "name": "step6_sefirotico",
+      "class": "SefiroticAnalysisStepV2",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}"
+      },
+      "timeout_s": 15
+    },
+    {
+      "name": "step3_subliminal",
+      "class": "SubliminalGuardedStepV2",
+      "inputs": {
+        "draws": "${step.step1_fetch_real.draws}",
+        "label": "AM"
+      },
+      "timeout_s": 15
+    },
+    {
+      "name": "step4_news_fetch",
+      "class": "YourNewsFetchStep",
+      "inputs": {
+        "feeds": [
+          "https://feeds.bbci.co.uk/news/rss.xml",
+          "https://rss.cnn.com/rss/edition.rss",
+          "https://www.reuters.com/world/us/rss"
+        ],
+        "max_per_feed": 25,
+        "mode": "emotional",
+        "guidance_terms": "${step.step3_subliminal.analisis_subliminal.topics}"
+      },
+      "timeout_s": 30,
+      "retry": {
+        "max": 2,
+        "backoff_ms": 1000
+      }
+    },
+    {
+      "name": "step4b_news_guarded",
+      "class": "NewsGuardedStep",
+      "inputs": {
+        "raw_news_urls": "${step.step4_news_fetch.urls}",
+        "policy_path": "plans/news_policy.yaml"
+      },
+      "timeout_s": 20
+    },
+    {
+      "name": "step4c_news_selector25",
+      "class": "NewsSelector25Step",
+      "inputs": {
+        "valid_news": "${step.step4b_news_guarded.valid_news_urls}",
+        "guidance": {
+          "topics": "${step.step6_sefirotico.sefirah_scores}",
+          "keywords": "${step.step3_subliminal.analisis_subliminal.keywords}",
+          "families": "${step.step3_subliminal.submensaje_guia.families}"
+        },
+        "start_threshold": 0.6,
+        "min_keep": 25,
+        "require_body": false
+      },
+      "timeout_s": 15
+    },
+    {
+      "name": "step5_news_attribution",
+      "class": "NewsAttributionTable100Step",
+      "inputs": {
+        "selected_news": "${step.step4c_news_selector25.selected_25}",
+        "guidance": {
+          "topics": "${step.step6_sefirotico.sefirah_scores}",
+          "keywords": "${step.step3_subliminal.analisis_subliminal.keywords}",
+          "families": "${step.step3_subliminal.submensaje_guia.families}"
+        },
+        "min_attr": 3,
+        "threshold": 0.6
+      },
+      "timeout_s": 15
+    },
+    {
+      "name": "step7_quantum_series",
+      "class": "QuantumSeriesGenerationStep",
+      "inputs": {
+        "sefirotic_candidates": "${step.step6_sefirotico.candidates}",
+        "table100_numbers": "${step.step5_news_attribution.attribution.global_rank}",
+        "subliminal_guidance": "${step.step3_subliminal.submensaje_guia}"
+      },
+      "timeout_s": 20
+    },
+    {
+      "name": "step8_artifacts",
+      "class": "ArtifactsStepPatch",
+      "inputs": {
+        "news_selected": "${step.step4c_news_selector25.selected_25}",
+        "news_metrics": "${step.step4c_news_selector25.selector_audit}",
+        "guidance_used": "${step.step3_subliminal.submensaje_guia}",
+        "sefirotic_analysis": "${step.step6_sefirotico}",
+        "quantum_series": "${step.step7_quantum_series}",
+        "provenance": {
+          "draws_source": "${step.step1_fetch_real.provenance}",
+          "news_source": "${step.step4_news_fetch.provenance}",
+          "execution_timestamp": "now"
+        }
+      },
+      "timeout_s": 10
+    }
+  ]
+}
+
+
+

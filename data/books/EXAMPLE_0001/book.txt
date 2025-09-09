@@ -1,0 +1,15 @@
+EJEMPLO DE LIBRO
+
+Este es un libro de demostración que forma parte de la bóveda local de libros del repositorio VISIÓN Premium. Su propósito es mostrar cómo se estructura y organiza la información de los libros en el sistema.
+
+El contenido está diseñado para ser simple y claro, permitiendo a los desarrolladores entender rápidamente cómo funciona el sistema de indexación y búsqueda. Cada párrafo contiene información relevante que puede ser procesada por los algoritmos de análisis de texto.
+
+La bóveda de libros local permite almacenar metadatos, citaciones en formato CSL-JSON, e índices de búsqueda para cada libro. Esto facilita la gestión de referencias bibliográficas y la búsqueda de contenido específico dentro de los textos almacenados.
+
+Este sistema es especialmente útil para proyectos de investigación, desarrollo de aplicaciones educativas, o cualquier proyecto que requiera gestión local de bibliografía sin depender de servicios externos.
+
+
+
+
+
+

@@ -1,0 +1,295 @@
+{
+  "timestamp": "2025-09-08T08:28:31.965497",
+  "input_news": 25,
+  "status": "OK",
+  "attribution": {
+    "table_version": "1.0",
+    "per_article": [
+      {
+        "url": "https://www.npr.org/2025/08/27/nx-s1-5508314/after-a-rocky-summer-international-students-arrive-on-u-s-college-campuses",
+        "title": "After a rocky summer, international students arrive on U.S. college campuses",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/cj078n8ynrpo?at_medium=RSS&at_campaign=rss",
+        "title": "Demand for second-hand school uniform rises",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/c62n2p67q38o?at_medium=RSS&at_campaign=rss",
+        "title": "Third prosecution for mum for son's school absence",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/c209qv1d2qyo?at_medium=RSS&at_campaign=rss",
+        "title": "'Parents are playing detective in battle for school bus passes'",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/c5y21nvd56ko?at_medium=RSS&at_campaign=rss",
+        "title": "I live in a different country from my husband but we're still happily married",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2025/09/07/nx-s1-5525823/national-grandparent-day-advice",
+        "title": "Are you a grandparent-to-be? Here's some advice from those who came before you",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/cpwywkn9pr0o?at_medium=RSS&at_campaign=rss",
+        "title": "Send system hijacked by parents – Reform UK's Tice",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/cql26knn4kzo?at_medium=RSS&at_campaign=rss",
+        "title": "How working parents can get 30 hours of free childcare",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2018/09/29/652988484/u-s-closes-consulate-in-basra-citing-iran-backed-violence",
+        "title": "U.S. Closes Consulate In Basra, Citing Iran-Backed Violence",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/c4g7xl4p53ko?at_medium=RSS&at_campaign=rss",
+        "title": "Czech police finally catch up with 'phantom racing car driver'",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/c62q4l0d171o?at_medium=RSS&at_campaign=rss",
+        "title": "World's largest sports piracy site shut down by police",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/c8e1zw28766o?at_medium=RSS&at_campaign=rss",
+        "title": "Martha's rule rolled out to all acute hospitals in England after hundreds of lives saved",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2025/08/27/nx-s1-5511318/high-school-credit-recovery-programs-help-students-graduate-but-there-are-critics",
+        "title": "High school credit recovery programs help students graduate, but there are critics",
+        "top": [
+          {
+            "number": 69,
+            "score": 1.03,
+            "label": "responsabilidad-humanidad",
+            "hits": [
+              "help"
+            ]
+          },
+          {
+            "number": 96,
+            "score": 1.03,
+            "label": "humanidad-responsabilidad",
+            "hits": [
+              "help"
+            ]
+          },
+          {
+            "number": 49,
+            "score": 0.883,
+            "label": "estabilidad-humanidad",
+            "hits": [
+              "help"
+            ]
+          },
+          {
+            "number": 89,
+            "score": 0.883,
+            "label": "poder-humanidad",
+            "hits": [
+              "help"
+            ]
+          },
+          {
+            "number": 94,
+            "score": 0.883,
+            "label": "humanidad-estabilidad",
+            "hits": [
+              "help"
+            ]
+          }
+        ]
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/c07vegyyz7go?at_medium=RSS&at_campaign=rss",
+        "title": "Year 12 cancelled at start of school's new term",
+        "top": [
+          {
+            "number": 91,
+            "score": 0.849,
+            "label": "humanidad-inicio",
+            "hits": [
+              "start"
+            ]
+          },
+          {
+            "number": 61,
+            "score": 0.679,
+            "label": "responsabilidad-inicio",
+            "hits": [
+              "start"
+            ]
+          },
+          {
+            "number": 41,
+            "score": 0.509,
+            "label": "estabilidad-inicio",
+            "hits": [
+              "start"
+            ]
+          },
+          {
+            "number": 81,
+            "score": 0.509,
+            "label": "poder-inicio",
+            "hits": [
+              "start"
+            ]
+          },
+          {
+            "number": 1,
+            "score": 0.339,
+            "label": "inicio",
+            "hits": [
+              "start"
+            ]
+          }
+        ]
+      },
+      {
+        "url": "https://www.npr.org/2025/09/05/nx-s1-5528891/how-the-trump-administration-is-trying-to-reshape-k-12-education",
+        "title": "How the Trump administration is trying to reshape K-12 education",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/cx2q189kv7yo?at_medium=RSS&at_campaign=rss",
+        "title": "Are girls being left behind in school? Experts are sounding the alarm",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/c5ypm4z19myo?at_medium=RSS&at_campaign=rss",
+        "title": "Meet the three-year-olds helping anxious teens spend more time in school",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2025/08/29/nx-s1-5509553/at-a-high-school-in-wichita-friday-night-lights-is-no-longer-about-football",
+        "title": "At a high school in Wichita, Friday night lights is no longer about football",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2025/08/27/nx-s1-5498669/trump-college-international-student-visa",
+        "title": "Colleges see significant drop in international students as fall semester begins",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2025/09/04/nx-s1-5500262/trump-civil-rights-schools-students",
+        "title": "How the Education Department is using civil rights laws to bring schools to heel",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2025/09/01/nx-s1-5495531/more-states-now-ban-cell-phones-in-schools",
+        "title": "More students head back to class without one crucial thing: their phones",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2025/08/27/nx-s1-5515759/college-schools-education-new-orleans-katrina",
+        "title": "A 'college for all' push thrived in New Orleans after Katrina. It wasn't for everyone",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/cm2dzlrm0jno?at_medium=RSS&at_campaign=rss",
+        "title": "UK launches £250m defence strategy to boost jobs",
+        "top": []
+      },
+      {
+        "url": "https://www.npr.org/2025/09/05/nx-s1-5530733/bls-jobs-report-labor-statistics-trump",
+        "title": "You can trust the jobs report, Labor Department workers urge public",
+        "top": []
+      },
+      {
+        "url": "https://www.bbc.com/news/articles/cq65l5epl3eo?at_medium=RSS&at_campaign=rss",
+        "title": "Unions warn government not to water down workers' rights bill",
+        "top": []
+      }
+    ],
+    "global_rank": [
+      {
+        "number": 69,
+        "score": 1.03,
+        "label": "responsabilidad-humanidad",
+        "meaning": "familia, servicio, cuidado + solidaridad, cierre, ayuda"
+      },
+      {
+        "number": 96,
+        "score": 1.03,
+        "label": "humanidad-responsabilidad",
+        "meaning": "solidaridad, cierre, ayuda + familia, servicio, cuidado"
+      },
+      {
+        "number": 49,
+        "score": 0.883,
+        "label": "estabilidad-humanidad",
+        "meaning": "estructura, hogar, base + solidaridad, cierre, ayuda"
+      },
+      {
+        "number": 89,
+        "score": 0.883,
+        "label": "poder-humanidad",
+        "meaning": "economía, autoridad, éxito + solidaridad, cierre, ayuda"
+      },
+      {
+        "number": 94,
+        "score": 0.883,
+        "label": "humanidad-estabilidad",
+        "meaning": "solidaridad, cierre, ayuda + estructura, hogar, base"
+      },
+      {
+        "number": 91,
+        "score": 0.849,
+        "label": "humanidad-inicio",
+        "meaning": "solidaridad, cierre, ayuda + comienzo, impulso, identidad"
+      },
+      {
+        "number": 61,
+        "score": 0.679,
+        "label": "responsabilidad-inicio",
+        "meaning": "familia, servicio, cuidado + comienzo, impulso, identidad"
+      },
+      {
+        "number": 41,
+        "score": 0.509,
+        "label": "estabilidad-inicio",
+        "meaning": "estructura, hogar, base + comienzo, impulso, identidad"
+      },
+      {
+        "number": 81,
+        "score": 0.509,
+        "label": "poder-inicio",
+        "meaning": "economía, autoridad, éxito + comienzo, impulso, identidad"
+      },
+      {
+        "number": 1,
+        "score": 0.339,
+        "label": "inicio",
+        "meaning": "comienzo, impulso, identidad"
+      }
+    ],
+    "auditor": {
+      "ok": true,
+      "threshold": 0.6,
+      "min_attr": 3,
+      "kept_above_threshold": 7,
+      "total_articles": 25,
+      "reasons": []
+    }
+  },
+  "auditor": {
+    "ok": true,
+    "threshold": 0.6,
+    "min_attr": 3,
+    "kept_above_threshold": 7,
+    "total_articles": 25,
+    "reasons": []
+  }
+}

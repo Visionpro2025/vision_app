@@ -1,0 +1,15 @@
+{
+  "run_id": "flq-2025-09-08-AM",
+  "plan": "plans/florida_quiniela_pro.json",
+  "inputs": {
+    "game": "Florida_Quiniela",
+    "mode": "FLORIDA_QUINIELA",
+    "p3_mid": "698",
+    "p4_mid": "5184",
+    "p3_eve": "607",
+    "p4_eve": "1670"
+  }
+}
+
+
+

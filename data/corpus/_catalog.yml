@@ -1,0 +1,15 @@
+# Catálogo maestro del corpus de VISIÓN Premium
+# Formato: YAML con lista de documentos registrados
+# Cada entrada debe tener metadata.yml, csl.json, index.jsonl
+# Solo documentos con lic:public_domain o lic:open_access pueden tener full-text
+
+version: 1
+last_updated: "2025-08-31T06:13:00Z"
+total_documents: 0
+documents: []
+
+
+
+
+
+
