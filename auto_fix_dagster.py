@@ -1,5 +1,6 @@
-# === Verificación y corrección automática para Dagster Cloud Serverless ===
+# === Verificación + Corrección + Push automático ===
 import os
+import subprocess
 from pathlib import Path
 
 # 1. Confirmar ruta base del repo
@@ -71,5 +72,11 @@ else:
     else:
         print("✅ requirements.txt con dependencias correctas")
 
-print("\n🚀 Verificación y corrección completa. Ya puedes hacer:")
-print("   git add . && git commit -m 'fix estructura dagster serverless' && git push origin main")
+# 6. Git add / commit / push automático
+print("\n📤 Subiendo cambios al repositorio...")
+subprocess.run(["git", "add", "."], check=True)
+subprocess.run(["git", "commit", "-m", "fix estructura dagster serverless"], check=False)
+subprocess.run(["git", "push", "origin", "main"], check=True)
+
+print("\n🚀 Todo listo: repo verificado, corregido y sincronizado con GitHub.")
+print("👉 Ahora ve a Dagster Cloud y haz 'Redeploy'.")
