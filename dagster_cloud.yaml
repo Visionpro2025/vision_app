@@ -1,5 +1,4 @@
-# Dagster Cloud Serverless: configuración Vision App
-deployment:
+﻿deployment:
   name: vision_app
   code_locations:
     - location_name: vision_app
