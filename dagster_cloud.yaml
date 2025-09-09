@@ -1,4 +1,4 @@
-﻿code_locations:
+﻿locations:
   - location_name: vision_app
     code_source:
       package_name: orchestrator
