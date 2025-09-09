@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vision_app"
+version = "0.1.0"
+description = "Protocolo Universal - App.Vision"
+authors = [{ name = "Arquitecto", email = "tu_email@ejemplo.com" }]
+dependencies = [
+  "dagster",
+  "dagster-cloud",
+  "pydantic",
+  "requests",
+  "python-dateutil",
+  "PyYAML"
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app_vision*","orchestrator*"]

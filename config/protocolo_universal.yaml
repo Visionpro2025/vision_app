@@ -1,0 +1,39 @@
+tz: "America/New_York"
+blocks:
+  am_end:  "06:30"
+  mid_end: "14:10"
+  eve_end: "22:20"
+
+fetch:
+  timeout_s: 8
+  retries: 2
+  backoff_base: 0.6
+  allow_sources: ["floridalottery", "lotteryusa"]
+
+news:
+  min_count: 25
+  window_hours_primary: 12
+  window_hours_fallback: 36
+  allowlist_domains:
+    - "nytimes.com"
+    - "apnews.com"
+    - "reuters.com"
+    - "npr.org"
+    - "bbc.com"
+    - "cnn.com"
+    - "usatoday.com"
+    - "wsj.com"
+    - "washingtonpost.com"
+    - "latimes.com"
+
+guards:
+  require_p4_fallback: true
+
+determinism:
+  seed_key: "{date}-{block}-{candado}"
+
+cache:
+  ttl_minutes:
+    AM: 30
+    MID: 30
+    EVE: 45
