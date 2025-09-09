@@ -4,4 +4,4 @@
     - location_name: vision_app
       code_source:
         package_name: orchestrator
-      image: ghcr.io/Visionpro2025/
+      image: ghcr.io/Visionpro2025/vision_app:latest
