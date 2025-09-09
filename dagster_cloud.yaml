@@ -1,7 +1,6 @@
-# Dagster Cloud Serverless: configuración simplificada
+# Dagster Cloud Serverless: apunta a definitions.py dentro de orchestrator/
 deployment:
   name: vision_app
   code_locations:
-    - location_name: vision_app
-      code_source:
-        package_name: orchestrator
+    - location_name: vision_app_location
+      python_file: orchestrator/definitions.py
