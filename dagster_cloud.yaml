@@ -1,4 +1,4 @@
-# Dagster Cloud Hybrid: configuración Vision App
+﻿# Dagster Cloud Hybrid: configuración Vision App
 deployment:
   name: vision_app
   code_locations:
