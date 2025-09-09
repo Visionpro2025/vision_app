@@ -336,3 +336,4 @@ def generate_insights(freq_df: pd.DataFrame) -> Dict[str, Any]:
 
 
 
+

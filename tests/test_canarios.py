@@ -36,3 +36,4 @@ def test_config_cargada(config):
     assert "news" in config, "Config: falta sección news"
     assert config["news"]["min_count"] >= 25, "Config: min_count < 25"
 
+

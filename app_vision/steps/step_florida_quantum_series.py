@@ -647,3 +647,4 @@ class FloridaQuantumSeriesStep(Step):
         return min(gematria_value, 10)
 
 
+

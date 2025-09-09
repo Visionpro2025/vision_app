@@ -58,3 +58,4 @@ def generate_preliminary_series(candidatos):
         series.append(random.sample(candidatos, 6))
     return series
 
+

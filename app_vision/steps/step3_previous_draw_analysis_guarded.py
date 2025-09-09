@@ -87,3 +87,4 @@ def do_gematria_and_subliminal(candado_item):
     
     return topics, keywords, message, trace
 
+

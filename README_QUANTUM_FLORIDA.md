@@ -164,3 +164,4 @@ candado_result = quantum_candado.generate_quantum_candado(p3_mid, p4_mid, p3_eve
 
 
 
+

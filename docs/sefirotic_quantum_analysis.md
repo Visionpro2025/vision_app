@@ -210,3 +210,4 @@ Resumen Jerárquico ← Análisis Cuántico ← Series Cuánticas
 - Resultados coherentes y consistentes
 
 
+
