@@ -1,2 +1,9 @@
 ﻿dagster
 dagster-cloud
+streamlit
+pandas
+numpy
+requests
+openai
+python-dotenv
+pathlib
