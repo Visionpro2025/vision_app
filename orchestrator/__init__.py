@@ -1,1 +1,1 @@
-# vacío intencionalmente
+from .definitions import defs
