@@ -112,3 +112,4 @@ def attribute_news_to_table100(selected_news: List[Dict[str, Any]],
 
 
 
+

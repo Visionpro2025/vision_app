@@ -91,3 +91,4 @@ def generate_series(t70: T70Result, g: GematriaResult, s: SubliminalResult, q: Q
 
 
 
+
