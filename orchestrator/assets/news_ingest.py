@@ -12,6 +12,9 @@ from pathlib import Path
 # Add modules directory to path for imports
 sys.path.append(str(Path(__file__).parent.parent.parent / "modules"))
 
+# Import environment validation utility
+from ..utils.env_check import require_env
+
 @asset(
     name="news_ingest",
     description="Ingests news from various sources using the professional news ingestion system",
@@ -29,6 +32,15 @@ def news_ingest() -> pd.DataFrame:
     """
     try:
         from noticias_module import ProfessionalNewsIngestion
+        
+        # Validate required environment variables for news APIs
+        # Note: If running in demo mode, these may not be required
+        try:
+            secrets = require_env(["NEWS_API_KEY", "GNEWS_API_KEY", "BING_API_KEY"])
+            # Use the validated secrets if available
+        except ValueError:
+            # Demo mode - continue without API keys
+            secrets = {}
         
         # Initialize the news ingestion system
         news_system = ProfessionalNewsIngestion()

@@ -11,6 +11,7 @@ from .assets.gematria_transform import gematria_transform, gematria_metadata
 from .assets.tabla100_convert import tabla100_convert, tabla100_metadata
 from .assets.subliminal_score import subliminal_score, subliminal_metadata
 from .assets.analysis_aggregate import analysis_aggregate, analysis_summary
+from .assets.healthcheck import healthcheck
 
 # DEFINITIONS: este objeto es lo que Dagster Cloud carga
 defs = Definitions(
@@ -32,6 +33,9 @@ defs = Definitions(
         # Final aggregation
         analysis_aggregate,
         analysis_summary,
+        
+        # Health check
+        healthcheck,
     ],
 )
 

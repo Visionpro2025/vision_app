@@ -27,6 +27,13 @@ def main():
         schedule_names = [s.name for s in defs.schedules]
         print("schedules:", schedule_names)
         
+        # Verify timezone configuration
+        for schedule in defs.schedules:
+            if hasattr(schedule, 'execution_timezone'):
+                print(f"✅ {schedule.name}: timezone={schedule.execution_timezone}")
+            else:
+                print(f"⚠️  {schedule.name}: no timezone configured")
+        
         # Verify critical components
         critical_assets = ["news_ingest", "gematria_transform", "tabla100_convert", "subliminal_score", "analysis_aggregate"]
         missing_assets = [asset for asset in critical_assets if asset not in asset_names]

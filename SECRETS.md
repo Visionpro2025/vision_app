@@ -10,6 +10,10 @@ Las siguientes variables de entorno son utilizadas por el sistema de noticias:
 - **GNEWS_API_KEY**: API key para GNews API (https://gnews.io/)
 - **BING_API_KEY**: API key para Bing News Search API
 
+### Configuración de Zona Horaria
+
+Los schedules están configurados para ejecutarse en **America/Chicago** (CT/CST).
+
 ### Configuración en Dagster Cloud
 
 1. Ve a **Settings** → **Secrets** en tu organización de Dagster Cloud

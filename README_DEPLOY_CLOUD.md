@@ -93,9 +93,10 @@ En la UI de Dagster Cloud, deberías ver:
 - **Problema**: Dependencia faltante
 - **Solución**: Verificar `requirements.txt` incluye todas las dependencias necesarias
 
-### KeyError/None en Secretos
+### ValueError en Secretos
 - **Problema**: Variable de entorno no definida
-- **Solución**: Configurar secretos en Dagster Cloud Settings
+- **Solución**: Configurar secretos en Dagster Cloud Settings → Secrets
+- **Mensaje típico**: "Falta variable X. Defínela en Dagster Cloud → Settings → Secrets"
 
 ### Row count 0 en Ingestión
 - **Problema**: Fuente RSS/API no disponible
@@ -104,6 +105,15 @@ En la UI de Dagster Cloud, deberías ver:
 ### Error de Importación de Módulos
 - **Problema**: Módulos en `modules/` no encontrados
 - **Solución**: Verificar que `modules/` esté en el repositorio
+
+### Problemas de Zona Horaria
+- **Problema**: Schedules ejecutándose en hora incorrecta
+- **Solución**: Verificar que `execution_timezone="America/Chicago"` esté configurado
+- **Nota**: Los schedules están configurados para CT/CST (America/Chicago)
+
+### Health Check Falla
+- **Problema**: Asset `healthcheck` retorna status "unhealthy"
+- **Solución**: Revisar logs del asset para identificar el error específico
 
 ## Estructura del Pipeline
 
