@@ -1,15 +1,16 @@
 ﻿FROM python:3.11-slim
-
-# Instalar dependencias básicas de sistema
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
-
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 WORKDIR /app
 
-# Dependencias de Python
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Dependencias
+COPY requirements.txt /app/requirements.txt
+RUN pip install --upgrade pip && pip install -r /app/requirements.txt
 
-# Código de la app
-COPY . .
+# Código
+COPY . /app
+ENV PYTHONPATH=/app
+
+# Sanidad opcional
+RUN python -c "import sys, dagster; print('Python:', sys.version); print('Dagster:', dagster.__version__)"
