@@ -87,3 +87,4 @@ st.info("Ahora puedes acceder a todas las funcionalidades desde el menú lateral
 
 
 
+

@@ -59,3 +59,4 @@ def generate_preliminary_series(candidatos):
     return series
 
 
+
